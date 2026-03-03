@@ -1,6 +1,7 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
+import { bandRouter } from "./routers/band";
 import { publicProcedure, router } from "./_core/trpc";
 
 export const appRouter = router({
@@ -17,12 +18,7 @@ export const appRouter = router({
     }),
   }),
 
-  // TODO: add feature routers here, e.g.
-  // todo: router({
-  //   list: protectedProcedure.query(({ ctx }) =>
-  //     db.getUserTodos(ctx.user.id)
-  //   ),
-  // }),
+  band: bandRouter,
 });
 
 export type AppRouter = typeof appRouter;

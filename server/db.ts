@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, bandMembers, bandEvents, bandAttendance, bandHolidays, bandSystemData, BandMember, BandEvent, BandAttendance, BandHoliday, BandSystemData, InsertBandMember, InsertBandEvent, InsertBandAttendance, InsertBandHoliday, InsertBandSystemData } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -90,3 +90,127 @@ export async function getUserByOpenId(openId: string) {
 }
 
 // TODO: add feature queries here as your schema grows.
+
+// Band Management System queries
+export async function getBandMembers() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(bandMembers);
+}
+
+export async function addBandMember(member: InsertBandMember) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.insert(bandMembers).values(member);
+  return result;
+}
+
+export async function deleteBandMember(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  return await db.delete(bandMembers).where(eq(bandMembers.id, id));
+}
+
+export async function updateBandMember(id: number, data: Partial<BandMember>) {
+  const db = await getDb();
+  if (!db) return null;
+  return await db.update(bandMembers).set(data).where(eq(bandMembers.id, id));
+}
+
+export async function getBandEvents() {
+  const db = await getDb();
+  if (!db) return [];
+  const events = await db.select().from(bandEvents);
+  
+  // Fetch attendance for each event
+  const eventsWithAttendance = await Promise.all(
+    events.map(async (event) => {
+      const attendance = await db.select().from(bandAttendance).where(eq(bandAttendance.eventId, event.id));
+      const attendanceMap: Record<number, string> = {};
+      attendance.forEach((a) => {
+        attendanceMap[a.memberId] = a.status;
+      });
+      return {
+        ...event,
+        attendance: attendanceMap,
+      };
+    })
+  );
+  
+  return eventsWithAttendance;
+}
+
+export async function addBandEvent(event: InsertBandEvent) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.insert(bandEvents).values(event);
+  return result;
+}
+
+export async function updateBandEvent(id: number, data: Partial<BandEvent>) {
+  const db = await getDb();
+  if (!db) return null;
+  return await db.update(bandEvents).set(data).where(eq(bandEvents.id, id));
+}
+
+export async function deleteBandEvent(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  return await db.delete(bandEvents).where(eq(bandEvents.id, id));
+}
+
+export async function getBandAttendance(eventId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(bandAttendance).where(eq(bandAttendance.eventId, eventId));
+}
+
+export async function setAttendance(eventId: number, memberId: number, status: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const existing = await db.select().from(bandAttendance).where(and(eq(bandAttendance.eventId, eventId), eq(bandAttendance.memberId, memberId)));
+  if (existing.length > 0) {
+    return await db.update(bandAttendance).set({ status: status as any }).where(and(eq(bandAttendance.eventId, eventId), eq(bandAttendance.memberId, memberId)));
+  } else {
+    return await db.insert(bandAttendance).values({ eventId, memberId, status: status as any });
+  }
+}
+
+export async function getBandHolidays() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(bandHolidays);
+}
+
+export async function addBandHoliday(holiday: InsertBandHoliday) {
+  const db = await getDb();
+  if (!db) return null;
+  return await db.insert(bandHolidays).values(holiday).onDuplicateKeyUpdate({ set: { name: holiday.name } });
+}
+
+export async function getBandSystemData() {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(bandSystemData).limit(1);
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function initBandSystemData(adminPassword: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const existing = await db.select().from(bandSystemData).limit(1);
+  if (existing.length > 0) {
+    return await db.update(bandSystemData).set({ adminPassword, isSetup: 1 }).where(eq(bandSystemData.id, existing[0].id));
+  } else {
+    return await db.insert(bandSystemData).values({ adminPassword, isSetup: 1 });
+  }
+}
+
+export async function updateBandSystemData(adminPassword: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const existing = await db.select().from(bandSystemData).limit(1);
+  if (existing.length > 0) {
+    return await db.update(bandSystemData).set({ adminPassword }).where(eq(bandSystemData.id, existing[0].id));
+  }
+}

@@ -7,6 +7,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { trpc } from "@/lib/trpc";
 
 // ============================================
 // TYPES
@@ -27,9 +28,11 @@ interface BandEvent {
   endTime: string;
   location: string;
   type: "rehearsal" | "performance" | "meeting" | "other";
-  notes: string;
-  attendance: Record<number, "going" | "not-going">;
-  isCompleted?: boolean; // Auto-marked as completed if end time has passed
+  notes?: string | null;
+  attendance: Record<number, string>;
+  isCompleted?: number | boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 interface Holiday {
@@ -216,7 +219,6 @@ function initializeHolidays(savedHolidays: Holiday[]): Holiday[] {
 }
 
 function getHKTime(): Date {
-  // Use system time which should be HK time (UTC+8)
   return new Date();
 }
 
@@ -226,7 +228,6 @@ function isDayCompleted(dateStr: string): boolean {
   return dateStr < todayStr;
 }
 
-// Check if event has ended based on end time
 function isEventEnded(event: BandEvent): boolean {
   const hkNow = getHKTime();
   const todayStr = formatDateStr(hkNow);
@@ -287,16 +288,6 @@ const COLOR_MAP: Record<string, string> = {
   indigo: "bg-indigo-500",
   orange: "bg-orange-500",
 };
-const COLOR_HEX: Record<string, string> = {
-  blue: "#3b82f6",
-  purple: "#8b5cf6",
-  green: "#22c55e",
-  red: "#ef4444",
-  yellow: "#eab308",
-  pink: "#ec4899",
-  indigo: "#6366f1",
-  orange: "#f97316",
-};
 
 // ============================================
 // TOAST COMPONENT
@@ -311,16 +302,24 @@ interface ToastState {
 // MAIN APP COMPONENT
 // ============================================
 export default function Home() {
+  // tRPC queries
+  const systemDataQuery = trpc.band.getSystemData.useQuery();
+  const membersQuery = trpc.band.getMembers.useQuery();
+  const eventsQuery = trpc.band.getEvents.useQuery();
+  const holidaysQuery = trpc.band.getHolidays.useQuery();
 
+  // tRPC mutations
+  const initSystemMutation = trpc.band.initSystem.useMutation();
+  const updatePasswordMutation = trpc.band.updateSystemPassword.useMutation();
+  const addMemberMutation = trpc.band.addMember.useMutation();
+  const updateMemberMutation = trpc.band.updateMember.useMutation();
+  const deleteMemberMutation = trpc.band.deleteMember.useMutation();
+  const addEventMutation = trpc.band.addEvent.useMutation();
+  const updateEventMutation = trpc.band.updateEvent.useMutation();
+  const deleteEventMutation = trpc.band.deleteEvent.useMutation();
+  const setAttendanceMutation = trpc.band.setAttendance.useMutation();
+  const addHolidayMutation = trpc.band.addHoliday.useMutation();
 
-  const [systemData, setSystemData] = useState<SystemData>({
-    isSetup: false,
-    adminPassword: "",
-    members: [],
-    events: [],
-    holidays: [],
-  });
-  const [hkHolidays, setHkHolidays] = useState<Holiday[]>([]);
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [currentView, setCurrentView] = useState<"calendar" | "list" | "members">("calendar");
@@ -389,30 +388,14 @@ export default function Home() {
     setCurrentListTab("incomplete");
   };
 
-  // Load data
+  // Initialize holidays on mount
   useEffect(() => {
-    const saved = localStorage.getItem("bandSystemData");
-    let data: SystemData = {
-      isSetup: false,
-      adminPassword: "",
-      members: [],
-      events: [],
-      holidays: [],
-    };
-    if (saved) {
-      try {
-        data = JSON.parse(saved);
-      } catch {
-        // ignore
-      }
-    }
-    setSystemData(data);
-    const holidays = initializeHolidays(data.holidays || []);
-    setHkHolidays(holidays);
-
-    if (!data.isSetup) {
+    const hkHolidays = initializeHolidays(holidaysQuery.data || []);
+    
+    // Check if system is set up
+    if (systemDataQuery.data && !systemDataQuery.data.isSetup) {
       setShowSetupModal(true);
-    } else {
+    } else if (systemDataQuery.data?.isSetup) {
       setShowLoginModal(true);
     }
 
@@ -421,41 +404,47 @@ export default function Home() {
       setCurrentDate(new Date());
     }, 60000);
     return () => clearInterval(interval);
-  }, []);
-
-  const saveData = useCallback((data: SystemData) => {
-    localStorage.setItem("bandSystemData", JSON.stringify(data));
-    setSystemData(data);
-  }, []);
+  }, [systemDataQuery.data, holidaysQuery.data]);
 
   // ============================================
   // SETUP
   // ============================================
-  const handleSetup = (e: React.FormEvent) => {
+  const handleSetup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (setupPassword !== setupConfirm) return showToast("兩次輸入的密碼不一致", "error");
     if (setupPassword.length < 4) return showToast("密碼最少需要4個字元", "error");
 
-    const newData: SystemData = {
-      ...systemData,
-      isSetup: true,
-      adminPassword: setupPassword,
-      holidays: hkHolidays,
-    };
-    if (setupFirstName.trim()) {
-      newData.members.push({
-        id: Date.now(),
-        name: setupFirstName.trim(),
-        instrument: setupFirstInstrument.trim(),
-        color: "blue",
-        password: "",
-      });
+    try {
+      await initSystemMutation.mutateAsync({ adminPassword: setupPassword });
+      
+      // Add first member if provided
+      if (setupFirstName.trim()) {
+        await addMemberMutation.mutateAsync({
+          name: setupFirstName.trim(),
+          instrument: setupFirstInstrument.trim(),
+          color: "blue",
+          password: "",
+        });
+      }
+
+      // Add holidays
+      const hkHolidays = initializeHolidays([]);
+      for (const holiday of hkHolidays) {
+        await addHolidayMutation.mutateAsync(holiday);
+      }
+
+      setShowSetupModal(false);
+      showToast("設定完成！香港假期已自動載入（2026年起）", "success");
+      setShowLoginModal(true);
+      setLoginTab("admin");
+      
+      // Refetch data
+      systemDataQuery.refetch();
+      membersQuery.refetch();
+      holidaysQuery.refetch();
+    } catch (error) {
+      showToast("設定失敗，請重試", "error");
     }
-    saveData(newData);
-    setShowSetupModal(false);
-    showToast("設定完成！香港假期已自動載入（2026年起）", "success");
-    setShowLoginModal(true);
-    setLoginTab("admin");
   };
 
   // ============================================
@@ -463,7 +452,7 @@ export default function Home() {
   // ============================================
   const handleAdminLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (adminLoginPassword === systemData.adminPassword) {
+    if (adminLoginPassword === systemDataQuery.data?.adminPassword) {
       setCurrentUser({ id: "admin", role: "admin", name: "主管" });
       setShowLoginModal(false);
       setAdminLoginPassword("");
@@ -474,7 +463,7 @@ export default function Home() {
   };
 
   const handleMemberLogin = (memberId: number) => {
-    const member = systemData.members.find((m) => m.id === memberId);
+    const member = membersQuery.data?.find((m) => m.id === memberId);
     if (!member) return;
     if (!member.password) {
       // First login - set password
@@ -482,13 +471,15 @@ export default function Home() {
       if (!newPassword || newPassword.length < 4) return showToast("密碼太短或取消設定", "error");
       const confirmPassword = prompt("請再次輸入密碼確認：");
       if (newPassword !== confirmPassword) return showToast("兩次輸入的密碼不一致", "error");
-      const newData = { ...systemData };
-      const memberIdx = newData.members.findIndex((m) => m.id === memberId);
-      newData.members[memberIdx].password = newPassword;
-      saveData(newData);
-      setCurrentUser({ id: memberId, role: "member", name: member.name });
-      setShowLoginModal(false);
-      showToast(`歡迎，${member.name}！密碼已設定`, "success");
+      
+      updateMemberMutation.mutate({ id: memberId, password: newPassword }, {
+        onSuccess: () => {
+          setCurrentUser({ id: memberId, role: "member", name: member.name });
+          setShowLoginModal(false);
+          showToast(`歡迎，${member.name}！密碼已設定`, "success");
+          membersQuery.refetch();
+        },
+      });
     } else {
       const password = prompt(`請輸入 ${member.name} 的密碼：`);
       if (password === null) return;
@@ -516,26 +507,27 @@ export default function Home() {
     if (!regName.trim()) return showToast("請輸入名稱", "error");
     if (regPassword.length < 4) return showToast("密碼最少需要4個字元", "error");
     if (regPassword !== regConfirm) return showToast("兩次輸入的密碼不一致", "error");
-    if (systemData.members.some((m) => m.name === regName.trim())) return showToast("此名稱已被使用", "error");
+    if (membersQuery.data?.some((m) => m.name === regName.trim())) return showToast("此名稱已被使用", "error");
 
-    const newMember: Member = {
-      id: Date.now(),
+    addMemberMutation.mutate({
       name: regName.trim(),
       instrument: regInstrument.trim(),
       color: selectedRegColor,
       password: regPassword,
-    };
-    const newData = { ...systemData, members: [...systemData.members, newMember] };
-    saveData(newData);
-    setRegName("");
-    setRegInstrument("");
-    setRegPassword("");
-    setRegConfirm("");
-    setSelectedRegColor("blue");
-    setShowRegisterModal(false);
-    showToast(`${newMember.name} 已註冊！`, "success");
-    setShowLoginModal(true);
-    setLoginTab("member");
+    }, {
+      onSuccess: () => {
+        setRegName("");
+        setRegInstrument("");
+        setRegPassword("");
+        setRegConfirm("");
+        setSelectedRegColor("blue");
+        setShowRegisterModal(false);
+        showToast(`${regName} 已註冊！`, "success");
+        setShowLoginModal(true);
+        setLoginTab("member");
+        membersQuery.refetch();
+      },
+    });
   };
 
   // ============================================
@@ -562,7 +554,7 @@ export default function Home() {
   };
 
   const openEventModal = (eventId: number) => {
-    const event = systemData.events.find((e) => e.id === eventId);
+    const event = eventsQuery.data?.find((e) => e.id === eventId);
     if (!event) return;
     setSelectedEventId(eventId);
     if (currentUser?.role === "admin" && !isEventEnded(event)) {
@@ -588,13 +580,12 @@ export default function Home() {
   };
 
   const checkDateHolidayFor = (date: string) => {
-    const holiday = hkHolidays.find((h) => h.date === date);
+    const holiday = holidaysQuery.data?.find((h) => h.date === date);
     setDateHolidayWarning(holiday ? holiday.name : "");
   };
 
   const handleSaveEvent = (e: React.FormEvent) => {
     e.preventDefault();
-    // For admin, allow editing past events (but not past dates for new events)
     if (!selectedEventId && isDayCompleted(eventDate)) {
       return showToast("新增活動不能選擇已過期的日期", "error");
     }
@@ -604,26 +595,9 @@ export default function Home() {
 
     if (endTime <= startTime) return showToast("結束時間必須晚於開始時間", "error");
 
-    const newData = { ...systemData, events: [...systemData.events] };
-
     if (selectedEventId) {
-      const idx = newData.events.findIndex((e) => e.id === selectedEventId);
-      if (idx !== -1) {
-        newData.events[idx] = {
-          ...newData.events[idx],
-          title: eventTitle,
-          date: eventDate,
-          startTime,
-          endTime,
-          location: eventLocation,
-          type: eventType,
-          notes: eventNotes,
-        };
-        showToast("活動已更新", "success");
-      }
-    } else {
-      newData.events.push({
-        id: Date.now(),
+      updateEventMutation.mutate({
+        id: selectedEventId,
         title: eventTitle,
         date: eventDate,
         startTime,
@@ -631,103 +605,130 @@ export default function Home() {
         location: eventLocation,
         type: eventType,
         notes: eventNotes,
-        attendance: {},
-        isCompleted: false,
+      }, {
+        onSuccess: () => {
+          showToast("活動已更新", "success");
+          setShowEventModal(false);
+          eventsQuery.refetch();
+        },
       });
-      showToast("活動已新增", "success");
+    } else {
+      addEventMutation.mutate({
+        title: eventTitle,
+        date: eventDate,
+        startTime,
+        endTime,
+        location: eventLocation,
+        type: eventType,
+        notes: eventNotes,
+      }, {
+        onSuccess: () => {
+          showToast("活動已新增", "success");
+          setShowEventModal(false);
+          eventsQuery.refetch();
+        },
+      });
     }
-    saveData(newData);
-    setShowEventModal(false);
   };
 
   const handleDeleteEvent = () => {
     if (!selectedEventId) return;
-    const event = systemData.events.find((e) => e.id === selectedEventId);
+    const event = eventsQuery.data?.find((e) => e.id === selectedEventId);
     if (event && isEventEnded(event)) return showToast("此活動已結束，不能刪除", "error");
     if (!confirm("確定要刪除這個活動嗎？")) return;
-    const newData = { ...systemData, events: systemData.events.filter((e) => e.id !== selectedEventId) };
-    saveData(newData);
-    setShowEventModal(false);
-    showToast("活動已刪除", "success");
+    
+    deleteEventMutation.mutate({ id: selectedEventId }, {
+      onSuccess: () => {
+        setShowEventModal(false);
+        showToast("活動已刪除", "success");
+        eventsQuery.refetch();
+      },
+    });
   };
 
   const handleAttendanceChange = (eventId: number, status: "going" | "not-going") => {
     if (currentUser?.role !== "member") return;
-    const event = systemData.events.find((e) => e.id === eventId);
+    const event = eventsQuery.data?.find((e) => e.id === eventId);
     if (!event) return;
     if (isEventEnded(event)) return showToast("此活動已結束，不能修改出席狀態", "error");
 
-    const newData = { ...systemData, events: [...systemData.events] };
-    const idx = newData.events.findIndex((e) => e.id === eventId);
-    newData.events[idx] = {
-      ...newData.events[idx],
-      attendance: { ...newData.events[idx].attendance, [currentUser.id as number]: status },
-    };
-    saveData(newData);
-    showToast(status === "going" ? "已確認出席" : "已確認不出席", "success");
+    setAttendanceMutation.mutate({
+      eventId,
+      memberId: currentUser.id as number,
+      status,
+    }, {
+      onSuccess: () => {
+        showToast(status === "going" ? "已確認出席" : "已確認不出席", "success");
+        eventsQuery.refetch();
+      },
+    });
   };
 
   const handleSetAttendance = (status: "going" | "not-going") => {
     if (!selectedEventId || currentUser?.role !== "member") return;
-    const event = systemData.events.find((e) => e.id === selectedEventId);
+    const event = eventsQuery.data?.find((e) => e.id === selectedEventId);
     if (!event) return;
     if (isEventEnded(event)) return showToast("此活動已結束，不能修改出席狀態", "error");
 
-    const newData = { ...systemData, events: [...systemData.events] };
-    const idx = newData.events.findIndex((e) => e.id === selectedEventId);
-    newData.events[idx] = {
-      ...newData.events[idx],
-      attendance: { ...newData.events[idx].attendance, [currentUser.id as number]: status },
-    };
-    saveData(newData);
-    showToast(status === "going" ? "已確認出席" : "已確認不出席", "success");
+    setAttendanceMutation.mutate({
+      eventId: selectedEventId,
+      memberId: currentUser.id as number,
+      status,
+    }, {
+      onSuccess: () => {
+        showToast(status === "going" ? "已確認出席" : "已確認不出席", "success");
+        eventsQuery.refetch();
+      },
+    });
   };
 
   // ============================================
   // MEMBER MANAGEMENT
   // ============================================
   const handleResetMemberPassword = (memberId: number) => {
-    const member = systemData.members.find((m) => m.id === memberId);
+    const member = membersQuery.data?.find((m) => m.id === memberId);
     if (!member) return;
     const newPassword = prompt(`為 ${member.name} 設定新密碼（最少4個字元）：`);
     if (!newPassword) return;
     if (newPassword.length < 4) return showToast("密碼太短", "error");
-    const newData = { ...systemData };
-    const idx = newData.members.findIndex((m) => m.id === memberId);
-    newData.members[idx].password = newPassword;
-    saveData(newData);
-    showToast(`${member.name} 的密碼已重設`, "success");
+    
+    updateMemberMutation.mutate({ id: memberId, password: newPassword }, {
+      onSuccess: () => {
+        showToast(`${member.name} 的密碼已重設`, "success");
+        membersQuery.refetch();
+      },
+    });
   };
 
   const handleResetAdminPassword = () => {
     const currentPassword = prompt("請輸入現有主管密碼：");
-    if (currentPassword !== systemData.adminPassword) return showToast("密碼錯誤", "error");
+    if (currentPassword !== systemDataQuery.data?.adminPassword) return showToast("密碼錯誤", "error");
     const newPassword = prompt("請輸入新主管密碼（最少4個字元）：");
     if (!newPassword || newPassword.length < 4) return showToast("密碼太短", "error");
     const confirmPassword = prompt("請再次輸入新密碼確認：");
     if (newPassword !== confirmPassword) return showToast("兩次輸入不一致", "error");
-    const newData = { ...systemData, adminPassword: newPassword };
-    saveData(newData);
-    showToast("主管密碼已重設", "success");
+    
+    updatePasswordMutation.mutate({ adminPassword: newPassword }, {
+      onSuccess: () => {
+        showToast("主管密碼已重設", "success");
+        systemDataQuery.refetch();
+      },
+    });
   };
 
   const handleDeleteMember = (memberId: number) => {
     if (!confirm("確定要刪除這位成員嗎？所有出席記錄也會被移除。")) return;
-    const newData = {
-      ...systemData,
-      members: systemData.members.filter((m) => m.id !== memberId),
-      events: systemData.events.map((e) => {
-        const newAttendance = { ...e.attendance };
-        delete newAttendance[memberId];
-        return { ...e, attendance: newAttendance };
-      }),
-    };
-    if (currentUser?.id === memberId) {
-      setCurrentUser(null);
-      setShowLoginModal(true);
-    }
-    saveData(newData);
-    showToast("成員已刪除", "success");
+    
+    deleteMemberMutation.mutate({ id: memberId }, {
+      onSuccess: () => {
+        if (currentUser?.id === memberId) {
+          setCurrentUser(null);
+          setShowLoginModal(true);
+        }
+        showToast("成員已刪除", "success");
+        membersQuery.refetch();
+      },
+    });
   };
 
   // ============================================
@@ -740,6 +741,7 @@ export default function Home() {
   const getFirstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
 
   const todayStr = formatDateStr(new Date());
+  const hkHolidays = initializeHolidays(holidaysQuery.data || []);
 
   const renderCalendar = () => {
     const daysInMonth = getDaysInMonth(calendarYear, calendarMonth);
@@ -756,7 +758,7 @@ export default function Home() {
       const isToday = dateStr === todayStr;
       const dayCompleted = isDayCompleted(dateStr);
       const holidays = hkHolidays.filter((h) => h.date === dateStr);
-      const dayEvents = systemData.events
+      const dayEvents = (eventsQuery.data || [])
         .filter((e) => e.date === dateStr)
         .sort((a, b) => a.startTime.localeCompare(b.startTime));
 
@@ -836,7 +838,7 @@ export default function Home() {
   // LIST RENDERING
   // ============================================
   const getFilteredEvents = () => {
-    let filtered = systemData.events.filter((e) => {
+    let filtered = (eventsQuery.data || []).filter((e) => {
       if (filterByDate && e.date !== filterByDate) return false;
       const d = new Date(e.date);
       if (d.getFullYear() !== listYear) return false;
@@ -859,7 +861,7 @@ export default function Home() {
   // ============================================
   // SELECTED EVENT
   // ============================================
-  const selectedEvent = selectedEventId ? systemData.events.find((e) => e.id === selectedEventId) : null;
+  const selectedEvent = selectedEventId ? eventsQuery.data?.find((e) => e.id === selectedEventId) : null;
   const selectedEventEnded = selectedEvent ? isEventEnded(selectedEvent) : false;
 
   // ============================================
@@ -871,6 +873,18 @@ export default function Home() {
 
   const minuteOptions = [];
   for (let i = 0; i < 60; i++) minuteOptions.push(String(i).padStart(2, "0"));
+
+  // Loading state
+  if (systemDataQuery.isLoading || membersQuery.isLoading || eventsQuery.isLoading || holidaysQuery.isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}>
+        <div className="text-white text-center">
+          <div className="text-4xl mb-4">⏳</div>
+          <p>載入中...</p>
+        </div>
+      </div>
+    );
+  }
 
   // ============================================
   // RENDER
@@ -975,10 +989,10 @@ export default function Home() {
             {loginTab === "member" ? (
               <div>
                 <div className="space-y-2 max-h-64 overflow-y-auto mb-4">
-                  {systemData.members.length === 0 ? (
+                  {(membersQuery.data || []).length === 0 ? (
                     <p className="text-center text-gray-500 py-6 text-sm">暫無成員，請先註冊</p>
                   ) : (
-                    systemData.members.map((member) => (
+                    (membersQuery.data || []).map((member) => (
                       <div
                         key={member.id}
                         onClick={() => handleMemberLogin(member.id)}
@@ -1299,7 +1313,7 @@ export default function Home() {
                       <span className="text-sm text-gray-500">
                         出席: {Object.values(selectedEvent.attendance).filter(v => v === "going").length} |
                         缺席: {Object.values(selectedEvent.attendance).filter(v => v === "not-going").length} |
-                        待定: {systemData.members.length - Object.values(selectedEvent.attendance).filter(v => v === "going").length - Object.values(selectedEvent.attendance).filter(v => v === "not-going").length}
+                        待定: {(membersQuery.data || []).length - Object.values(selectedEvent.attendance).filter(v => v === "going").length - Object.values(selectedEvent.attendance).filter(v => v === "not-going").length}
                         {selectedEventEnded ? " (已完結)" : ""}
                       </span>
                     </div>
@@ -1308,7 +1322,7 @@ export default function Home() {
                       <div className="mb-5">
                         <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 mb-3">
                           <p className="text-purple-800 font-medium text-sm mb-0.5">
-                            你好，{systemData.members.find(m => m.id === currentUser.id)?.name}！
+                            你好，{(membersQuery.data || []).find(m => m.id === currentUser.id)?.name}！
                           </p>
                           <p className="text-purple-600 text-xs">請選擇你的出席狀態：</p>
                         </div>
@@ -1331,10 +1345,10 @@ export default function Home() {
 
                     {currentUser?.role === "admin" && (
                       <div className="space-y-2">
-                        {systemData.members.length === 0 ? (
+                        {(membersQuery.data || []).length === 0 ? (
                           <p className="text-center text-gray-500 py-4 text-sm">暫無成員</p>
                         ) : (
-                          systemData.members.map((member) => {
+                          (membersQuery.data || []).map((member) => {
                             const status = selectedEvent.attendance[member.id];
                             return (
                               <div key={member.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -1376,7 +1390,7 @@ export default function Home() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-800">Band隊管理系統</h1>
-                <p className="text-xs text-gray-500">主管模式 - 完整管理權限</p>
+                <p className="text-xs text-gray-500">{currentUser?.role === "admin" ? "主管模式 - 完整管理權限" : "成員模式"}</p>
               </div>
             </div>
             {currentUser ? (
@@ -1405,10 +1419,10 @@ export default function Home() {
           {/* Stats */}
           <div className="grid grid-cols-4 gap-3 mt-4 pt-4 border-t border-gray-100">
             {[
-              { label: "本月活動", value: systemData.events.filter(e => { const d = new Date(e.date); return d.getMonth() === calendarMonth && d.getFullYear() === calendarYear; }).length, icon: "fa-calendar-check", color: "text-purple-600" },
-              { label: "出席記錄", value: (() => { const monthEvents = systemData.events.filter(e => { const d = new Date(e.date); return d.getMonth() === calendarMonth && d.getFullYear() === calendarYear; }); let count = 0; monthEvents.forEach(e => systemData.members.forEach(m => { if (e.attendance[m.id] === "going") count++; })); return count; })(), icon: "fa-user-check", color: "text-green-600" },
+              { label: "本月活動", value: (eventsQuery.data || []).filter(e => { const d = new Date(e.date); return d.getMonth() === calendarMonth && d.getFullYear() === calendarYear; }).length, icon: "fa-calendar-check", color: "text-purple-600" },
+              { label: "出席記錄", value: (() => { const monthEvents = (eventsQuery.data || []).filter(e => { const d = new Date(e.date); return d.getMonth() === calendarMonth && d.getFullYear() === calendarYear; }); let count = 0; monthEvents.forEach(e => (membersQuery.data || []).forEach(m => { if (e.attendance[m.id] === "going") count++; })); return count; })(), icon: "fa-user-check", color: "text-green-600" },
               { label: "本月假期", value: hkHolidays.filter(h => { const d = new Date(h.date); return d.getMonth() === calendarMonth && d.getFullYear() === calendarYear; }).length, icon: "fa-umbrella-beach", color: "text-amber-600" },
-              { label: "成員人數", value: systemData.members.length, icon: "fa-users", color: "text-blue-600" },
+              { label: "成員人數", value: (membersQuery.data || []).length, icon: "fa-users", color: "text-blue-600" },
             ].map((stat, i) => (
               <div key={i} className="text-center">
                 <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
@@ -1673,10 +1687,10 @@ export default function Home() {
                             </div>
                           ) : (
                             <div className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded-full">
-                              {goingCount}/{systemData.members.length} 人出席
+                              {goingCount}/{(membersQuery.data || []).length} 人出席
                             </div>
                           )}
-                          {goingCount === systemData.members.length && systemData.members.length > 0 && (
+                          {goingCount === (membersQuery.data || []).length && (membersQuery.data || []).length > 0 && (
                             <span className="text-xs text-green-600 font-medium">全員出席</span>
                           )}
                         </div>
@@ -1706,15 +1720,15 @@ export default function Home() {
                 <i className="fas fa-info-circle mr-2" />香港公眾假期已自動載入（2026年起）。
               </p>
             </div>
-            {systemData.members.length === 0 ? (
+            {(membersQuery.data || []).length === 0 ? (
               <div className="text-center py-12 text-gray-500">
                 <i className="fas fa-users text-4xl mb-3 text-gray-300 block" />
                 <p>暫無成員</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {systemData.members.map((member) => {
-                  const eventCount = systemData.events.filter(e => e.attendance[member.id] === "going").length;
+                {(membersQuery.data || []).map((member) => {
+                  const eventCount = (eventsQuery.data || []).filter(e => e.attendance[member.id] === "going").length;
                   return (
                     <div key={member.id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:border-purple-200 transition-all">
                       <div className="flex items-start justify-between">
