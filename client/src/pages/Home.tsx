@@ -1803,14 +1803,7 @@ export default function Home() {
                                 <span className="text-xs text-gray-500 font-medium">待確認</span>
                               )}
                             </div>
-                          ) : (
-                            <div className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded-full">
-                              {goingCount}/{(membersQuery.data || []).length} 人出席
-                            </div>
-                          )}
-                          {goingCount === (membersQuery.data || []).length && (membersQuery.data || []).length > 0 && (
-                            <span className="text-xs text-green-600 font-medium">全員出席</span>
-                          )}
+                          ) : null}
                         </div>
                       </div>
                     </div>
