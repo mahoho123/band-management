@@ -769,8 +769,8 @@ export default function Home() {
               {holidays[0].name}
             </div>
           )}
-          {dayEvents.slice(0, 1).map((evt, i) => (
-            <div key={i} className="text-xs space-y-0.5">
+          {dayEvents.slice(0, 2).map((evt, i) => (
+            <div key={i} className="text-xs space-y-0.5 mb-1">
               <div
                 className={`px-1.5 py-0.5 rounded truncate font-semibold ${TYPE_CONFIG[evt.type].color}`}
                 title={evt.title}
@@ -787,7 +787,7 @@ export default function Home() {
               )}
             </div>
           ))}
-          {dayEvents.length > 1 && <div className="text-xs text-gray-500 px-1.5">+{dayEvents.length - 1}</div>}
+          {dayEvents.length > 2 && <div className="text-xs text-gray-500 px-1.5 font-semibold">+{dayEvents.length - 2} more</div>}
         </div>
       );
     }
@@ -829,7 +829,7 @@ export default function Home() {
   // ============================================
   const currentYear = new Date().getFullYear();
   const yearOptions = [];
-  for (let y = 2026; y <= currentYear + 10; y++) yearOptions.push(y);
+  for (let y = 2026; y <= 2126; y++) yearOptions.push(y);
 
   const minuteOptions = [];
   for (let i = 0; i < 60; i++) minuteOptions.push(String(i).padStart(2, "0"));
