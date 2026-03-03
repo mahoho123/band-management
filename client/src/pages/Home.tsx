@@ -306,6 +306,9 @@ interface ToastState {
 // ============================================
 // MAIN APP COMPONENT
 // ============================================
+// Auto-refresh interval for real-time sync
+const AUTO_REFRESH_INTERVAL = 5000; // 5 seconds
+
 export default function Home() {
   // tRPC queries
   const systemDataQuery = trpc.band.getSystemData.useQuery();
@@ -433,6 +436,15 @@ export default function Home() {
     }, 60000);
     return () => clearInterval(interval);
   }, []);
+
+  // Auto-refresh for real-time synchronization
+  useEffect(() => {
+    const interval = setInterval(() => {
+      eventsQuery.refetch();
+      membersQuery.refetch();
+    }, AUTO_REFRESH_INTERVAL);
+    return () => clearInterval(interval);
+  }, [eventsQuery, membersQuery]);
 
 
   // ============================================
@@ -1821,14 +1833,27 @@ export default function Home() {
         {/* Members View (Admin only) */}
         {currentView === "members" && currentUser?.role === "admin" && (
           <div className="glass-panel rounded-2xl p-5 shadow-lg">
-            <div className="flex items-center justify-between mb-5">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-5">
               <h2 className="text-xl font-bold text-gray-800">成員管理</h2>
-              <button
-                onClick={handleResetAdminPassword}
-                className="bg-gray-100 text-gray-700 text-sm px-4 py-2 rounded-xl hover:bg-gray-200 transition-all flex items-center gap-2"
-              >
-                <i className="fas fa-key" />重設主管密碼
-              </button>
+              <div className="flex gap-2 flex-wrap">
+                <button
+                  onClick={handleResetAdminPassword}
+                  className="bg-gray-100 text-gray-700 text-sm px-4 py-2 rounded-xl hover:bg-gray-200 transition-all flex items-center gap-2"
+                >
+                  <i className="fas fa-key" />重設主管密碼
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirm('確定要清除所有活動嗎？此操作無法撤銷。')) {
+                      localStorage.removeItem('bandSystemData');
+                      window.location.reload();
+                    }
+                  }}
+                  className="bg-red-50 text-red-600 text-sm px-4 py-2 rounded-xl hover:bg-red-100 transition-all flex items-center gap-2"
+                >
+                  <i className="fas fa-trash-alt" />清除所有活動
+                </button>
+              </div>
             </div>
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-5">
               <p className="text-blue-800 text-sm">
@@ -1844,6 +1869,8 @@ export default function Home() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {(membersQuery.data || []).map((member) => {
                   const eventCount = (eventsQuery.data || []).filter(e => e.attendance[member.id] === "going").length;
+                  const notAttendingCount = (eventsQuery.data || []).filter(e => e.attendance[member.id] === "not-going").length;
+                  const pendingCount = (eventsQuery.data || []).filter(e => !e.attendance[member.id]).length;
                   return (
                     <div key={member.id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:border-purple-200 transition-all">
                       <div className="flex items-start justify-between">
@@ -1874,10 +1901,20 @@ export default function Home() {
                         </div>
                       </div>
                       <div className="mt-3 pt-3 border-t border-gray-200">
-                        <p className="text-xs text-gray-500">
-                          <i className="fas fa-check-circle text-green-600 mr-1" />已確認出席
-                        </p>
-                        <p className="text-sm font-bold text-gray-800">{eventCount} 場活動</p>
+                        <div className="grid grid-cols-3 gap-2">
+                          <div className="text-center">
+                            <p className="text-xs text-green-600 font-bold">{eventCount}</p>
+                            <p className="text-xs text-gray-500">出席</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-xs text-red-600 font-bold">{notAttendingCount}</p>
+                            <p className="text-xs text-gray-500">不出席</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-xs text-gray-600 font-bold">{pendingCount}</p>
+                            <p className="text-xs text-gray-500">待確認</p>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   );
