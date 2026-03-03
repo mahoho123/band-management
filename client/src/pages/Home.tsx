@@ -1,5 +1,5 @@
 /*
- * Band隊管理系統 - 主頁面
+ * 慢半拍 - 主頁面
  * Design: 清新樂譜 (Sheet Music Minimalism)
  * - White background, purple-blue gradient brand color
  * - Noto Sans HK typography, different weights for hierarchy
@@ -219,7 +219,12 @@ function initializeHolidays(savedHolidays: Holiday[]): Holiday[] {
 }
 
 function getHKTime(): Date {
-  return new Date();
+  // 使用系統時間（假設系統時區已設定為 HK 時區 UTC+8）
+  // 或者可以手動調整時區偏移
+  const now = new Date();
+  // 如果需要從香港天文台 API 獲取精確時間，可以在此添加
+  // 但為了性能，使用本地系統時間
+  return now;
 }
 
 function isDayCompleted(dateStr: string): boolean {
@@ -370,7 +375,7 @@ export default function Home() {
   // List view
   const [listYear, setListYear] = useState(new Date().getFullYear());
   const [listMonth, setListMonth] = useState<string>("all");
-  const [filterByDate, setFilterByDate] = useState<string | null>(null);
+  const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
   const [showOtherDates, setShowOtherDates] = useState(true);
 
   const showToast = useCallback((message: string, type: "success" | "error" | "info" = "info") => {
@@ -382,10 +387,24 @@ export default function Home() {
   }, []);
 
   const handleShowMoreEvents = (dateStr: string) => {
-    setFilterByDate(dateStr);
-    setShowOtherDates(true);
+    setSelectedDates(new Set([dateStr]));
+    setShowOtherDates(false);
     setCurrentView("list");
     setCurrentListTab("incomplete");
+  };
+
+  const toggleDateSelection = (dateStr: string) => {
+    const newDates = new Set(selectedDates);
+    if (newDates.has(dateStr)) {
+      newDates.delete(dateStr);
+    } else {
+      newDates.add(dateStr);
+    }
+    setSelectedDates(newDates);
+  };
+
+  const clearDateSelection = () => {
+    setSelectedDates(new Set());
   };
 
   // Initialize on mount
@@ -798,7 +817,7 @@ export default function Home() {
       cells.push(
         <div
           key={dateStr}
-          className={`calendar-day rounded-xl border p-1.5 cursor-pointer flex flex-col ${
+          className={`calendar-day rounded-xl border p-1.5 sm:p-1 cursor-pointer flex flex-col ${
             dayCompleted
               ? "completed-day bg-gray-50 border-gray-200"
               : isToday
@@ -868,8 +887,8 @@ export default function Home() {
                   )}
                 </div>
                 {evt.notes && (
-                  <div className="text-xs text-gray-500 px-1.5 truncate italic">
-                    Notes: {evt.notes}
+                  <div className="text-xs text-gray-500 px-1.5 italic whitespace-pre-wrap break-words">
+                    {evt.notes}
                   </div>
                 )}
               </div>
@@ -898,7 +917,7 @@ export default function Home() {
   // ============================================
   const getFilteredEvents = () => {
     let filtered = (eventsQuery.data || []).filter((e) => {
-      if (filterByDate && e.date !== filterByDate) return false;
+      if (selectedDates.size > 0 && !selectedDates.has(e.date)) return false;
       const d = new Date(e.date);
       if (d.getFullYear() !== listYear) return false;
       if (listMonth !== "all" && d.getMonth() !== parseInt(listMonth)) return false;
@@ -1480,8 +1499,8 @@ export default function Home() {
                 <i className="fas fa-music" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-800">Band隊管理系統</h1>
-                <p className="text-xs text-gray-500">{currentUser?.role === "admin" ? "主管模式 - 完整管理權限" : "成員模式"}</p>
+                <h1 className="text-2xl font-bold text-gray-800">慢半拍</h1>
+                <p className="text-xs text-gray-500">{currentUser?.role === "admin" ? "主管" : "成員"}</p>
               </div>
             </div>
             {currentUser ? (
@@ -1600,7 +1619,7 @@ export default function Home() {
             </div>
 
             {/* Calendar grid */}
-            <div className="grid grid-cols-7 gap-1.5">
+            <div className="grid grid-cols-7 md:grid-cols-7 sm:grid-cols-7 gap-1 sm:gap-1.5">
               {renderCalendar()}
             </div>
           </div>
@@ -1640,23 +1659,11 @@ export default function Home() {
                   <option key={m} value={m}>{m + 1}月</option>
                 ))}
               </select>
-              {filterByDate && (
+              {selectedDates.size > 0 && (
                 <>
-                  <span className="text-sm text-gray-600">篩選日期: {formatDate(filterByDate)}</span>
-                  <label className="flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={showOtherDates}
-                      onChange={(e) => setShowOtherDates(e.target.checked)}
-                      className="rounded"
-                    />
-                    顯示其他日期
-                  </label>
+                  <span className="text-sm text-gray-600">篩選日期: {Array.from(selectedDates).map(formatDate).join(", ")}</span>
                   <button
-                    onClick={() => {
-                      setFilterByDate(null);
-                      setShowOtherDates(true);
-                    }}
+                    onClick={() => clearDateSelection()}
                     className="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-lg"
                   >
                     清除篩選
@@ -1763,8 +1770,8 @@ export default function Home() {
                           </div>
                           {event.notes && (
                             <div className="mt-2 pt-2 border-t border-gray-200 w-full">
-                              <div className="text-xs text-gray-600 mb-1">Remarks:</div>
-                              <div className="text-xs text-gray-700 bg-yellow-50 p-2 rounded border-l-2 border-yellow-300">
+                              <div className="text-xs text-gray-600 mb-1">備註:</div>
+                              <div className="text-xs text-gray-700 bg-yellow-50 p-2 rounded border-l-2 border-yellow-300 whitespace-pre-wrap break-words">
                                 {event.notes}
                               </div>
                             </div>
@@ -1952,10 +1959,24 @@ export default function Home() {
         }
 
         .calendar-day {
-          min-height: 100px;
+          min-height: 80px;
           background: white;
           border: 1px solid #e5e7eb;
           transition: all 0.2s ease;
+        }
+
+        @media (max-width: 640px) {
+          .calendar-day {
+            min-height: 70px;
+            padding: 0.5rem !important;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .calendar-day {
+            min-height: 60px;
+            padding: 0.25rem !important;
+          }
         }
 
         .calendar-day:hover {
