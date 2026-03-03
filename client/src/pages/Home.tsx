@@ -1467,67 +1467,67 @@ export default function Home() {
       )}
 
       {/* Main Content */}
-      <div className="w-full px-2 sm:px-4 py-3 sm:py-6 max-w-full">
+      <div className="w-full px-2 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6 max-w-full">
         {/* Header */}
-        <div className="glass-panel rounded-xl sm:rounded-2xl p-3 sm:p-5 shadow-lg mb-3 sm:mb-4">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 band-gradient rounded-full flex items-center justify-center text-white text-lg sm:text-xl shadow-md flex-shrink-0">
+        <div className="glass-panel rounded-lg sm:rounded-xl md:rounded-2xl p-3 sm:p-4 md:p-5 shadow-lg mb-3 sm:mb-4 md:mb-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 w-full sm:w-auto">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 band-gradient rounded-full flex items-center justify-center text-white text-lg sm:text-xl md:text-2xl shadow-md flex-shrink-0">
                 <i className="fas fa-music" />
               </div>
-              <div className="min-w-0">
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-800 truncate">慢半拍</h1>
+              <div className="min-w-0 flex-1 sm:flex-none">
+                <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 truncate">慢半拍</h1>
                 <p className="text-xs text-gray-500">{currentUser?.role === "admin" ? "主管" : "成員"}</p>
               </div>
             </div>
             {currentUser ? (
-              <div className="flex items-center gap-3">
-                <div className="text-right">
-                  <p className="text-sm font-medium text-gray-800">{currentUser.name}</p>
+              <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                <div className="text-right hidden sm:block">
+                  <p className="text-xs sm:text-sm font-medium text-gray-800 truncate">{currentUser.name}</p>
                   <p className="text-xs text-gray-500">{currentUser.role === "admin" ? "主管" : "成員"}</p>
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="bg-red-50 text-red-600 text-sm px-4 py-2 rounded-xl hover:bg-red-100 transition-all font-medium"
+                  className="bg-red-50 text-red-600 text-xs sm:text-sm px-2 sm:px-4 py-2 rounded-lg sm:rounded-xl hover:bg-red-100 transition-all font-medium whitespace-nowrap"
                 >
-                  <i className="fas fa-sign-out-alt mr-1" />登出
+                  <i className="fas fa-sign-out-alt mr-1" /><span className="hidden sm:inline">登出</span><span className="sm:hidden">出</span>
                 </button>
               </div>
             ) : (
               <button
                 onClick={() => setShowLoginModal(true)}
-                className="band-gradient text-white text-sm px-4 py-2 rounded-xl hover:shadow-md transition-all font-medium"
+                className="band-gradient text-white text-xs sm:text-sm px-2 sm:px-4 py-2 rounded-lg sm:rounded-xl hover:shadow-md transition-all font-medium whitespace-nowrap w-full sm:w-auto"
               >
-                <i className="fas fa-sign-in-alt mr-2" />登入
+                <i className="fas fa-sign-in-alt mr-1" /><span className="hidden sm:inline">登入</span><span className="sm:hidden">入</span>
               </button>
             )}
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-100">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4 mt-3 sm:mt-4 md:mt-5 pt-3 sm:pt-4 md:pt-5 border-t border-gray-100">
             {[
-              { label: "\u672c\u6708\u6d3b\u52d5", value: (eventsQuery.data || []).filter(e => { const d = new Date(e.date); return d.getMonth() === calendarMonth && d.getFullYear() === calendarYear; }).length, icon: "fa-calendar-check", color: "text-purple-600" },
-              { label: "\u672c\u6708\u5047\u671f", value: hkHolidays.filter(h => { const d = new Date(h.date); return d.getMonth() === calendarMonth && d.getFullYear() === calendarYear; }).length, icon: "fa-umbrella-beach", color: "text-amber-600" },
-              { label: "\u6210\u5458\u4eba\u6578", value: (membersQuery.data || []).length, icon: "fa-users", color: "text-blue-600" },
+              { label: "本月活動", value: (eventsQuery.data || []).filter(e => { const d = new Date(e.date); return d.getMonth() === calendarMonth && d.getFullYear() === calendarYear; }).length, icon: "fa-calendar-check", color: "text-purple-600" },
+              { label: "本月假期", value: hkHolidays.filter(h => { const d = new Date(h.date); return d.getMonth() === calendarMonth && d.getFullYear() === calendarYear; }).length, icon: "fa-umbrella-beach", color: "text-amber-600" },
+              { label: "成員人數", value: (membersQuery.data || []).length, icon: "fa-users", color: "text-blue-600" },
             ].map((stat, i) => (
               <div key={i} className="text-center">
-                <div className={`text-lg sm:text-2xl font-bold ${stat.color}`}>{stat.value}</div>
-                <div className="text-xs text-gray-500 mt-0.5">{stat.label}</div>
+                <div className={`text-base sm:text-lg md:text-2xl font-bold ${stat.color}`}>{stat.value}</div>
+                <div className="text-xs md:text-sm text-gray-500 mt-0.5 truncate">{stat.label}</div>
               </div>
             ))}
           </div>
 
           {/* Navigation */}
-          <div className="flex gap-1 sm:gap-2 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-100 flex-wrap">
-            <button onClick={() => setCurrentView("calendar")} className={`nav-tab text-xs sm:text-sm ${currentView === "calendar" ? "active" : ""}`}>
-              <i className="fas fa-calendar-alt" />月曆
+          <div className="flex gap-1 sm:gap-2 mt-3 sm:mt-4 md:mt-5 pt-3 sm:pt-4 md:pt-5 border-t border-gray-100 flex-wrap">
+            <button onClick={() => setCurrentView("calendar")} className={`nav-tab text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 ${currentView === "calendar" ? "active" : ""}`}>
+              <i className="fas fa-calendar-alt" /><span className="hidden sm:inline">月曆</span><span className="sm:hidden">曆</span>
             </button>
-            <button onClick={() => setCurrentView("list")} className={`nav-tab text-xs sm:text-sm ${currentView === "list" ? "active" : ""}`}>
-              <i className="fas fa-list" />活動清單
+            <button onClick={() => setCurrentView("list")} className={`nav-tab text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 ${currentView === "list" ? "active" : ""}`}>
+              <i className="fas fa-list" /><span className="hidden sm:inline">活動清單</span><span className="sm:hidden">清</span>
             </button>
             {currentUser?.role === "admin" && (
-              <button onClick={() => setCurrentView("members")} className={`nav-tab text-xs sm:text-sm ${currentView === "members" ? "active" : ""}`}>
-                <i className="fas fa-users" />成員管理
+              <button onClick={() => setCurrentView("members")} className={`nav-tab text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 ${currentView === "members" ? "active" : ""}`}>
+                <i className="fas fa-users" /><span className="hidden sm:inline">成員管理</span><span className="sm:hidden">成</span>
               </button>
             )}
           </div>
@@ -1535,27 +1535,27 @@ export default function Home() {
 
         {/* Calendar View */}
         {currentView === "calendar" && (
-          <div className="glass-panel rounded-2xl p-5 shadow-lg">
-            <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-3">
+          <div className="glass-panel rounded-lg sm:rounded-xl md:rounded-2xl p-2 sm:p-3 md:p-5 shadow-lg">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-3 sm:mb-5">
+              <div className="flex items-center gap-1 sm:gap-2 md:gap-3 flex-wrap w-full sm:w-auto">
                 <button
                   onClick={() => setCurrentDate(new Date(calendarYear, calendarMonth - 1, 1))}
-                  className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-purple-100 hover:text-purple-600 transition-all text-gray-600"
+                  className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg sm:rounded-xl bg-gray-100 hover:bg-purple-100 hover:text-purple-600 transition-all text-gray-600 text-xs sm:text-sm flex-shrink-0"
                 >
-                  <i className="fas fa-chevron-left text-sm" />
+                  <i className="fas fa-chevron-left" />
                 </button>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 sm:gap-2 min-w-0">
                   <select
                     value={calendarYear}
                     onChange={(e) => setCurrentDate(new Date(parseInt(e.target.value), calendarMonth, 1))}
-                    className="text-lg font-bold text-gray-800 bg-transparent border-none outline-none cursor-pointer"
+                    className="text-sm sm:text-base md:text-lg font-bold text-gray-800 bg-transparent border-none outline-none cursor-pointer"
                   >
                     {yearOptions.map(y => <option key={y} value={y}>{y}年</option>)}
                   </select>
                   <select
                     value={calendarMonth}
                     onChange={(e) => setCurrentDate(new Date(calendarYear, parseInt(e.target.value), 1))}
-                    className="text-lg font-bold text-gray-800 bg-transparent border-none outline-none cursor-pointer"
+                    className="text-sm sm:text-base md:text-lg font-bold text-gray-800 bg-transparent border-none outline-none cursor-pointer"
                   >
                     {[0,1,2,3,4,5,6,7,8,9,10,11].map(m => (
                       <option key={m} value={m}>{m + 1}月</option>
@@ -1564,13 +1564,13 @@ export default function Home() {
                 </div>
                 <button
                   onClick={() => setCurrentDate(new Date(calendarYear, calendarMonth + 1, 1))}
-                  className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-purple-100 hover:text-purple-600 transition-all text-gray-600"
+                  className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg sm:rounded-xl bg-gray-100 hover:bg-purple-100 hover:text-purple-600 transition-all text-gray-600 text-xs sm:text-sm flex-shrink-0"
                 >
-                  <i className="fas fa-chevron-right text-sm" />
+                  <i className="fas fa-chevron-right" />
                 </button>
                 <button
                   onClick={() => setCurrentDate(new Date())}
-                  className="text-xs text-purple-600 hover:text-purple-800 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-lg transition-all font-medium"
+                  className="text-xs sm:text-sm text-purple-600 hover:text-purple-800 bg-purple-50 hover:bg-purple-100 px-2 sm:px-3 py-1.5 rounded-lg transition-all font-medium whitespace-nowrap"
                 >
                   今天
                 </button>
@@ -1578,24 +1578,24 @@ export default function Home() {
               {currentUser?.role === "admin" && (
                 <button
                   onClick={() => openAddEventModal()}
-                  className="band-gradient text-white text-sm px-4 py-2 rounded-xl hover:shadow-md transition-all font-medium flex items-center gap-2"
+                  className="band-gradient text-white text-xs sm:text-sm px-2 sm:px-4 py-2 rounded-lg sm:rounded-xl hover:shadow-md transition-all font-medium flex items-center gap-1 sm:gap-2 whitespace-nowrap w-full sm:w-auto justify-center sm:justify-start"
                 >
-                  <i className="fas fa-plus" />新增活動
+                  <i className="fas fa-plus" /><span className="hidden sm:inline">新增活動</span><span className="sm:hidden">新</span>
                 </button>
               )}
             </div>
 
             {/* Day headers */}
-            <div className="grid grid-cols-7 gap-1.5 mb-1.5">
-              {["日", "一", "二", "三", "四", "五", "六"].map((d, i) => (
-                <div key={d} className={`text-center text-xs font-semibold py-2 ${i === 0 ? "text-red-500" : i === 6 ? "text-blue-500" : "text-gray-500"}`}>
+            <div className="grid grid-cols-7 gap-0.5 sm:gap-1 md:gap-1.5 mb-1 sm:mb-1.5">
+              {["\u65e5", "\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d"].map((d, i) => (
+                <div key={d} className={`text-center text-xs sm:text-sm font-semibold py-1 sm:py-2 ${i === 0 ? "text-red-500" : i === 6 ? "text-blue-500" : "text-gray-500"}`}>
                   {d}
                 </div>
               ))}
             </div>
 
             {/* Calendar grid */}
-            <div className="grid grid-cols-7 gap-1 sm:gap-1.5 w-full">
+            <div className="grid grid-cols-7 gap-0.5 sm:gap-1 md:gap-1.5 w-full">
               {renderCalendar()}
             </div>
           </div>
@@ -1603,39 +1603,39 @@ export default function Home() {
 
         {/* List View */}
         {currentView === "list" && (
-          <div className="glass-panel rounded-2xl p-5 shadow-lg">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-xl font-bold text-gray-800">活動清單</h2>
+          <div className="glass-panel rounded-lg sm:rounded-xl md:rounded-2xl p-3 sm:p-4 md:p-5 shadow-lg">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-3 sm:mb-5">
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">活動清單</h2>
               {currentUser?.role === "admin" && (
                 <button
                   onClick={() => openAddEventModal()}
-                  className="band-gradient text-white text-sm px-4 py-2 rounded-xl hover:shadow-md transition-all font-medium flex items-center gap-2"
+                  className="band-gradient text-white text-xs sm:text-sm px-2 sm:px-4 py-2 rounded-lg sm:rounded-xl hover:shadow-md transition-all font-medium flex items-center gap-1 sm:gap-2 whitespace-nowrap w-full sm:w-auto justify-center sm:justify-start"
                 >
-                  <i className="fas fa-plus" />新增活動
+                  <i className="fas fa-plus" /><span className="hidden sm:inline">新增活動</span><span className="sm:hidden">新</span>
                 </button>
               )}
             </div>
 
             {/* Filters */}
-            <div className="flex gap-3 mb-5 flex-wrap items-center">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-3 sm:mb-5 flex-wrap items-start sm:items-center">
               <input
                 type="text"
-                placeholder="搜尋活動名稱、地點..."
+                placeholder="搜尋活動..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-400 flex-1 min-w-[200px]"
+                className="px-3 sm:px-4 py-2 border border-gray-300 rounded-lg sm:rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-purple-400 flex-1 min-w-0 w-full sm:w-auto"
               />
               <select
                 value={listYear}
                 onChange={(e) => setListYear(parseInt(e.target.value))}
-                className="px-3 py-2 border border-gray-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-400"
+                className="px-2 sm:px-3 py-2 border border-gray-300 rounded-lg sm:rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-purple-400"
               >
                 {yearOptions.map(y => <option key={y} value={y}>{y}年</option>)}
               </select>
               <select
                 value={listMonth}
                 onChange={(e) => setListMonth(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-400"
+                className="px-2 sm:px-3 py-2 border border-gray-300 rounded-lg sm:rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-purple-400"
               >
                 <option value="all">全月</option>
                 {[0,1,2,3,4,5,6,7,8,9,10,11].map(m => (
@@ -1644,37 +1644,37 @@ export default function Home() {
               </select>
               {selectedDates.size > 0 && (
                 <>
-                  <span className="text-sm text-gray-600">篩選日期: {Array.from(selectedDates).map(formatDate).join(", ")}</span>
+                  <span className="text-xs sm:text-sm text-gray-600 truncate">篩選: {Array.from(selectedDates).length}日</span>
                   <button
                     onClick={() => clearDateSelection()}
-                    className="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-lg"
+                    className="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-2 sm:px-3 py-1.5 rounded-lg whitespace-nowrap"
                   >
-                    清除篩選
+                    清除
                   </button>
                 </>
               )}
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-2 mb-5">
+            <div className="flex gap-1 sm:gap-2 mb-3 sm:mb-5">
               <button
                 onClick={() => setCurrentListTab("incomplete")}
-                className={`list-tab-btn flex-1 flex items-center justify-center gap-2 text-sm`}
+                className={`list-tab-btn flex-1 flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-3`}
                 style={currentListTab === "incomplete" ? {} : {}}
               >
-                <i className="fas fa-clock" />
-                <span>未完成</span>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${currentListTab === "incomplete" ? "bg-white/20" : "bg-gray-200 text-gray-600"}`}>
+                <i className="fas fa-clock hidden sm:inline" />
+                <span className="hidden sm:inline">未完成</span><span className="sm:hidden">未</span>
+                <span className={`px-1.5 sm:px-2 py-0.5 rounded-full text-xs font-bold ${currentListTab === "incomplete" ? "bg-white/20" : "bg-gray-200 text-gray-600"}`}>
                   {incompleteEvents.length}
                 </span>
               </button>
               <button
                 onClick={() => setCurrentListTab("completed")}
-                className={`list-tab-btn flex-1 flex items-center justify-center gap-2 text-sm`}
+                className={`list-tab-btn flex-1 flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-3`}
               >
-                <i className="fas fa-check-circle" />
-                <span>已完成</span>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${currentListTab === "completed" ? "bg-white/20" : "bg-gray-200 text-gray-600"}`}>
+                <i className="fas fa-check-circle hidden sm:inline" />
+                <span className="hidden sm:inline">已完成</span><span className="sm:hidden">成</span>
+                <span className={`px-1.5 sm:px-2 py-0.5 rounded-full text-xs font-bold ${currentListTab === "completed" ? "bg-white/20" : "bg-gray-200 text-gray-600"}`}>
                   {completedEvents.length}
                 </span>
               </button>
