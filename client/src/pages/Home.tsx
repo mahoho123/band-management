@@ -1518,10 +1518,8 @@ export default function Home() {
           {/* Stats */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-100">
             {[
-              { label: "本月活動", value: (eventsQuery.data || []).filter(e => { const d = new Date(e.date); return d.getMonth() === calendarMonth && d.getFullYear() === calendarYear; }).length, icon: "fa-calendar-check", color: "text-purple-600" },
-              { label: "出席記錄", value: (() => { const monthEvents = (eventsQuery.data || []).filter(e => { const d = new Date(e.date); return d.getMonth() === calendarMonth && d.getFullYear() === calendarYear; }); let count = 0; monthEvents.forEach(e => (membersQuery.data || []).forEach(m => { if (e.attendance[m.id] === "going") count++; })); return count; })(), icon: "fa-user-check", color: "text-green-600" },
-              { label: "本月假期", value: hkHolidays.filter(h => { const d = new Date(h.date); return d.getMonth() === calendarMonth && d.getFullYear() === calendarYear; }).length, icon: "fa-umbrella-beach", color: "text-amber-600" },
-              { label: "成員人數", value: (membersQuery.data || []).length, icon: "fa-users", color: "text-blue-600" },
+              { label: "\u672c\u6708\u6d3b\u52d5", value: (eventsQuery.data || []).filter(e => { const d = new Date(e.date); return d.getMonth() === calendarMonth && d.getFullYear() === calendarYear; }).length, icon: "fa-calendar-check", color: "text-purple-600" },
+              { label: "\u6210\u5458\u4eba\u6578", value: (membersQuery.data || []).length, icon: "fa-users", color: "text-blue-600" },
             ].map((stat, i) => (
               <div key={i} className="text-center">
                 <div className={`text-lg sm:text-2xl font-bold ${stat.color}`}>{stat.value}</div>
