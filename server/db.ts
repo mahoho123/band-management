@@ -207,10 +207,23 @@ export async function initBandSystemData(adminPassword: string) {
 }
 
 export async function updateBandSystemData(adminPassword: string) {
+  console.log("[updateBandSystemData] Called with password:", adminPassword);
   const db = await getDb();
-  if (!db) return null;
-  const existing = await db.select().from(bandSystemData).limit(1);
-  if (existing.length > 0) {
-    return await db.update(bandSystemData).set({ adminPassword }).where(eq(bandSystemData.id, existing[0].id));
+  if (!db) {
+    console.log("[updateBandSystemData] Database not available");
+    return null;
   }
+  const existing = await db.select().from(bandSystemData).limit(1);
+  console.log("[updateBandSystemData] Existing records:", existing);
+  if (existing.length > 0) {
+    console.log("[updateBandSystemData] Updating record id:", existing[0].id);
+    const result = await db.update(bandSystemData).set({ adminPassword }).where(eq(bandSystemData.id, existing[0].id));
+    console.log("[updateBandSystemData] Update result:", result);
+    // Return the updated record
+    const updated = await db.select().from(bandSystemData).where(eq(bandSystemData.id, existing[0].id)).limit(1);
+    console.log("[updateBandSystemData] Updated record:", updated);
+    return updated.length > 0 ? updated[0] : null;
+  }
+  console.log("[updateBandSystemData] No existing records found");
+  return null;
 }

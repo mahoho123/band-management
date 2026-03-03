@@ -480,6 +480,10 @@ export default function Home() {
   // ============================================
   const handleAdminLogin = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Admin Login Debug:");
+    console.log("Input password:", adminLoginPassword);
+    console.log("Stored password:", systemDataQuery.data?.adminPassword);
+    console.log("System data:", systemDataQuery.data);
     if (adminLoginPassword === systemDataQuery.data?.adminPassword) {
       setCurrentUser({ id: "admin", role: "admin", name: "主管" });
       setShowLoginModal(false);
@@ -739,9 +743,11 @@ export default function Home() {
     if (newPassword.length < 4) return showToast("密碼太短", "error");
     
     updateMemberMutation.mutate({ id: memberId, password: newPassword }, {
-      onSuccess: () => {
+      onSuccess: async () => {
         showToast(`${member.name} 的密碼已重設`, "success");
-        membersQuery.refetch();
+        // Wait a moment for the server to process, then refetch
+        await new Promise(resolve => setTimeout(resolve, 500));
+        await membersQuery.refetch();
       },
     });
   };
@@ -755,9 +761,11 @@ export default function Home() {
     if (newPassword !== confirmPassword) return showToast("兩次輸入不一致", "error");
     
     updatePasswordMutation.mutate({ adminPassword: newPassword }, {
-      onSuccess: () => {
+      onSuccess: async () => {
         showToast("主管密碼已重設", "success");
-        systemDataQuery.refetch();
+        // Wait a moment for the server to process, then refetch
+        await new Promise(resolve => setTimeout(resolve, 500));
+        await systemDataQuery.refetch();
       },
     });
   };
@@ -808,12 +816,10 @@ export default function Home() {
         .filter((e) => e.date === dateStr)
         .sort((a, b) => a.startTime.localeCompare(b.startTime));
 
-      const maxEvents = 2;
-
       cells.push(
         <div
           key={dateStr}
-          className={`calendar-day rounded-xl border p-1.5 sm:p-1 md:p-1 lg:p-1.5 cursor-pointer flex flex-col overflow-hidden ${
+          className={`calendar-day rounded-xl border p-1.5 sm:p-1 md:p-1 lg:p-1.5 cursor-pointer flex flex-col overflow-y-auto ${
             dayCompleted
               ? "completed-day bg-gray-50 border-gray-200"
               : isToday
@@ -849,7 +855,7 @@ export default function Home() {
                 {holidays[0].name}
               </div>
             )}
-          {dayEvents.slice(0, 2).map((evt, i) => {
+          {dayEvents.map((evt, i) => {
             const goingCount = Object.values(evt.attendance).filter(v => v === "going").length;
             const notGoingCount = Object.values(evt.attendance).filter(v => v === "not-going").length;
             const pendingCount = (membersQuery.data?.length || 0) - goingCount - notGoingCount;
@@ -873,17 +879,7 @@ export default function Home() {
               </div>
             );
           })}
-          {dayEvents.length > 2 && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleShowMoreEvents(dateStr);
-              }}
-              className="text-xs text-purple-600 px-1.5 font-semibold hover:text-purple-800 cursor-pointer"
-            >
-              +{dayEvents.length - 2} more
-            </button>
-          )}
+
         </div>
       );
     }

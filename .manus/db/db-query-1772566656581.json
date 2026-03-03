@@ -1,0 +1,17 @@
+{
+  "query": "SELECT id, adminPassword, isSetup, createdAt, updatedAt FROM band_system_data ORDER BY id;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ssV1gG8ge5UMiMb.root --database nisJJQWqpdHcjeFLPNJCii --execute SELECT id, adminPassword, isSetup, createdAt, updatedAt FROM band_system_data ORDER BY id;",
+  "rows": [
+    {
+      "id": "2",
+      "adminPassword": "testpassword123",
+      "isSetup": "1",
+      "createdAt": "2026-03-03 16:28:39",
+      "updatedAt": "2026-03-03 19:36:19"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tadminPassword\tisSetup\tcreatedAt\tupdatedAt\n2\ttestpassword123\t1\t2026-03-03 16:28:39\t2026-03-03 19:36:19\n",
+  "stderr": "",
+  "execution_time_ms": 1544
+}

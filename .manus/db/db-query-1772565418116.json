@@ -1,0 +1,15 @@
+{
+  "query": "SELECT id, adminPassword, isSetup FROM band_system_data;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ssV1gG8ge5UMiMb.root --database nisJJQWqpdHcjeFLPNJCii --execute SELECT id, adminPassword, isSetup FROM band_system_data;",
+  "rows": [
+    {
+      "id": "2",
+      "adminPassword": "newPassword456",
+      "isSetup": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tadminPassword\tisSetup\n2\tnewPassword456\t1\n",
+  "stderr": "",
+  "execution_time_ms": 1636
+}

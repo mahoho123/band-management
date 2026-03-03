@@ -1,0 +1,8 @@
+{
+  "query": "SELECT id, admin_password, is_setup FROM band_system_data;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ssV1gG8ge5UMiMb.root --database nisJJQWqpdHcjeFLPNJCii --execute SELECT id, admin_password, is_setup FROM band_system_data;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'admin_password' in 'field list'"
+  ]
+}
