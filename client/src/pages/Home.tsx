@@ -844,10 +844,28 @@ export default function Home() {
                 <div className="text-xs text-gray-600 px-1.5 truncate">
                   {evt.startTime} - {evt.endTime}
                 </div>
-                <div className="text-xs px-1.5 flex gap-1 flex-wrap">
-                  {goingCount > 0 && <span className="bg-green-100 text-green-700 px-1 rounded">✓ {goingCount}</span>}
-                  {notGoingCount > 0 && <span className="bg-red-100 text-red-700 px-1 rounded">✗ {notGoingCount}</span>}
-                  {pendingCount > 0 && <span className="bg-gray-100 text-gray-600 px-1 rounded">? {pendingCount}</span>}
+                <div className="text-xs px-1.5 space-y-0.5">
+                  {Object.entries(evt.attendance).map(([memberId, status]) => {
+                    const member = (membersQuery.data || []).find(m => m.id === parseInt(memberId));
+                    if (!member) return null;
+                    return (
+                      <div key={memberId} className="flex items-center gap-1">
+                        <span className={`font-semibold ${
+                          status === "going" ? "text-green-700" :
+                          status === "not-going" ? "text-red-700" :
+                          "text-gray-600"
+                        }`}>
+                          {status === "going" ? "✓" : status === "not-going" ? "✗" : "?"}
+                        </span>
+                        <span className="truncate text-gray-700">{member.name}</span>
+                      </div>
+                    );
+                  })}
+                  {pendingCount > 0 && (
+                    <div className="text-gray-500 text-xs">
+                      {pendingCount} 人待確認
+                    </div>
+                  )}
                 </div>
                 {evt.notes && (
                   <div className="text-xs text-gray-500 px-1.5 truncate italic">
@@ -1402,21 +1420,27 @@ export default function Home() {
                               <div className="flex gap-2">
                                 <button
                                   onClick={() => handleAttendanceChangeForMember(selectedEvent.id, member.id, "going")}
+                                  disabled={!currentUser}
                                   className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+                                    !currentUser ? "opacity-50 cursor-not-allowed bg-gray-100 text-gray-400" :
                                     status === "going" 
                                       ? "bg-green-100 text-green-700 border border-green-300" 
                                       : "bg-gray-100 text-gray-600 hover:bg-green-50"
                                   }`}
+                                  title={!currentUser ? "請登入以修改出席狀態" : ""}
                                 >
                                   <i className="fas fa-check mr-1" />出席
                                 </button>
                                 <button
                                   onClick={() => handleAttendanceChangeForMember(selectedEvent.id, member.id, "not-going")}
+                                  disabled={!currentUser}
                                   className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+                                    !currentUser ? "opacity-50 cursor-not-allowed bg-gray-100 text-gray-400" :
                                     status === "not-going" 
                                       ? "bg-red-100 text-red-700 border border-red-300" 
                                       : "bg-gray-100 text-gray-600 hover:bg-red-50"
                                   }`}
+                                  title={!currentUser ? "請登入以修改出席狀態" : ""}
                                 >
                                   <i className="fas fa-times mr-1" />不出席
                                 </button>
