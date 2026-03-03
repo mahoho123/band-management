@@ -375,8 +375,8 @@ export default function Home() {
   // List view
   const [listYear, setListYear] = useState(new Date().getFullYear());
   const [listMonth, setListMonth] = useState<string>("all");
+  const [filterByDate, setFilterByDate] = useState<string | null>(null);
   const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
-  const [showOtherDates, setShowOtherDates] = useState(true);
 
   const showToast = useCallback((message: string, type: "success" | "error" | "info" = "info") => {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
@@ -388,7 +388,6 @@ export default function Home() {
 
   const handleShowMoreEvents = (dateStr: string) => {
     setSelectedDates(new Set([dateStr]));
-    setShowOtherDates(false);
     setCurrentView("list");
     setCurrentListTab("incomplete");
   };
@@ -1666,7 +1665,7 @@ export default function Home() {
                 onChange={(e) => setListMonth(e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-400"
               >
-                <option value="all">全年</option>
+                <option value="all">全月</option>
                 {[0,1,2,3,4,5,6,7,8,9,10,11].map(m => (
                   <option key={m} value={m}>{m + 1}月</option>
                 ))}
