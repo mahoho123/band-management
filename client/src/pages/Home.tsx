@@ -798,24 +798,29 @@ export default function Home() {
               {holidays[0].name}
             </div>
           )}
-          {dayEvents.slice(0, 2).map((evt, i) => (
-            <div key={i} className="text-xs space-y-0.5 mb-1">
-              <div
-                className={`px-1.5 py-0.5 rounded truncate font-semibold ${TYPE_CONFIG[evt.type].color}`}
-                title={evt.title}
-              >
-                {evt.title}
-              </div>
-              <div className="text-xs text-gray-600 px-1.5 truncate">
-                {evt.startTime} - {evt.endTime}
-              </div>
-              {evt.location && (
-                <div className="text-xs text-gray-600 px-1.5 truncate">
-                  📍 {evt.location}
+          {dayEvents.slice(0, 2).map((evt, i) => {
+            const goingCount = Object.values(evt.attendance).filter(v => v === "going").length;
+            const notGoingCount = Object.values(evt.attendance).filter(v => v === "not-going").length;
+            const pendingCount = (membersQuery.data?.length || 0) - goingCount - notGoingCount;
+            return (
+              <div key={i} className="text-xs space-y-0.5 mb-1 border-l-2 border-purple-300 pl-1">
+                <div
+                  className={`px-1.5 py-0.5 rounded truncate font-semibold ${TYPE_CONFIG[evt.type].color}`}
+                  title={evt.title}
+                >
+                  {evt.title}
                 </div>
-              )}
-            </div>
-          ))}
+                <div className="text-xs text-gray-600 px-1.5 truncate">
+                  {evt.startTime} - {evt.endTime}
+                </div>
+                <div className="text-xs px-1.5 flex gap-1 flex-wrap">
+                  {goingCount > 0 && <span className="bg-green-100 text-green-700 px-1 rounded">✓ {goingCount}</span>}
+                  {notGoingCount > 0 && <span className="bg-red-100 text-red-700 px-1 rounded">✗ {notGoingCount}</span>}
+                  {pendingCount > 0 && <span className="bg-gray-100 text-gray-600 px-1 rounded">? {pendingCount}</span>}
+                </div>
+              </div>
+            );
+          })}
           {dayEvents.length > 2 && (
             <button
               onClick={(e) => {
@@ -1647,6 +1652,29 @@ export default function Home() {
                             <i className="fas fa-map-marker-alt text-gray-400 w-4" />
                             <span className="truncate">{event.location}</span>
                           </p>
+                          <div className="mt-2 pt-2 border-t border-gray-200 w-full">
+                            <div className="text-xs text-gray-600 mb-1">出席狀態：</div>
+                            <div className="flex gap-1 flex-wrap">
+                              {Object.entries(event.attendance).map(([memberId, status]) => {
+                                const member = membersQuery.data?.find(m => m.id === parseInt(memberId));
+                                if (!member) return null;
+                                return (
+                                  <span key={memberId} className={`text-xs px-2 py-1 rounded ${
+                                    status === "going" ? "bg-green-100 text-green-700" :
+                                    status === "not-going" ? "bg-red-100 text-red-700" :
+                                    "bg-gray-100 text-gray-600"
+                                  }`}>
+                                    {member.name} {status === "going" ? "✓" : status === "not-going" ? "✗" : "?"}
+                                  </span>
+                                );
+                              })}
+                              {membersQuery.data?.filter(m => !event.attendance[m.id]).map(member => (
+                                <span key={member.id} className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600">
+                                  {member.name} ?
+                                </span>
+                              ))}
+                            </div>
+                          </div>
                         </div>
                         <div className="flex flex-col items-end gap-2 min-w-[80px]">
                           {currentUser?.role === "member" ? (
