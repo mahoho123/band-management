@@ -1519,6 +1519,7 @@ export default function Home() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-100">
             {[
               { label: "\u672c\u6708\u6d3b\u52d5", value: (eventsQuery.data || []).filter(e => { const d = new Date(e.date); return d.getMonth() === calendarMonth && d.getFullYear() === calendarYear; }).length, icon: "fa-calendar-check", color: "text-purple-600" },
+              { label: "\u672c\u6708\u5047\u671f", value: hkHolidays.filter(h => { const d = new Date(h.date); return d.getMonth() === calendarMonth && d.getFullYear() === calendarYear; }).length, icon: "fa-umbrella-beach", color: "text-amber-600" },
               { label: "\u6210\u5458\u4eba\u6578", value: (membersQuery.data || []).length, icon: "fa-users", color: "text-blue-600" },
             ].map((stat, i) => (
               <div key={i} className="text-center">
