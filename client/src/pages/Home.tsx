@@ -818,6 +818,11 @@ export default function Home() {
                   {notGoingCount > 0 && <span className="bg-red-100 text-red-700 px-1 rounded">✗ {notGoingCount}</span>}
                   {pendingCount > 0 && <span className="bg-gray-100 text-gray-600 px-1 rounded">? {pendingCount}</span>}
                 </div>
+                {evt.notes && (
+                  <div className="text-xs text-gray-500 px-1.5 truncate italic">
+                    Notes: {evt.notes}
+                  </div>
+                )}
               </div>
             );
           })}
@@ -1675,6 +1680,14 @@ export default function Home() {
                               ))}
                             </div>
                           </div>
+                          {event.notes && (
+                            <div className="mt-2 pt-2 border-t border-gray-200 w-full">
+                              <div className="text-xs text-gray-600 mb-1">Remarks:</div>
+                              <div className="text-xs text-gray-700 bg-yellow-50 p-2 rounded border-l-2 border-yellow-300">
+                                {event.notes}
+                              </div>
+                            </div>
+                          )}
                         </div>
                         <div className="flex flex-col items-end gap-2 min-w-[80px]">
                           {currentUser?.role === "member" ? (
