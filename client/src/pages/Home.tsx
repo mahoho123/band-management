@@ -344,11 +344,8 @@ export default function Home() {
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Form states
-  const [setupPassword, setSetupPassword] = useState("");
-  const [setupConfirm, setSetupConfirm] = useState("");
   const [setupFirstName, setSetupFirstName] = useState("");
   const [setupFirstInstrument, setSetupFirstInstrument] = useState("");
-  const [passwordStrength, setPasswordStrength] = useState("");
 
   const [adminLoginPassword, setAdminLoginPassword] = useState("");
 
@@ -442,11 +439,11 @@ export default function Home() {
   // ============================================
   const handleSetup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (setupPassword !== setupConfirm) return showToast("兩次輸入的密碼不一致", "error");
-    if (setupPassword.length < 4) return showToast("密碼最少需要4個字元", "error");
+    // Use default password 'admin' instead of user input
+    const adminPassword = "admin";
 
     try {
-      await initSystemMutation.mutateAsync({ adminPassword: setupPassword });
+      await initSystemMutation.mutateAsync({ adminPassword });
       
       // Add first member if provided
       if (setupFirstName.trim()) {
@@ -465,7 +462,7 @@ export default function Home() {
       }
 
       setShowSetupModal(false);
-      showToast("設定完成！香港假期已自動載入（2026年起）", "success");
+      showToast("設定完成！主管密碼已設定為 admin，香港假期已自動載入（2026年起）", "success");
       setShowLoginModal(false); // Allow viewing without login
       setLoginTab("admin");
       
@@ -963,39 +960,9 @@ export default function Home() {
               <p className="text-gray-500 text-xs sm:text-sm mt-1">請設定主管密碼以開始使用系統</p>
             </div>
             <form onSubmit={handleSetup} className="space-y-3 sm:space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  設定主管密碼 <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="password"
-                  required
-                  minLength={4}
-                  value={setupPassword}
-                  onChange={(e) => {
-                    setSetupPassword(e.target.value);
-                    const v = e.target.value;
-                    setPasswordStrength(v.length < 4 ? "" : v.length < 6 ? "strength-weak" : v.length < 8 ? "strength-medium" : "strength-strong");
-                  }}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-400 outline-none text-sm"
-                  placeholder="最少4個字元"
-                />
-                <div className="mt-2 bg-gray-200 rounded-full overflow-hidden h-1">
-                  <div className={`password-strength-bar ${passwordStrength}`} />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  確認密碼 <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="password"
-                  required
-                  value={setupConfirm}
-                  onChange={(e) => setSetupConfirm(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-400 outline-none text-sm"
-                  placeholder="再次輸入密碼"
-                />
+              <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 mb-4">
+                <p className="text-purple-800 font-medium text-sm mb-1">主管密碼已設定</p>
+                <p className="text-purple-600 text-xs">默認主管密碼為：<strong>admin</strong></p>
               </div>
               <div className="pt-3 border-t border-gray-200">
                 <label className="block text-sm font-medium text-gray-700 mb-2">新增第一位成員（可選）</label>
