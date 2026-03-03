@@ -859,6 +859,7 @@ export default function Home() {
             const goingCount = Object.values(evt.attendance).filter(v => v === "going").length;
             const notGoingCount = Object.values(evt.attendance).filter(v => v === "not-going").length;
             const pendingCount = (membersQuery.data?.length || 0) - goingCount - notGoingCount;
+            const myStatus = currentUser?.role === "member" ? evt.attendance[currentUser.id as number] : null;
             return (
               <div key={i} className="text-xs sm:text-xs space-y-0.5 mb-0.5 sm:mb-1 border-l-2 border-purple-300 pl-1">
                 <div
@@ -874,6 +875,12 @@ export default function Home() {
                 {evt.notes && (
                   <div className="text-xs text-gray-500 px-1.5 italic whitespace-pre-wrap break-words">
                     {evt.notes}
+                  </div>
+                )}
+                {currentUser?.role === "member" && !isEventEnded(evt) && (
+                  <div className="flex gap-0.5 px-1 mt-0.5">
+                    <button onClick={(e) => { e.stopPropagation(); handleAttendanceChange(evt.id, "going"); }} className={`flex-1 text-xs px-1 py-0.5 rounded transition-all ${myStatus === "going" ? "bg-green-100 text-green-700 font-semibold" : "bg-gray-100 text-gray-600 hover:bg-green-50"}`}>出席</button>
+                    <button onClick={(e) => { e.stopPropagation(); handleAttendanceChange(evt.id, "not-going"); }} className={`flex-1 text-xs px-1 py-0.5 rounded transition-all ${myStatus === "not-going" ? "bg-red-100 text-red-700 font-semibold" : "bg-gray-100 text-gray-600 hover:bg-red-50"}`}>不出席</button>
                   </div>
                 )}
               </div>
