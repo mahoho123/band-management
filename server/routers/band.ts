@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { publicProcedure, router } from "../_core/trpc";
+import { getIO } from "../_core/index";
 import {
   getBandMembers,
   addBandMember,
@@ -27,13 +28,23 @@ export const bandRouter = router({
   initSystem: publicProcedure
     .input(z.object({ adminPassword: z.string() }))
     .mutation(async ({ input }) => {
-      return await initBandSystemData(input.adminPassword);
+      const result = await initBandSystemData(input.adminPassword);
+      const io = getIO();
+      if (io) {
+        io.emit("system:updated");
+      }
+      return result;
     }),
 
   updateSystemPassword: publicProcedure
     .input(z.object({ adminPassword: z.string() }))
     .mutation(async ({ input }) => {
-      return await updateBandSystemData(input.adminPassword);
+      const result = await updateBandSystemData(input.adminPassword);
+      const io = getIO();
+      if (io) {
+        io.emit("system:updated");
+      }
+      return result;
     }),
 
   // Members
@@ -51,7 +62,12 @@ export const bandRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      return await addBandMember(input);
+      const result = await addBandMember(input);
+      const io = getIO();
+      if (io) {
+        io.emit("member:added");
+      }
+      return result;
     }),
 
   updateMember: publicProcedure
@@ -66,13 +82,23 @@ export const bandRouter = router({
     )
     .mutation(async ({ input }) => {
       const { id, ...data } = input;
-      return await updateBandMember(id, data);
+      const result = await updateBandMember(id, data);
+      const io = getIO();
+      if (io) {
+        io.emit("member:updated");
+      }
+      return result;
     }),
 
   deleteMember: publicProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input }) => {
-      return await deleteBandMember(input.id);
+      const result = await deleteBandMember(input.id);
+      const io = getIO();
+      if (io) {
+        io.emit("member:deleted");
+      }
+      return result;
     }),
 
   // Events
@@ -94,7 +120,12 @@ export const bandRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      return await addBandEvent(input);
+      const result = await addBandEvent(input);
+      const io = getIO();
+      if (io) {
+        io.emit("event:added");
+      }
+      return result;
     }),
 
   updateEvent: publicProcedure
@@ -113,13 +144,23 @@ export const bandRouter = router({
     )
     .mutation(async ({ input }) => {
       const { id, ...data } = input;
-      return await updateBandEvent(id, data);
+      const result = await updateBandEvent(id, data);
+      const io = getIO();
+      if (io) {
+        io.emit("event:updated");
+      }
+      return result;
     }),
 
   deleteEvent: publicProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input }) => {
-      return await deleteBandEvent(input.id);
+      const result = await deleteBandEvent(input.id);
+      const io = getIO();
+      if (io) {
+        io.emit("event:deleted");
+      }
+      return result;
     }),
 
   // Attendance
@@ -138,7 +179,12 @@ export const bandRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      return await setAttendance(input.eventId, input.memberId, input.status);
+      const result = await setAttendance(input.eventId, input.memberId, input.status);
+      const io = getIO();
+      if (io) {
+        io.emit("attendance:changed");
+      }
+      return result;
     }),
 
   // Holidays
@@ -154,6 +200,11 @@ export const bandRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      return await addBandHoliday(input);
+      const result = await addBandHoliday(input);
+      const io = getIO();
+      if (io) {
+        io.emit("holiday:added");
+      }
+      return result;
     }),
 });

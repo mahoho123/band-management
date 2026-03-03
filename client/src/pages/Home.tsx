@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { trpc } from "@/lib/trpc";
+import { useSocketIO } from "@/hooks/useSocketIO";
 
 // ============================================
 // TYPES
@@ -310,6 +311,9 @@ interface ToastState {
 const AUTO_REFRESH_INTERVAL = 5000; // 5 seconds
 
 export default function Home() {
+  // Initialize Socket.IO for real-time synchronization
+  useSocketIO();
+  
   // tRPC queries
   const systemDataQuery = trpc.band.getSystemData.useQuery();
   const membersQuery = trpc.band.getMembers.useQuery();
