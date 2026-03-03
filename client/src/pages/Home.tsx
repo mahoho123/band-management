@@ -764,16 +764,30 @@ export default function Home() {
             </span>
             {holidays.length > 0 && <span className="text-xs text-amber-600 font-bold">🏖</span>}
           </div>
-          {dayEvents.slice(0, maxEvents).map((evt, i) => (
-            <div
-              key={i}
-              className={`text-xs px-1.5 py-0.5 rounded mb-0.5 truncate ${TYPE_CONFIG[evt.type].color}`}
-              title={evt.title}
-            >
-              {evt.title}
+          {holidays.length > 0 && (
+            <div className="text-xs text-amber-600 font-semibold px-1.5 py-0.5 mb-0.5 truncate">
+              {holidays[0].name}
+            </div>
+          )}
+          {dayEvents.slice(0, 1).map((evt, i) => (
+            <div key={i} className="text-xs space-y-0.5">
+              <div
+                className={`px-1.5 py-0.5 rounded truncate font-semibold ${TYPE_CONFIG[evt.type].color}`}
+                title={evt.title}
+              >
+                {evt.title}
+              </div>
+              <div className="text-xs text-gray-600 px-1.5 truncate">
+                {evt.startTime} - {evt.endTime}
+              </div>
+              {evt.location && (
+                <div className="text-xs text-gray-600 px-1.5 truncate">
+                  📍 {evt.location}
+                </div>
+              )}
             </div>
           ))}
-          {dayEvents.length > maxEvents && <div className="text-xs text-gray-500 px-1.5">+{dayEvents.length - maxEvents}</div>}
+          {dayEvents.length > 1 && <div className="text-xs text-gray-500 px-1.5">+{dayEvents.length - 1}</div>}
         </div>
       );
     }
