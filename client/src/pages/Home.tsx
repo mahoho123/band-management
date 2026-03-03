@@ -826,7 +826,12 @@ export default function Home() {
           }`}
           onClick={() => {
             if (currentUser?.role === "admin") openAddEventModal(dateStr);
-            else if (dayEvents.length > 0) openEventModal(dayEvents[0].id);
+            else if (dayEvents.length > 0) {
+              // 顯示當日所有活動的清單
+              setCurrentView("list");
+              setSelectedDates(new Set([dateStr]));
+              setCurrentListTab("incomplete");
+            }
           }}
         >
           <div className="flex items-center justify-between mb-1">
@@ -1430,11 +1435,18 @@ export default function Home() {
                           const status = selectedEvent.attendance[member.id];
                           return (
                             <div key={member.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-1">
                                 <div className={`w-8 h-8 rounded-full ${COLOR_MAP[member.color] || "bg-blue-500"} flex items-center justify-center text-white font-bold text-xs`}>
                                   {member.name.charAt(0)}
                                 </div>
-                                <span className="text-sm font-medium text-gray-800">{member.name}</span>
+                                <div className="flex-1">
+                                  <span className="text-sm font-medium text-gray-800">{member.name}</span>
+                                  <div className="text-xs mt-1">
+                                    {status === "going" && <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">✓ 出席</span>}
+                                    {status === "not-going" && <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded-full font-medium">✕ 不出席</span>}
+                                    {!status && <span className="px-2 py-0.5 bg-gray-200 text-gray-600 rounded-full font-medium">待確認</span>}
+                                  </div>
+                                </div>
                               </div>
                               <div className="flex gap-2">
                                 <button
