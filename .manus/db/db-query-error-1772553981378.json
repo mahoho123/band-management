@@ -1,0 +1,8 @@
+{
+  "query": "UPDATE band_members SET password = '' WHERE password IS NOT NULL; UPDATE band_system_data SET admin_password = '' WHERE admin_password IS NOT NULL;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ssV1gG8ge5UMiMb.root --database nisJJQWqpdHcjeFLPNJCii --execute UPDATE band_members SET password = '' WHERE password IS NOT NULL; UPDATE band_system_data SET admin_password = '' WHERE admin_password IS NOT NULL;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'admin_password' in 'where clause'"
+  ]
+}

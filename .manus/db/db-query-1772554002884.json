@@ -1,0 +1,23 @@
+{
+  "query": "SELECT id, name, password FROM band_members LIMIT 5; SELECT id, adminPassword FROM band_system_data LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ssV1gG8ge5UMiMb.root --database nisJJQWqpdHcjeFLPNJCii --execute SELECT id, name, password FROM band_members LIMIT 5; SELECT id, adminPassword FROM band_system_data LIMIT 5;",
+  "rows": [
+    {
+      "id": "2",
+      "name": "Test Member",
+      "password": ""
+    },
+    {
+      "id": "3",
+      "name": "Test Member",
+      "password": ""
+    }
+  ],
+  "messages": [
+    "id\tadminPassword",
+    "1\t"
+  ],
+  "stdout": "id\tname\tpassword\n2\tTest Member\t\n3\tTest Member\t\nid\tadminPassword\n1\t\n",
+  "stderr": "",
+  "execution_time_ms": 1735
+}

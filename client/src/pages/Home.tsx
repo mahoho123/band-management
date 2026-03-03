@@ -388,23 +388,36 @@ export default function Home() {
     setCurrentListTab("incomplete");
   };
 
-  // Initialize holidays on mount
+  // Initialize on mount
   useEffect(() => {
-    const hkHolidays = initializeHolidays(holidaysQuery.data || []);
-    
-    // Check if system is set up
-    if (systemDataQuery.data && !systemDataQuery.data.isSetup) {
-      setShowSetupModal(true);
-    } else if (systemDataQuery.data?.isSetup) {
-      setShowLoginModal(true);
-    }
+    systemDataQuery.refetch();
+  }, []);
 
-    // Refresh every minute to check event completion
+  // Handle system data changes
+  useEffect(() => {
+    if (systemDataQuery.isLoading) {
+      return;
+    }
+    
+    // If no system data or not set up, show setup modal
+    if (!systemDataQuery.data || systemDataQuery.data.isSetup === 0) {
+      setShowSetupModal(true);
+      setShowLoginModal(false);
+    } else {
+      // System is set up, show login modal
+      setShowSetupModal(false);
+      setShowLoginModal(false); // Allow viewing without login
+    }
+  }, [systemDataQuery.data, systemDataQuery.isLoading]);
+
+  // Refresh every minute to check event completion
+  useEffect(() => {
     const interval = setInterval(() => {
       setCurrentDate(new Date());
     }, 60000);
     return () => clearInterval(interval);
-  }, [systemDataQuery.data, holidaysQuery.data]);
+  }, []);
+
 
   // ============================================
   // SETUP
@@ -435,7 +448,7 @@ export default function Home() {
 
       setShowSetupModal(false);
       showToast("設定完成！香港假期已自動載入（2026年起）", "success");
-      setShowLoginModal(true);
+      setShowLoginModal(false); // Allow viewing without login
       setLoginTab("admin");
       
       // Refetch data
@@ -496,7 +509,7 @@ export default function Home() {
   const handleLogout = () => {
     setCurrentUser(null);
     showToast("已登出", "info");
-    setShowLoginModal(true);
+    setShowLoginModal(false); // Allow viewing without login
   };
 
   // ============================================
@@ -523,7 +536,7 @@ export default function Home() {
         setSelectedRegColor("blue");
         setShowRegisterModal(false);
         showToast(`${regName} 已註冊！`, "success");
-        setShowLoginModal(true);
+        setShowLoginModal(false); // Allow viewing without login
         setLoginTab("member");
         membersQuery.refetch();
       },
@@ -664,6 +677,24 @@ export default function Home() {
     });
   };
 
+  // Handle individual member attendance change
+  const handleAttendanceChangeForMember = (eventId: number, memberId: number, status: "going" | "not-going") => {
+    const event = eventsQuery.data?.find((e) => e.id === eventId);
+    if (!event) return;
+    if (isEventEnded(event)) return showToast("此活動已結束，不能修改出席狀態", "error");
+
+    setAttendanceMutation.mutate({
+      eventId,
+      memberId,
+      status,
+    }, {
+      onSuccess: () => {
+        showToast("出席狀態已更新", "success");
+        eventsQuery.refetch();
+      },
+    });
+  };
+
   const handleSetAttendance = (status: "going" | "not-going") => {
     if (!selectedEventId || currentUser?.role !== "member") return;
     const event = eventsQuery.data?.find((e) => e.id === selectedEventId);
@@ -723,7 +754,7 @@ export default function Home() {
       onSuccess: () => {
         if (currentUser?.id === memberId) {
           setCurrentUser(null);
-          setShowLoginModal(true);
+          setShowLoginModal(false); // Allow viewing without login
         }
         showToast("成員已刪除", "success");
         membersQuery.refetch();
@@ -1353,32 +1384,58 @@ export default function Home() {
                       </div>
                     )}
 
-                    {currentUser?.role === "admin" && (
-                      <div className="space-y-2">
-                        {(membersQuery.data || []).length === 0 ? (
-                          <p className="text-center text-gray-500 py-4 text-sm">暫無成員</p>
-                        ) : (
-                          (membersQuery.data || []).map((member) => {
-                            const status = selectedEvent.attendance[member.id];
-                            return (
-                              <div key={member.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                <div className="flex items-center gap-2">
-                                  <div className={`w-8 h-8 rounded-full ${COLOR_MAP[member.color] || "bg-blue-500"} flex items-center justify-center text-white font-bold text-xs`}>
-                                    {member.name.charAt(0)}
-                                  </div>
-                                  <span className="text-sm font-medium text-gray-800">{member.name}</span>
+                    {/* Show all members with attendance buttons */}
+                    <div className="space-y-2">
+                      {(membersQuery.data || []).length === 0 ? (
+                        <p className="text-center text-gray-500 py-4 text-sm">暫無成員</p>
+                      ) : (
+                        (membersQuery.data || []).map((member) => {
+                          const status = selectedEvent.attendance[member.id];
+                          return (
+                            <div key={member.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                              <div className="flex items-center gap-2">
+                                <div className={`w-8 h-8 rounded-full ${COLOR_MAP[member.color] || "bg-blue-500"} flex items-center justify-center text-white font-bold text-xs`}>
+                                  {member.name.charAt(0)}
                                 </div>
-                                <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                                  status === "going" ? "bg-green-100 text-green-700" :
-                                  status === "not-going" ? "bg-red-100 text-red-700" :
-                                  "bg-gray-200 text-gray-600"
-                                }`}>
-                                  {status === "going" ? "出席" : status === "not-going" ? "缺席" : "待確認"}
-                                </span>
+                                <span className="text-sm font-medium text-gray-800">{member.name}</span>
                               </div>
-                            );
-                          })
-                        )}
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => handleAttendanceChangeForMember(selectedEvent.id, member.id, "going")}
+                                  className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+                                    status === "going" 
+                                      ? "bg-green-100 text-green-700 border border-green-300" 
+                                      : "bg-gray-100 text-gray-600 hover:bg-green-50"
+                                  }`}
+                                >
+                                  <i className="fas fa-check mr-1" />出席
+                                </button>
+                                <button
+                                  onClick={() => handleAttendanceChangeForMember(selectedEvent.id, member.id, "not-going")}
+                                  className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+                                    status === "not-going" 
+                                      ? "bg-red-100 text-red-700 border border-red-300" 
+                                      : "bg-gray-100 text-gray-600 hover:bg-red-50"
+                                  }`}
+                                >
+                                  <i className="fas fa-times mr-1" />不出席
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                    
+                    {/* SAVE button */}
+                    {!selectedEventEnded && (
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <button
+                          onClick={() => setShowEventModal(false)}
+                          className="w-full band-gradient text-white py-2.5 rounded-xl hover:shadow-lg transition-all font-medium text-sm"
+                        >
+                          <i className="fas fa-save mr-2" />儲存
+                        </button>
                       </div>
                     )}
                   </div>

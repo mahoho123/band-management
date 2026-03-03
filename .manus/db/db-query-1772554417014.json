@@ -1,0 +1,25 @@
+{
+  "query": "SELECT COUNT(*) as member_count FROM band_members; SELECT COUNT(*) as event_count FROM band_events; SELECT COUNT(*) as system_count FROM band_system_data;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ssV1gG8ge5UMiMb.root --database nisJJQWqpdHcjeFLPNJCii --execute SELECT COUNT(*) as member_count FROM band_members; SELECT COUNT(*) as event_count FROM band_events; SELECT COUNT(*) as system_count FROM band_system_data;",
+  "rows": [
+    {
+      "member_count": "0"
+    },
+    {
+      "member_count": "event_count"
+    },
+    {
+      "member_count": "0"
+    },
+    {
+      "member_count": "system_count"
+    },
+    {
+      "member_count": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "member_count\n0\nevent_count\n0\nsystem_count\n0\n",
+  "stderr": "",
+  "execution_time_ms": 1940
+}
