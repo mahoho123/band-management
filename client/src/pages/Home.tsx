@@ -1368,15 +1368,22 @@ export default function Home() {
 
                   {/* Attendance Section */}
                   <div className="mt-5 pt-5 border-t border-gray-200">
-                    <div className="flex justify-between items-center mb-4">
-                      <h4 className="font-bold text-gray-800">出席狀態</h4>
-                      <span className="text-sm text-gray-500">
-                        出席: {Object.values(selectedEvent.attendance).filter(v => v === "going").length} |
-                        缺席: {Object.values(selectedEvent.attendance).filter(v => v === "not-going").length} |
-                        待定: {(membersQuery.data || []).length - Object.values(selectedEvent.attendance).filter(v => v === "going").length - Object.values(selectedEvent.attendance).filter(v => v === "not-going").length}
-                        {selectedEventEnded ? " (已完結)" : ""}
-                      </span>
-                    </div>
+                    {currentUser?.role === "admin" && (
+                      <div className="flex justify-between items-center mb-4">
+                        <h4 className="font-bold text-gray-800">出席狀態</h4>
+                        <span className="text-sm text-gray-500">
+                          出席: {Object.values(selectedEvent.attendance).filter(v => v === "going").length} |
+                          缺席: {Object.values(selectedEvent.attendance).filter(v => v === "not-going").length} |
+                          待定: {(membersQuery.data || []).length - Object.values(selectedEvent.attendance).filter(v => v === "going").length - Object.values(selectedEvent.attendance).filter(v => v === "not-going").length}
+                          {selectedEventEnded ? " (已完結)" : ""}
+                        </span>
+                      </div>
+                    )}
+                    {currentUser?.role === "member" && (
+                      <div className="mb-4">
+                        <h4 className="font-bold text-gray-800 mb-2">您的出席狀態</h4>
+                      </div>
+                    )}
 
                     {currentUser?.role === "member" && !selectedEventEnded && (
                       <div className="mb-5">
@@ -1403,7 +1410,8 @@ export default function Home() {
                       </div>
                     )}
 
-                    {/* Show all members with attendance buttons */}
+                    {/* Show all members with attendance buttons - Admin only */}
+                    {currentUser?.role === "admin" && (
                     <div className="space-y-2">
                       {(membersQuery.data || []).length === 0 ? (
                         <p className="text-center text-gray-500 py-4 text-sm">暫無成員</p>
@@ -1458,6 +1466,7 @@ export default function Home() {
                         })
                       )}
                     </div>
+                    )}
                     
                     {/* SAVE button */}
                     {!selectedEventEnded && (
@@ -1733,29 +1742,39 @@ export default function Home() {
                             <i className="fas fa-map-marker-alt text-gray-400 w-4" />
                             <span className="truncate">{event.location}</span>
                           </p>
-                          <div className="mt-2 pt-2 border-t border-gray-200 w-full">
-                            <div className="text-xs text-gray-600 mb-1">出席狀態：</div>
-                            <div className="flex gap-1 flex-wrap">
-                              {Object.entries(event.attendance).map(([memberId, status]) => {
-                                const member = membersQuery.data?.find(m => m.id === parseInt(memberId));
-                                if (!member) return null;
-                                return (
-                                  <span key={memberId} className={`text-xs px-2 py-1 rounded ${
-                                    status === "going" ? "bg-green-100 text-green-700" :
-                                    status === "not-going" ? "bg-red-100 text-red-700" :
-                                    "bg-gray-100 text-gray-600"
-                                  }`}>
-                                    {member.name} {status === "going" ? "✓" : status === "not-going" ? "✗" : "?"}
+                          {currentUser?.role === "admin" && (
+                            <div className="mt-2 pt-2 border-t border-gray-200 w-full">
+                              <div className="text-xs text-gray-600 mb-1">出席狀態：</div>
+                              <div className="flex gap-1 flex-wrap">
+                                {Object.entries(event.attendance).map(([memberId, status]) => {
+                                  const member = membersQuery.data?.find(m => m.id === parseInt(memberId));
+                                  if (!member) return null;
+                                  return (
+                                    <span key={memberId} className={`text-xs px-2 py-1 rounded ${
+                                      status === "going" ? "bg-green-100 text-green-700" :
+                                      status === "not-going" ? "bg-red-100 text-red-700" :
+                                      "bg-gray-100 text-gray-600"
+                                    }`}>
+                                      {member.name} {status === "going" ? "✓" : status === "not-going" ? "✗" : "?"}
+                                    </span>
+                                  );
+                                })}
+                                {membersQuery.data?.filter(m => !event.attendance[m.id]).map(member => (
+                                  <span key={member.id} className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600">
+                                    {member.name} ?
                                   </span>
-                                );
-                              })}
-                              {membersQuery.data?.filter(m => !event.attendance[m.id]).map(member => (
-                                <span key={member.id} className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600">
-                                  {member.name} ?
-                                </span>
-                              ))}
+                                ))}
+                              </div>
                             </div>
-                          </div>
+                          )}
+                          {currentUser?.role === "member" && (
+                            <div className="mt-2 pt-2 border-t border-gray-200 w-full">
+                              <div className="text-xs text-gray-600 mb-1">您的出席狀態：</div>
+                              <div className="text-xs px-3 py-1 rounded inline-block bg-blue-50 text-blue-700 font-medium">
+                                {myStatus === "going" ? "✓ 已確認出席" : myStatus === "not-going" ? "✗ 已確認不出席" : "? 待確認"}
+                              </div>
+                            </div>
+                          )}
                           {event.notes && (
                             <div className="mt-2 pt-2 border-t border-gray-200 w-full">
                               <div className="text-xs text-gray-600 mb-1">備註:</div>
