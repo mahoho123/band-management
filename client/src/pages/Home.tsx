@@ -311,6 +311,8 @@ interface ToastState {
 // MAIN APP COMPONENT
 // ============================================
 export default function Home() {
+
+
   const [systemData, setSystemData] = useState<SystemData>({
     isSetup: false,
     adminPassword: "",
