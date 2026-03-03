@@ -820,7 +820,7 @@ export default function Home() {
       cells.push(
         <div
           key={dateStr}
-          className={`calendar-day rounded-xl border p-1.5 sm:p-1 md:p-1 lg:p-1.5 cursor-pointer flex flex-col overflow-y-auto ${
+          className={`calendar-day rounded-xl border p-1.5 sm:p-2 md:p-2 lg:p-2 cursor-pointer flex flex-col ${
             dayCompleted
               ? "completed-day bg-gray-50 border-gray-200"
               : isToday
@@ -864,12 +864,12 @@ export default function Home() {
             return (
               <div key={i} className="text-xs sm:text-xs space-y-0.5 mb-0.5 sm:mb-1 border-l-2 border-purple-300 pl-1">
                 <div
-                  className={`px-1 sm:px-1.5 py-0.5 rounded truncate font-semibold text-xs sm:text-xs line-clamp-1 ${TYPE_CONFIG[evt.type].color}`}
+                  className={`px-1 sm:px-1.5 py-0.5 rounded font-semibold text-xs sm:text-sm ${TYPE_CONFIG[evt.type].color}`}
                   title={evt.title}
                 >
                   {evt.title}
                 </div>
-                <div className="text-xs sm:text-xs text-gray-600 px-1 sm:px-1.5 truncate">
+                <div className="text-xs sm:text-xs text-gray-600 px-1 sm:px-1.5">
                   {evt.startTime} - {evt.endTime}
                 </div>
 
