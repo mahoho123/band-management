@@ -1,3 +1,11 @@
+/*
+ * Band隊管理系統 - 清新樂譜 (Sheet Music Minimalism)
+ * Design Philosophy: White background clean as sheet music paper
+ * Color: Purple-blue gradient brand color (#667eea → #764ba2)
+ * Typography: Noto Sans HK, different weights for hierarchy
+ * Layout: Top nav + full-width content, floating card effects
+ */
+
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -43,74 +51,39 @@
 }
 
 :root {
-  --primary: var(--color-blue-700);
-  --primary-foreground: var(--color-blue-50);
-  --sidebar-primary: var(--color-blue-600);
-  --sidebar-primary-foreground: var(--color-blue-50);
-  --chart-1: var(--color-blue-300);
-  --chart-2: var(--color-blue-500);
-  --chart-3: var(--color-blue-600);
-  --chart-4: var(--color-blue-700);
-  --chart-5: var(--color-blue-800);
-  --radius: 0.65rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.235 0.015 65);
+  --radius: 0.75rem;
+  --background: oklch(0.99 0 0);
+  --foreground: oklch(0.2 0.015 265);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.235 0.015 65);
+  --card-foreground: oklch(0.2 0.015 265);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.235 0.015 65);
-  --secondary: oklch(0.98 0.001 286.375);
-  --secondary-foreground: oklch(0.4 0.015 65);
-  --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.552 0.016 285.938);
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.141 0.005 285.823);
+  --popover-foreground: oklch(0.2 0.015 265);
+  --primary: oklch(0.55 0.2 275);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.96 0.01 275);
+  --secondary-foreground: oklch(0.4 0.1 275);
+  --muted: oklch(0.96 0.005 265);
+  --muted-foreground: oklch(0.55 0.015 265);
+  --accent: oklch(0.94 0.02 275);
+  --accent-foreground: oklch(0.35 0.15 275);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.92 0.004 286.32);
-  --input: oklch(0.92 0.004 286.32);
-  --ring: oklch(0.623 0.214 259.815);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.235 0.015 65);
-  --sidebar-accent: oklch(0.967 0.001 286.375);
-  --sidebar-accent-foreground: oklch(0.141 0.005 285.823);
-  --sidebar-border: oklch(0.92 0.004 286.32);
-  --sidebar-ring: oklch(0.623 0.214 259.815);
-}
-
-.dark {
-  --primary: var(--color-blue-700);
-  --primary-foreground: var(--color-blue-50);
-  --sidebar-primary: var(--color-blue-500);
-  --sidebar-primary-foreground: var(--color-blue-50);
-  --background: oklch(0.141 0.005 285.823);
-  --foreground: oklch(0.85 0.005 65);
-  --card: oklch(0.21 0.006 285.885);
-  --card-foreground: oklch(0.85 0.005 65);
-  --popover: oklch(0.21 0.006 285.885);
-  --popover-foreground: oklch(0.85 0.005 65);
-  --secondary: oklch(0.24 0.006 286.033);
-  --secondary-foreground: oklch(0.7 0.005 65);
-  --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.705 0.015 286.067);
-  --accent: oklch(0.274 0.006 286.033);
-  --accent-foreground:  oklch(0.92 0.005 65);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.488 0.243 264.376);
-  --chart-1: var(--color-blue-300);
-  --chart-2: var(--color-blue-500);
-  --chart-3: var(--color-blue-600);
-  --chart-4: var(--color-blue-700);
-  --chart-5: var(--color-blue-800);
-  --sidebar: oklch(0.21 0.006 285.885);
-  --sidebar-foreground: oklch(0.85 0.005 65);
-  --sidebar-accent: oklch(0.274 0.006 286.033);
-  --sidebar-accent-foreground:  oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.488 0.243 264.376);
+  --border: oklch(0.91 0.008 265);
+  --input: oklch(0.91 0.008 265);
+  --ring: oklch(0.55 0.2 275);
+  --chart-1: oklch(0.55 0.2 275);
+  --chart-2: oklch(0.65 0.15 200);
+  --chart-3: oklch(0.7 0.18 150);
+  --chart-4: oklch(0.75 0.2 50);
+  --chart-5: oklch(0.6 0.22 20);
+  --sidebar: oklch(0.98 0.005 275);
+  --sidebar-foreground: oklch(0.2 0.015 265);
+  --sidebar-primary: oklch(0.55 0.2 275);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.94 0.02 275);
+  --sidebar-accent-foreground: oklch(0.35 0.15 275);
+  --sidebar-border: oklch(0.91 0.008 265);
+  --sidebar-ring: oklch(0.55 0.2 275);
 }
 
 @layer base {
@@ -119,6 +92,7 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Noto Sans HK', sans-serif;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
@@ -134,24 +108,11 @@
 }
 
 @layer components {
-  /**
-   * Custom container utility that centers content and adds responsive padding.
-   *
-   * This overrides Tailwind's default container behavior to:
-   * - Auto-center content (mx-auto)
-   * - Add responsive horizontal padding
-   * - Set max-width for large screens
-   *
-   * Usage: <div className="container">...</div>
-   *
-   * For custom widths, use max-w-* utilities directly:
-   * <div className="max-w-6xl mx-auto px-4">...</div>
-   */
   .container {
     width: 100%;
     margin-left: auto;
     margin-right: auto;
-    padding-left: 1rem; /* 16px - mobile padding */
+    padding-left: 1rem;
     padding-right: 1rem;
   }
 
@@ -162,16 +123,315 @@
 
   @media (min-width: 640px) {
     .container {
-      padding-left: 1.5rem; /* 24px - tablet padding */
+      padding-left: 1.5rem;
       padding-right: 1.5rem;
     }
   }
 
   @media (min-width: 1024px) {
     .container {
-      padding-left: 2rem; /* 32px - desktop padding */
+      padding-left: 2rem;
       padding-right: 2rem;
-      max-width: 1280px; /* Standard content width */
+      max-width: 1280px;
     }
   }
+}
+
+/* Band System Custom Styles */
+.band-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.band-gradient-text {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 24px rgba(102, 126, 234, 0.08);
+}
+
+.calendar-day {
+  transition: all 0.2s ease;
+  min-height: 90px;
+}
+
+.calendar-day:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.12);
+}
+
+.calendar-day.today {
+  border-color: #667eea !important;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.04), rgba(118, 75, 162, 0.04)) !important;
+}
+
+.calendar-day.completed-day {
+  background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f5 100%) !important;
+  border-color: #dee2e6 !important;
+}
+
+.holiday-badge {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  font-size: 0.6rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.event-chip {
+  font-size: 0.68rem;
+  padding: 0.12rem 0.3rem;
+  border-radius: 0.3rem;
+  margin-bottom: 0.12rem;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+}
+
+.event-chip:hover {
+  opacity: 0.85;
+  transform: scale(1.02);
+}
+
+.event-chip.completed {
+  opacity: 0.45;
+  text-decoration: line-through;
+  background-color: #e9ecef !important;
+  color: #adb5bd !important;
+  border-color: #dee2e6 !important;
+}
+
+.event-chip.ongoing {
+  animation: pulse-chip 2s infinite;
+  font-weight: 600;
+}
+
+@keyframes pulse-chip {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.4); }
+  50% { box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.15); }
+}
+
+.attendance-btn {
+  transition: all 0.2s ease;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.75rem;
+  font-weight: 500;
+  padding: 0.75rem 1rem;
+}
+
+.attendance-btn.going {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.attendance-btn.not-going {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.attendance-btn.pending {
+  background: #f9fafb;
+  color: #6b7280;
+}
+
+.attendance-btn.pending:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.modal-enter {
+  animation: modalSlideIn 0.25s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from { opacity: 0; transform: scale(0.96) translateY(-8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.event-card {
+  transition: all 0.2s ease;
+  border-left: 4px solid transparent;
+}
+
+.event-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+
+.event-card.ongoing-card {
+  animation: pulse-border 2s infinite;
+}
+
+@keyframes pulse-border {
+  0%, 100% { border-left-width: 4px; }
+  50% { border-left-width: 6px; }
+}
+
+.event-card.completed-card {
+  opacity: 0.65;
+  filter: grayscale(0.3);
+}
+
+.list-tab-btn {
+  transition: all 0.25s ease;
+  border-radius: 0.75rem;
+  font-weight: 500;
+  padding: 0.75rem 1rem;
+}
+
+.list-tab-btn.active {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.list-tab-btn:not(.active) {
+  background: white;
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
+}
+
+.list-tab-btn:not(.active):hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.nav-tab {
+  transition: all 0.2s ease;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.625rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nav-tab.active {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.nav-tab:not(.active) {
+  color: #6b7280;
+}
+
+.nav-tab:not(.active):hover {
+  background: rgba(102, 126, 234, 0.08);
+  color: #667eea;
+}
+
+.password-strength-bar {
+  height: 4px;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.strength-weak { background: #ef4444; width: 33%; }
+.strength-medium { background: #f59e0b; width: 66%; }
+.strength-strong { background: #10b981; width: 100%; }
+
+.color-option {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 3px solid transparent;
+}
+
+.color-option.selected {
+  border-color: white;
+  box-shadow: 0 0 0 3px currentColor;
+  transform: scale(1.1);
+}
+
+.toast-notification {
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.toast-notification.hidden-toast {
+  transform: translateY(5rem);
+  opacity: 0;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Time selector */
+.time-select {
+  background-color: white;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.875rem;
+  text-align: center;
+  transition: border-color 0.15s ease;
+}
+
+.time-select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+}
+
+/* Attending names in calendar */
+.attending-names-chip {
+  font-size: 0.58rem;
+  color: #059669;
+  background: rgba(209, 250, 229, 0.9);
+  padding: 0.08rem 0.25rem;
+  border-radius: 0.25rem;
+  margin-top: 0.1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.not-attending-names-chip {
+  font-size: 0.58rem;
+  color: #dc2626;
+  background: rgba(254, 226, 226, 0.9);
+  padding: 0.08rem 0.25rem;
+  border-radius: 0.25rem;
+  margin-top: 0.1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
 }
