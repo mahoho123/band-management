@@ -867,29 +867,7 @@ export default function Home() {
                 <div className="text-xs sm:text-xs text-gray-600 px-1 sm:px-1.5 truncate">
                   {evt.startTime} - {evt.endTime}
                 </div>
-                <div className="text-xs px-1.5 space-y-0.5">
-                  {Object.entries(evt.attendance).map(([memberId, status]) => {
-                    const member = (membersQuery.data || []).find(m => m.id === parseInt(memberId));
-                    if (!member) return null;
-                    return (
-                      <div key={memberId} className="flex items-center gap-1">
-                        <span className={`font-semibold ${
-                          status === "going" ? "text-green-700" :
-                          status === "not-going" ? "text-red-700" :
-                          "text-gray-600"
-                        }`}>
-                          {status === "going" ? "✓" : status === "not-going" ? "✗" : "?"}
-                        </span>
-                        <span className="truncate text-gray-700">{member.name}</span>
-                      </div>
-                    );
-                  })}
-                  {pendingCount > 0 && (
-                    <div className="text-gray-500 text-xs">
-                      {pendingCount} 人待確認
-                    </div>
-                  )}
-                </div>
+
                 {evt.notes && (
                   <div className="text-xs text-gray-500 px-1.5 italic whitespace-pre-wrap break-words">
                     {evt.notes}
@@ -1970,7 +1948,7 @@ export default function Home() {
         }
 
         .calendar-day {
-          min-height: 80px;
+          min-height: auto;
           background: white;
           border: 1px solid #e5e7eb;
           transition: all 0.2s ease;
@@ -1982,7 +1960,7 @@ export default function Home() {
 
         @media (max-width: 768px) {
           .calendar-day {
-            min-height: 70px;
+            min-height: auto;
             padding: 0.75rem !important;
             font-size: 0.8rem;
             gap: 0.25rem;
@@ -1997,7 +1975,7 @@ export default function Home() {
 
         @media (max-width: 640px) {
           .calendar-day {
-            min-height: 65px;
+            min-height: auto;
             padding: 0.5rem !important;
             font-size: 0.75rem;
             gap: 0.2rem;
@@ -2015,7 +1993,7 @@ export default function Home() {
 
         @media (max-width: 480px) {
           .calendar-day {
-            min-height: 55px;
+            min-height: auto;
             padding: 0.375rem !important;
             font-size: 0.65rem;
             gap: 0.15rem;
