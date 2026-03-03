@@ -649,6 +649,22 @@ export default function Home() {
     showToast("活動已刪除", "success");
   };
 
+  const handleAttendanceChange = (eventId: number, status: "going" | "not-going") => {
+    if (currentUser?.role !== "member") return;
+    const event = systemData.events.find((e) => e.id === eventId);
+    if (!event) return;
+    if (isEventEnded(event)) return showToast("此活動已結束，不能修改出席狀態", "error");
+
+    const newData = { ...systemData, events: [...systemData.events] };
+    const idx = newData.events.findIndex((e) => e.id === eventId);
+    newData.events[idx] = {
+      ...newData.events[idx],
+      attendance: { ...newData.events[idx].attendance, [currentUser.id as number]: status },
+    };
+    saveData(newData);
+    showToast(status === "going" ? "已確認出席" : "已確認不出席", "success");
+  };
+
   const handleSetAttendance = (status: "going" | "not-going") => {
     if (!selectedEventId || currentUser?.role !== "member") return;
     const event = systemData.events.find((e) => e.id === selectedEventId);
@@ -1618,10 +1634,40 @@ export default function Home() {
                         </div>
                         <div className="flex flex-col items-end gap-2 min-w-[80px]">
                           {currentUser?.role === "member" ? (
-                            <div className="transform hover:scale-110 transition-transform">
-                              {myStatus === "going" ? <i className="fas fa-check-circle text-green-500 text-2xl" /> :
-                               myStatus === "not-going" ? <i className="fas fa-times-circle text-red-500 text-2xl" /> :
-                               <i className="fas fa-question-circle text-gray-300 text-2xl" />}
+                            <div className="flex flex-col items-center gap-2">
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAttendanceChange(event.id, "going");
+                                  }}
+                                  className={`p-2 rounded-lg transition-all ${
+                                    myStatus === "going"
+                                      ? "bg-green-100 text-green-600"
+                                      : "bg-gray-100 text-gray-400 hover:bg-green-50 hover:text-green-500"
+                                  }`}
+                                  title="出席"
+                                >
+                                  <i className="fas fa-check-circle text-lg" />
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAttendanceChange(event.id, "not-going");
+                                  }}
+                                  className={`p-2 rounded-lg transition-all ${
+                                    myStatus === "not-going"
+                                      ? "bg-red-100 text-red-600"
+                                      : "bg-gray-100 text-gray-400 hover:bg-red-50 hover:text-red-500"
+                                  }`}
+                                  title="不出席"
+                                >
+                                  <i className="fas fa-times-circle text-lg" />
+                                </button>
+                              </div>
+                              {myStatus === undefined && (
+                                <span className="text-xs text-gray-500 font-medium">待確認</span>
+                              )}
                             </div>
                           ) : (
                             <div className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded-full">
