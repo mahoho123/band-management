@@ -213,17 +213,44 @@ export async function updateBandSystemData(adminPassword: string) {
     console.log("[updateBandSystemData] Database not available");
     return null;
   }
-  const existing = await db.select().from(bandSystemData).limit(1);
-  console.log("[updateBandSystemData] Existing records:", existing);
-  if (existing.length > 0) {
-    console.log("[updateBandSystemData] Updating record id:", existing[0].id);
-    const result = await db.update(bandSystemData).set({ adminPassword }).where(eq(bandSystemData.id, existing[0].id));
-    console.log("[updateBandSystemData] Update result:", result);
-    // Return the updated record
-    const updated = await db.select().from(bandSystemData).where(eq(bandSystemData.id, existing[0].id)).limit(1);
-    console.log("[updateBandSystemData] Updated record:", updated);
-    return updated.length > 0 ? updated[0] : null;
+  
+  try {
+    const existing = await db.select().from(bandSystemData).limit(1);
+    console.log("[updateBandSystemData] Existing records:", existing);
+    
+    if (existing.length > 0) {
+      console.log("[updateBandSystemData] Updating record id:", existing[0].id, "with password:", adminPassword);
+      
+      // Update with explicit timestamp
+      const updateResult = await db
+        .update(bandSystemData)
+        .set({ 
+          adminPassword,
+          updatedAt: new Date()
+        })
+        .where(eq(bandSystemData.id, existing[0].id));
+      
+      console.log("[updateBandSystemData] Update result:", updateResult);
+      
+      // Verify the update by selecting the record again
+      const updated = await db
+        .select()
+        .from(bandSystemData)
+        .where(eq(bandSystemData.id, existing[0].id))
+        .limit(1);
+      
+      console.log("[updateBandSystemData] Updated record:", updated);
+      
+      if (updated.length > 0) {
+        console.log("[updateBandSystemData] Verification successful. New password:", updated[0].adminPassword);
+        return updated[0];
+      }
+    }
+    
+    console.log("[updateBandSystemData] No existing records found");
+    return null;
+  } catch (error) {
+    console.error("[updateBandSystemData] Error:", error);
+    throw error;
   }
-  console.log("[updateBandSystemData] No existing records found");
-  return null;
 }

@@ -374,6 +374,7 @@ export default function Home() {
   const [listMonth, setListMonth] = useState<string>("all");
   const [filterByDate, setFilterByDate] = useState<string | null>(null);
   const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
+  const [searchQuery, setSearchQuery] = useState("");
 
   const showToast = useCallback((message: string, type: "success" | "error" | "info" = "info") => {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
@@ -903,6 +904,13 @@ export default function Home() {
       const d = new Date(e.date);
       if (d.getFullYear() !== listYear) return false;
       if (listMonth !== "all" && d.getMonth() !== parseInt(listMonth)) return false;
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        const matchesTitle = e.title.toLowerCase().includes(query);
+        const matchesLocation = e.location.toLowerCase().includes(query);
+        const matchesNotes = (e.notes || "").toLowerCase().includes(query);
+        if (!matchesTitle && !matchesLocation && !matchesNotes) return false;
+      }
       return true;
     });
     filtered.sort((a, b) => {
@@ -917,6 +925,7 @@ export default function Home() {
 
   const { incomplete: incompleteEvents, completed: completedEvents } = getFilteredEvents();
   const displayEvents = currentListTab === "incomplete" ? incompleteEvents : completedEvents;
+  const hasSearchResults = displayEvents.length > 0 || searchQuery.trim() === "";
 
   // ============================================
   // SELECTED EVENT
@@ -1609,6 +1618,13 @@ export default function Home() {
 
             {/* Filters */}
             <div className="flex gap-3 mb-5 flex-wrap items-center">
+              <input
+                type="text"
+                placeholder="搜尋活動名稱、地點..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-400 flex-1 min-w-[200px]"
+              />
               <select
                 value={listYear}
                 onChange={(e) => setListYear(parseInt(e.target.value))}
@@ -1669,8 +1685,8 @@ export default function Home() {
               {displayEvents.length === 0 ? (
                 <div className="text-center text-gray-500 py-12">
                   <i className="fas fa-calendar-times text-4xl mb-3 text-gray-300 block" />
-                  <p>暫無{currentListTab === "incomplete" ? "未完成" : "已完成"}活動</p>
-                  {currentListTab === "incomplete" && currentUser?.role === "admin" && (
+                  <p>{searchQuery.trim() ? `搜尋「${searchQuery}」無結果` : `暫無活動`}</p>
+                  {currentListTab === "incomplete" && currentUser?.role === "admin" && !searchQuery.trim() && (
                     <button onClick={() => openAddEventModal()} className="mt-3 text-purple-600 hover:underline text-sm">
                       新增活動
                     </button>
