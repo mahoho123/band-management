@@ -369,6 +369,8 @@ export default function Home() {
   // List view
   const [listYear, setListYear] = useState(new Date().getFullYear());
   const [listMonth, setListMonth] = useState<string>("all");
+  const [filterByDate, setFilterByDate] = useState<string | null>(null);
+  const [showOtherDates, setShowOtherDates] = useState(true);
 
   const showToast = useCallback((message: string, type: "success" | "error" | "info" = "info") => {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
@@ -377,6 +379,13 @@ export default function Home() {
       setToast((prev) => ({ ...prev, visible: false }));
     }, 3000);
   }, []);
+
+  const handleShowMoreEvents = (dateStr: string) => {
+    setFilterByDate(dateStr);
+    setShowOtherDates(true);
+    setCurrentView("list");
+    setCurrentListTab("incomplete");
+  };
 
   // Load data
   useEffect(() => {
@@ -787,7 +796,17 @@ export default function Home() {
               )}
             </div>
           ))}
-          {dayEvents.length > 2 && <div className="text-xs text-gray-500 px-1.5 font-semibold">+{dayEvents.length - 2} more</div>}
+          {dayEvents.length > 2 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleShowMoreEvents(dateStr);
+              }}
+              className="text-xs text-purple-600 px-1.5 font-semibold hover:text-purple-800 cursor-pointer"
+            >
+              +{dayEvents.length - 2} more
+            </button>
+          )}
         </div>
       );
     }
@@ -800,6 +819,7 @@ export default function Home() {
   // ============================================
   const getFilteredEvents = () => {
     let filtered = systemData.events.filter((e) => {
+      if (filterByDate && e.date !== filterByDate) return false;
       const d = new Date(e.date);
       if (d.getFullYear() !== listYear) return false;
       if (listMonth !== "all" && d.getMonth() !== parseInt(listMonth)) return false;
@@ -1479,7 +1499,7 @@ export default function Home() {
             </div>
 
             {/* Filters */}
-            <div className="flex gap-3 mb-5 flex-wrap">
+            <div className="flex gap-3 mb-5 flex-wrap items-center">
               <select
                 value={listYear}
                 onChange={(e) => setListYear(parseInt(e.target.value))}
@@ -1497,6 +1517,29 @@ export default function Home() {
                   <option key={m} value={m}>{m + 1}月</option>
                 ))}
               </select>
+              {filterByDate && (
+                <>
+                  <span className="text-sm text-gray-600">篩選日期: {formatDate(filterByDate)}</span>
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={showOtherDates}
+                      onChange={(e) => setShowOtherDates(e.target.checked)}
+                      className="rounded"
+                    />
+                    顯示其他日期
+                  </label>
+                  <button
+                    onClick={() => {
+                      setFilterByDate(null);
+                      setShowOtherDates(true);
+                    }}
+                    className="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-lg"
+                  >
+                    清除篩選
+                  </button>
+                </>
+              )}
             </div>
 
             {/* Tabs */}
