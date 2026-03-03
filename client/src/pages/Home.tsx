@@ -1211,20 +1211,20 @@ export default function Home() {
                     <div className="flex items-center gap-1 sm:gap-1.5 bg-gray-50 p-1.5 sm:p-2 rounded-lg sm:rounded-xl border border-gray-200 overflow-x-auto">
                       <div className="flex flex-col items-center flex-shrink-0">
                         <label className="text-xs text-gray-500 mb-0.5">時</label>
-                        <select value={startHour} onChange={(e) => setStartHour(e.target.value)} className="time-select w-10 sm:w-12 text-xs sm:text-sm">
-                          {[1,2,3,4,5,6,7,8,9,10,11,12].map(h => <option key={h} value={h}>{h}</option>)}
+                        <select value={startHour} onChange={(e) => setStartHour(e.target.value)} className="time-select w-12 sm:w-14 text-xs sm:text-sm">
+                          {[1,2,3,4,5,6,7,8,9,10,11,12].map(h => <option key={h} value={h}>{String(h).padStart(2, '0')}</option>)}
                         </select>
                       </div>
                       <span className="text-gray-400 pt-3 sm:pt-5 text-xs sm:text-base flex-shrink-0">:</span>
                       <div className="flex flex-col items-center flex-shrink-0">
                         <label className="text-xs text-gray-500 mb-0.5">分</label>
-                        <select value={startMinute} onChange={(e) => setStartMinute(e.target.value)} className="time-select w-10 sm:w-14 text-xs sm:text-sm">
+                        <select value={startMinute} onChange={(e) => setStartMinute(e.target.value)} className="time-select w-12 sm:w-14 text-xs sm:text-sm">
                           {minuteOptions.map(m => <option key={m} value={m}>{m}</option>)}
                         </select>
                       </div>
                       <div className="flex flex-col items-center flex-shrink-0">
                         <label className="text-xs text-gray-500 mb-0.5">時段</label>
-                        <select value={startAmpm} onChange={(e) => setStartAmpm(e.target.value)} className="time-select w-12 sm:w-16 bg-purple-50 font-medium text-xs sm:text-sm">
+                        <select value={startAmpm} onChange={(e) => setStartAmpm(e.target.value)} className="time-select w-14 sm:w-16 bg-purple-50 font-medium text-xs sm:text-sm">
                           <option value="AM">上午</option>
                           <option value="PM">下午</option>
                         </select>
@@ -1236,20 +1236,20 @@ export default function Home() {
                     <div className="flex items-center gap-1 sm:gap-1.5 bg-gray-50 p-1.5 sm:p-2 rounded-lg sm:rounded-xl border border-gray-200 overflow-x-auto">
                       <div className="flex flex-col items-center flex-shrink-0">
                         <label className="text-xs text-gray-500 mb-0.5">時</label>
-                        <select value={endHour} onChange={(e) => setEndHour(e.target.value)} className="time-select w-10 sm:w-12 text-xs sm:text-sm">
-                          {[1,2,3,4,5,6,7,8,9,10,11,12].map(h => <option key={h} value={h}>{h}</option>)}
+                        <select value={endHour} onChange={(e) => setEndHour(e.target.value)} className="time-select w-12 sm:w-14 text-xs sm:text-sm">
+                          {[1,2,3,4,5,6,7,8,9,10,11,12].map(h => <option key={h} value={h}>{String(h).padStart(2, '0')}</option>)}
                         </select>
                       </div>
                       <span className="text-gray-400 pt-3 sm:pt-5 text-xs sm:text-base flex-shrink-0">:</span>
                       <div className="flex flex-col items-center flex-shrink-0">
                         <label className="text-xs text-gray-500 mb-0.5">分</label>
-                        <select value={endMinute} onChange={(e) => setEndMinute(e.target.value)} className="time-select w-10 sm:w-14 text-xs sm:text-sm">
+                        <select value={endMinute} onChange={(e) => setEndMinute(e.target.value)} className="time-select w-12 sm:w-14 text-xs sm:text-sm">
                           {minuteOptions.map(m => <option key={m} value={m}>{m}</option>)}
                         </select>
                       </div>
                       <div className="flex flex-col items-center flex-shrink-0">
                         <label className="text-xs text-gray-500 mb-0.5">時段</label>
-                        <select value={endAmpm} onChange={(e) => setEndAmpm(e.target.value)} className="time-select w-12 sm:w-16 bg-purple-50 font-medium text-xs sm:text-sm">
+                        <select value={endAmpm} onChange={(e) => setEndAmpm(e.target.value)} className="time-select w-14 sm:w-16 bg-purple-50 font-medium text-xs sm:text-sm">
                           <option value="AM">上午</option>
                           <option value="PM">下午</option>
                         </select>
