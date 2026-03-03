@@ -817,7 +817,7 @@ export default function Home() {
       cells.push(
         <div
           key={dateStr}
-          className={`calendar-day rounded-xl border p-1.5 sm:p-1 cursor-pointer flex flex-col ${
+          className={`calendar-day rounded-xl border p-1.5 sm:p-1 md:p-1 lg:p-1.5 cursor-pointer flex flex-col overflow-hidden ${
             dayCompleted
               ? "completed-day bg-gray-50 border-gray-200"
               : isToday
@@ -834,9 +834,9 @@ export default function Home() {
             }
           }}
         >
-          <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center justify-between mb-0.5 sm:mb-1">
             <span
-              className={`text-sm font-semibold w-6 h-6 flex items-center justify-center rounded-full ${
+              className={`text-xs sm:text-sm font-semibold w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded-full ${
                 isToday
                   ? "band-gradient text-white text-xs"
                   : dayCompleted
@@ -848,24 +848,24 @@ export default function Home() {
             </span>
             {holidays.length > 0 && <span className="text-xs text-amber-600 font-bold">🏖</span>}
           </div>
-          {holidays.length > 0 && (
-            <div className="text-xs text-amber-600 font-semibold px-1.5 py-0.5 mb-0.5 truncate">
-              {holidays[0].name}
-            </div>
-          )}
+            {holidays.length > 0 && (
+              <div className="text-xs text-amber-600 font-semibold px-1 sm:px-1.5 py-0.5 mb-0.5 truncate line-clamp-1">
+                {holidays[0].name}
+              </div>
+            )}
           {dayEvents.slice(0, 2).map((evt, i) => {
             const goingCount = Object.values(evt.attendance).filter(v => v === "going").length;
             const notGoingCount = Object.values(evt.attendance).filter(v => v === "not-going").length;
             const pendingCount = (membersQuery.data?.length || 0) - goingCount - notGoingCount;
             return (
-              <div key={i} className="text-xs space-y-0.5 mb-1 border-l-2 border-purple-300 pl-1">
+              <div key={i} className="text-xs sm:text-xs space-y-0.5 mb-0.5 sm:mb-1 border-l-2 border-purple-300 pl-1">
                 <div
-                  className={`px-1.5 py-0.5 rounded truncate font-semibold ${TYPE_CONFIG[evt.type].color}`}
+                  className={`px-1 sm:px-1.5 py-0.5 rounded truncate font-semibold text-xs sm:text-xs line-clamp-1 ${TYPE_CONFIG[evt.type].color}`}
                   title={evt.title}
                 >
                   {evt.title}
                 </div>
-                <div className="text-xs text-gray-600 px-1.5 truncate">
+                <div className="text-xs sm:text-xs text-gray-600 px-1 sm:px-1.5 truncate">
                   {evt.startTime} - {evt.endTime}
                 </div>
                 <div className="text-xs px-1.5 space-y-0.5">
@@ -1631,7 +1631,7 @@ export default function Home() {
             </div>
 
             {/* Calendar grid */}
-            <div className="grid grid-cols-7 md:grid-cols-7 sm:grid-cols-7 gap-1 sm:gap-1.5">
+            <div className="grid grid-cols-7 gap-1 sm:gap-1.5 w-full">
               {renderCalendar()}
             </div>
           </div>
@@ -1975,19 +1975,64 @@ export default function Home() {
           background: white;
           border: 1px solid #e5e7eb;
           transition: all 0.2s ease;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+          word-break: break-word;
+        }
+
+        @media (max-width: 768px) {
+          .calendar-day {
+            min-height: 70px;
+            padding: 0.75rem !important;
+            font-size: 0.8rem;
+            gap: 0.25rem;
+          }
+          .calendar-day .text-sm {
+            font-size: 0.75rem !important;
+          }
+          .calendar-day .text-xs {
+            font-size: 0.65rem !important;
+          }
         }
 
         @media (max-width: 640px) {
           .calendar-day {
-            min-height: 70px;
+            min-height: 65px;
             padding: 0.5rem !important;
+            font-size: 0.75rem;
+            gap: 0.2rem;
+          }
+          .calendar-day .text-sm {
+            font-size: 0.7rem !important;
+          }
+          .calendar-day .text-xs {
+            font-size: 0.6rem !important;
+          }
+          .calendar-day .space-y-0\.5 {
+            gap: 0.125rem !important;
           }
         }
 
         @media (max-width: 480px) {
           .calendar-day {
-            min-height: 60px;
-            padding: 0.25rem !important;
+            min-height: 55px;
+            padding: 0.375rem !important;
+            font-size: 0.65rem;
+            gap: 0.15rem;
+          }
+          .calendar-day .text-sm {
+            font-size: 0.65rem !important;
+          }
+          .calendar-day .text-xs {
+            font-size: 0.55rem !important;
+          }
+          .calendar-day .space-y-0\.5 {
+            gap: 0.1rem !important;
+          }
+          .calendar-day .py-0\.5 {
+            padding-top: 0.2rem !important;
+            padding-bottom: 0.2rem !important;
           }
         }
 
