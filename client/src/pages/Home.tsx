@@ -1419,6 +1419,62 @@ export default function Home() {
                       </div>
                     )}
 
+                    {/* Attendance Status Summary Panel */}
+                    {selectedEvent && (
+                      <div className="mt-5 pt-5 border-t border-gray-200">
+                        <h4 className="font-bold text-gray-800 mb-3">成員出席狀態</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          {/* Going */}
+                          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                            <h5 className="font-semibold text-green-700 text-sm mb-2 flex items-center gap-1">
+                              <i className="fas fa-check" /> 出席 ({Object.values(selectedEvent.attendance).filter(v => v === "going").length})
+                            </h5>
+                            <div className="space-y-1">
+                              {(membersQuery.data || []).filter(m => selectedEvent.attendance[m.id] === "going").length === 0 ? (
+                                <p className="text-xs text-gray-500">暫無</p>
+                              ) : (
+                                (membersQuery.data || []).filter(m => selectedEvent.attendance[m.id] === "going").map(member => (
+                                  <div key={member.id} className="text-xs text-green-700 font-medium">{member.name}</div>
+                                ))
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* Not Going */}
+                          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                            <h5 className="font-semibold text-red-700 text-sm mb-2 flex items-center gap-1">
+                              <i className="fas fa-times" /> 不出席 ({Object.values(selectedEvent.attendance).filter(v => v === "not-going").length})
+                            </h5>
+                            <div className="space-y-1">
+                              {(membersQuery.data || []).filter(m => selectedEvent.attendance[m.id] === "not-going").length === 0 ? (
+                                <p className="text-xs text-gray-500">暫無</p>
+                              ) : (
+                                (membersQuery.data || []).filter(m => selectedEvent.attendance[m.id] === "not-going").map(member => (
+                                  <div key={member.id} className="text-xs text-red-700 font-medium">{member.name}</div>
+                                ))
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* Unknown */}
+                          <div className="bg-gray-100 border border-gray-300 rounded-lg p-3">
+                            <h5 className="font-semibold text-gray-700 text-sm mb-2 flex items-center gap-1">
+                              <i className="fas fa-question" /> 未知道 ({Object.values(selectedEvent.attendance).filter(v => v === "unknown").length})
+                            </h5>
+                            <div className="space-y-1">
+                              {(membersQuery.data || []).filter(m => selectedEvent.attendance[m.id] === "unknown").length === 0 ? (
+                                <p className="text-xs text-gray-500">暫無</p>
+                              ) : (
+                                (membersQuery.data || []).filter(m => selectedEvent.attendance[m.id] === "unknown").map(member => (
+                                  <div key={member.id} className="text-xs text-gray-700 font-medium">{member.name}</div>
+                                ))
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Show all members with attendance buttons - Admin only */}
                     {currentUser?.role === "admin" && (
                     <div className="space-y-2">
@@ -1438,11 +1494,11 @@ export default function Home() {
                                   <div className="text-xs mt-1">
                                     {status === "going" && <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">✓ 出席</span>}
                                     {status === "not-going" && <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded-full font-medium">✕ 不出席</span>}
-                                    {!status && <span className="px-2 py-0.5 bg-gray-200 text-gray-600 rounded-full font-medium">待確認</span>}
+                                    {status === "unknown" && <span className="px-2 py-0.5 bg-gray-300 text-gray-700 rounded-full font-medium">? 未知道</span>}
                                   </div>
                                 </div>
                               </div>
-                              <div className="flex gap-2">
+                              <div className="flex gap-2 flex-wrap">
                                 <button
                                   onClick={() => handleAttendanceChangeForMember(selectedEvent.id, member.id, "going")}
                                   disabled={!currentUser}
@@ -1468,6 +1524,19 @@ export default function Home() {
                                   title={!currentUser ? "請登入以修改出席狀態" : ""}
                                 >
                                   <i className="fas fa-times mr-1" />不出席
+                                </button>
+                                <button
+                                  onClick={() => handleAttendanceChangeForMember(selectedEvent.id, member.id, "unknown")}
+                                  disabled={!currentUser}
+                                  className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+                                    !currentUser ? "opacity-50 cursor-not-allowed bg-gray-100 text-gray-400" :
+                                    status === "unknown" 
+                                      ? "bg-gray-400 text-white border border-gray-500" 
+                                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                  }`}
+                                  title={!currentUser ? "請登入以修改出席狀態" : ""}
+                                >
+                                  <i className="fas fa-question mr-1" />未知道
                                 </button>
                               </div>
                             </div>
