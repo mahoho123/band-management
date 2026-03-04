@@ -31,7 +31,7 @@ export const bandRouter = router({
       const result = await initBandSystemData(input.adminPassword);
       const io = getIO();
       if (io) {
-        io.emit("system:updated");
+        io.sockets.emit("system:updated");
       }
       return result;
     }),
@@ -42,7 +42,7 @@ export const bandRouter = router({
       const result = await updateBandSystemData(input.adminPassword);
       const io = getIO();
       if (io) {
-        io.emit("system:updated");
+        io.sockets.emit("system:updated");
       }
       return result;
     }),
@@ -65,7 +65,7 @@ export const bandRouter = router({
       const result = await addBandMember(input);
       const io = getIO();
       if (io) {
-        io.emit("member:added");
+        io.sockets.emit("member:added");
       }
       return result;
     }),
@@ -85,7 +85,7 @@ export const bandRouter = router({
       const result = await updateBandMember(id, data);
       const io = getIO();
       if (io) {
-        io.emit("member:updated");
+        io.sockets.emit("member:updated");
       }
       return result;
     }),
@@ -96,7 +96,7 @@ export const bandRouter = router({
       const result = await deleteBandMember(input.id);
       const io = getIO();
       if (io) {
-        io.emit("member:deleted");
+        io.sockets.emit("member:deleted");
       }
       return result;
     }),
@@ -123,7 +123,7 @@ export const bandRouter = router({
       const result = await addBandEvent(input);
       const io = getIO();
       if (io) {
-        io.emit("event:added");
+        io.sockets.emit("event:added");
       }
       return result;
     }),
@@ -147,7 +147,7 @@ export const bandRouter = router({
       const result = await updateBandEvent(id, data);
       const io = getIO();
       if (io) {
-        io.emit("event:updated");
+        io.sockets.emit("event:updated");
       }
       return result;
     }),
@@ -158,7 +158,7 @@ export const bandRouter = router({
       const result = await deleteBandEvent(input.id);
       const io = getIO();
       if (io) {
-        io.emit("event:deleted");
+        io.sockets.emit("event:deleted");
       }
       return result;
     }),
@@ -182,7 +182,7 @@ export const bandRouter = router({
       const result = await setAttendance(input.eventId, input.memberId, input.status);
       const io = getIO();
       if (io) {
-        io.emit("attendance:changed");
+        io.sockets.emit("attendance:changed");
       }
       return result;
     }),

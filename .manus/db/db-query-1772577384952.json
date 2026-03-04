@@ -1,0 +1,9 @@
+{
+  "query": "DELETE FROM band_events WHERE date LIKE '2026-03-%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ssV1gG8ge5UMiMb.root --database nisJJQWqpdHcjeFLPNJCii --execute DELETE FROM band_events WHERE date LIKE '2026-03-%';",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1549
+}
