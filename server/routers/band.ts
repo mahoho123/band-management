@@ -179,7 +179,7 @@ export const bandRouter = router({
       z.object({
         eventId: z.number(),
         memberId: z.number(),
-        status: z.enum(["going", "not-going", "pending"]),
+        status: z.enum(["going", "not-going", "unknown"]),
       })
     )
     .mutation(async ({ input }) => {
