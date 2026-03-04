@@ -312,7 +312,6 @@ const AUTO_REFRESH_INTERVAL = 5000; // 5 seconds
 export default function Home() {
   // tRPC queries
   const systemDataQuery = trpc.band.getSystemData.useQuery(undefined, { refetchInterval: 500, staleTime: 0, refetchOnWindowFocus: true, refetchOnMount: true });
-  const attendanceQuery = trpc.band.getAttendance.useQuery(undefined, { refetchInterval: 500, staleTime: 0, refetchOnWindowFocus: true, refetchOnMount: true });
   const membersQuery = trpc.band.getMembers.useQuery(undefined, { refetchInterval: 500, staleTime: 0, refetchOnWindowFocus: true, refetchOnMount: true });
   const eventsQuery = trpc.band.getEvents.useQuery(undefined, { refetchInterval: 500, staleTime: 0, refetchOnWindowFocus: true, refetchOnMount: true });
   const holidaysQuery = trpc.band.getHolidays.useQuery(undefined, { refetchInterval: 500, staleTime: 0, refetchOnWindowFocus: true, refetchOnMount: true });
