@@ -8,7 +8,6 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { trpc } from "@/lib/trpc";
-import { useSocketIO } from "@/hooks/useSocketIO";
 
 // ============================================
 // TYPES
@@ -311,14 +310,11 @@ interface ToastState {
 const AUTO_REFRESH_INTERVAL = 5000; // 5 seconds
 
 export default function Home() {
-  // Initialize Socket.IO for real-time synchronization
-  useSocketIO();
-  
   // tRPC queries
-  const systemDataQuery = trpc.band.getSystemData.useQuery(undefined, { refetchInterval: 1000 });
-  const membersQuery = trpc.band.getMembers.useQuery(undefined, { refetchInterval: 1000 });
-  const eventsQuery = trpc.band.getEvents.useQuery(undefined, { refetchInterval: 1000 });
-  const holidaysQuery = trpc.band.getHolidays.useQuery(undefined, { refetchInterval: 1000 });
+  const systemDataQuery = trpc.band.getSystemData.useQuery(undefined, { refetchInterval: 500, staleTime: 0 });
+  const membersQuery = trpc.band.getMembers.useQuery(undefined, { refetchInterval: 500, staleTime: 0 });
+  const eventsQuery = trpc.band.getEvents.useQuery(undefined, { refetchInterval: 500, staleTime: 0 });
+  const holidaysQuery = trpc.band.getHolidays.useQuery(undefined, { refetchInterval: 500, staleTime: 0 });
 
   // tRPC mutations
   const initSystemMutation = trpc.band.initSystem.useMutation();
