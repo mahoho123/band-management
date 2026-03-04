@@ -315,10 +315,10 @@ export default function Home() {
   useSocketIO();
   
   // tRPC queries
-  const systemDataQuery = trpc.band.getSystemData.useQuery(undefined, { refetchInterval: 2000 });
-  const membersQuery = trpc.band.getMembers.useQuery(undefined, { refetchInterval: 2000 });
-  const eventsQuery = trpc.band.getEvents.useQuery(undefined, { refetchInterval: 2000 });
-  const holidaysQuery = trpc.band.getHolidays.useQuery(undefined, { refetchInterval: 2000 });
+  const systemDataQuery = trpc.band.getSystemData.useQuery(undefined, { refetchInterval: 1000 });
+  const membersQuery = trpc.band.getMembers.useQuery(undefined, { refetchInterval: 1000 });
+  const eventsQuery = trpc.band.getEvents.useQuery(undefined, { refetchInterval: 1000 });
+  const holidaysQuery = trpc.band.getHolidays.useQuery(undefined, { refetchInterval: 1000 });
 
   // tRPC mutations
   const initSystemMutation = trpc.band.initSystem.useMutation();
