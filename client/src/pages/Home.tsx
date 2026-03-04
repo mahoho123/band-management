@@ -1707,14 +1707,23 @@ export default function Home() {
             {selectedEventIds.size > 0 && currentUser?.role === "admin" && (
               <div className="bg-purple-50 border-2 border-purple-200 rounded-lg p-3 mb-4 flex items-center justify-between gap-3">
                 <span className="text-sm font-medium text-purple-700">
-                  Selected {selectedEventIds.size} events
+                  Selected {selectedEventIds.size} / {displayEvents.length} events
                 </span>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    onClick={() => {
+                      const allIds = new Set(displayEvents.map(e => e.id));
+                      setSelectedEventIds(allIds);
+                    }}
+                    className="text-xs bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg border border-blue-300 hover:bg-blue-100 transition-all font-medium"
+                  >
+                    Select All
+                  </button>
                   <button
                     onClick={() => setSelectedEventIds(new Set())}
                     className="text-xs bg-white text-gray-700 px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-50 transition-all"
                   >
-                    Cancel
+                    Deselect All
                   </button>
                   <button
                     onClick={() => {
