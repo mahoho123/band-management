@@ -1886,6 +1886,32 @@ export default function Home() {
                             <i className="fas fa-map-marker-alt text-gray-400 w-4" />
                             <span className="truncate">{event.location}</span>
                           </p>
+                          <div className="mt-2 pt-2 border-t border-gray-200 w-full">
+                            <div className="text-xs text-gray-600 mb-1">出席統計:</div>
+                            <div className="space-y-1">
+                              {/* Going */}
+                              {(membersQuery.data || []).filter(m => event.attendance[m.id] === "going").length > 0 && (
+                                <div className="text-xs">
+                                  <span className="px-2 py-0.5 rounded bg-green-100 text-green-700 font-medium mr-1 inline-block">✓ 出席</span>
+                                  <span className="text-gray-700">{(membersQuery.data || []).filter(m => event.attendance[m.id] === "going").map(m => m.name).join(", ")}</span>
+                                </div>
+                              )}
+                              {/* Not Going */}
+                              {(membersQuery.data || []).filter(m => event.attendance[m.id] === "not-going").length > 0 && (
+                                <div className="text-xs">
+                                  <span className="px-2 py-0.5 rounded bg-red-100 text-red-700 font-medium mr-1 inline-block">✗ 不出席</span>
+                                  <span className="text-gray-700">{(membersQuery.data || []).filter(m => event.attendance[m.id] === "not-going").map(m => m.name).join(", ")}</span>
+                                </div>
+                              )}
+                              {/* Unknown */}
+                              {(membersQuery.data || []).filter(m => event.attendance[m.id] === "unknown").length > 0 && (
+                                <div className="text-xs">
+                                  <span className="px-2 py-0.5 rounded bg-gray-200 text-gray-700 font-medium mr-1 inline-block">? 未知道</span>
+                                  <span className="text-gray-700">{(membersQuery.data || []).filter(m => event.attendance[m.id] === "unknown").map(m => m.name).join(", ")}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
                           {currentUser?.role === "admin" && (
                             <div className="mt-2 pt-2 border-t border-gray-200 w-full">
                               <div className="text-xs text-gray-600 mb-1">出席狀態：</div>
