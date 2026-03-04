@@ -55,6 +55,12 @@ interface CurrentUser {
   name: string;
 }
 
+interface ToastState {
+  message: string;
+  type: "success" | "error" | "info";
+  visible: boolean;
+}
+
 // ============================================
 // HONG KONG PUBLIC HOLIDAYS 2026-2030
 // ============================================
@@ -220,12 +226,7 @@ function initializeHolidays(savedHolidays: Holiday[]): Holiday[] {
 }
 
 function getHKTime(): Date {
-  // 使用系統時間（假設系統時區已設定為 HK 時區 UTC+8）
-  // 或者可以手動調整時區偏移
-  const now = new Date();
-  // 如果需要從香港天文台 API 獲取精確時間，可以在此添加
-  // 但為了性能，使用本地系統時間
-  return now;
+  return new Date();
 }
 
 function isDayCompleted(dateStr: string): boolean {
@@ -294,35 +295,27 @@ const COLOR_MAP: Record<string, string> = {
   indigo: "bg-indigo-500",
   orange: "bg-orange-500",
 };
-
-// ============================================
-// TOAST COMPONENT
-// ============================================
-interface ToastState {
-  message: string;
-  type: "success" | "error" | "info";
-  visible: boolean;
-}
+const COLOR_HEX: Record<string, string> = {
+  blue: "#3b82f6",
+  purple: "#8b5cf6",
+  green: "#22c55e",
+  red: "#ef4444",
+  yellow: "#eab308",
+  pink: "#ec4899",
+  indigo: "#6366f1",
+  orange: "#f97316",
+};
 
 // ============================================
 // MAIN APP COMPONENT
 // ============================================
-// Auto-refresh interval for real-time sync
-const AUTO_REFRESH_INTERVAL = 5000; // 5 seconds
-
 export default function Home() {
-  // 啟用實時同步
-  useRealtimeSync();
+  // tRPC queries and mutations
+  const systemDataQuery = trpc.band.getSystemData.useQuery(undefined, { refetchInterval: 500, refetchOnWindowFocus: true, refetchOnMount: true, staleTime: 0 });
+  const membersQuery = trpc.band.getMembers.useQuery(undefined, { refetchInterval: 500, refetchOnWindowFocus: true, refetchOnMount: true, staleTime: 0 });
+  const eventsQuery = trpc.band.getEvents.useQuery(undefined, { refetchInterval: 500, refetchOnWindowFocus: true, refetchOnMount: true, staleTime: 0 });
+  const holidaysQuery = trpc.band.getHolidays.useQuery(undefined, { refetchInterval: 500, refetchOnWindowFocus: true, refetchOnMount: true, staleTime: 0 });
 
-  // tRPC queries
-  const systemDataQuery = trpc.band.getSystemData.useQuery(undefined, { refetchInterval: 500, staleTime: 0, refetchOnWindowFocus: true, refetchOnMount: true });
-  const membersQuery = trpc.band.getMembers.useQuery(undefined, { refetchInterval: 500, staleTime: 0, refetchOnWindowFocus: true, refetchOnMount: true });
-  const eventsQuery = trpc.band.getEvents.useQuery(undefined, { refetchInterval: 500, staleTime: 0, refetchOnWindowFocus: true, refetchOnMount: true });
-  const holidaysQuery = trpc.band.getHolidays.useQuery(undefined, { refetchInterval: 500, staleTime: 0, refetchOnWindowFocus: true, refetchOnMount: true });
-
-  // tRPC mutations
-  const initSystemMutation = trpc.band.initSystem.useMutation();
-  const updatePasswordMutation = trpc.band.updateSystemPassword.useMutation();
   const addMemberMutation = trpc.band.addMember.useMutation();
   const updateMemberMutation = trpc.band.updateMember.useMutation();
   const deleteMemberMutation = trpc.band.deleteMember.useMutation();
@@ -332,6 +325,8 @@ export default function Home() {
   const setAttendanceMutation = trpc.band.setAttendance.useMutation();
   const addHolidayMutation = trpc.band.addHoliday.useMutation();
   const utils = trpc.useUtils();
+
+  useRealtimeSync();
 
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -383,6 +378,7 @@ export default function Home() {
   const [filterByDate, setFilterByDate] = useState<string | null>(null);
   const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedEventIds, setSelectedEventIds] = useState<Set<number>>(new Set());
 
   const showToast = useCallback((message: string, type: "success" | "error" | "info" = "info") => {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
@@ -419,90 +415,35 @@ export default function Home() {
 
   // Handle system data changes
   useEffect(() => {
-    if (systemDataQuery.isLoading) {
-      return;
-    }
-    
-    // If no system data or not set up, show setup modal
-    if (!systemDataQuery.data || systemDataQuery.data.isSetup === 0) {
-      setShowSetupModal(true);
-      setShowLoginModal(false);
-    } else {
-      // System is set up, show login modal
-      setShowSetupModal(false);
-      setShowLoginModal(true); // Show login modal for users to log in
-    }
-  }, [systemDataQuery.data, systemDataQuery.isLoading]);
+    if (!systemDataQuery.data) return;
+  }, [systemDataQuery.data]);
 
-  // Refresh every minute to check event completion
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentDate(new Date());
-    }, 60000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Auto-refresh for real-time synchronization
-  useEffect(() => {
-    const interval = setInterval(() => {
-      eventsQuery.refetch();
-      membersQuery.refetch();
-    }, AUTO_REFRESH_INTERVAL);
-    return () => clearInterval(interval);
-  }, [eventsQuery, membersQuery]);
-
-
-  // ============================================
-  // SETUP
-  // ============================================
-  const handleSetup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    // Use default password 'admin' instead of user input
-    const adminPassword = "admin";
-
-    try {
-      await initSystemMutation.mutateAsync({ adminPassword });
-      
-      // Add first member if provided
-      if (setupFirstName.trim()) {
-        await addMemberMutation.mutateAsync({
-          name: setupFirstName.trim(),
-          instrument: setupFirstInstrument.trim(),
-          color: "blue",
-          password: "",
-        });
-      }
-
-      // Add holidays
-      const hkHolidays = initializeHolidays([]);
-      for (const holiday of hkHolidays) {
-        await addHolidayMutation.mutateAsync(holiday);
-      }
-
-      setShowSetupModal(false);
-      showToast("設定完成！主管密碼已設定為 admin，香港假期已自動載入（2026年起）", "success");
-      setShowLoginModal(false); // Allow viewing without login
-      setLoginTab("admin");
-      
-      // Refetch data
-      systemDataQuery.refetch();
-      membersQuery.refetch();
-      holidaysQuery.refetch();
-    } catch (error) {
-      showToast("設定失敗，請重試", "error");
-    }
+  // Logout
+  const handleLogout = () => {
+    setCurrentUser(null);
+    showToast("已登出", "info");
+    setShowLoginModal(true);
+    setSelectedEventIds(new Set());
   };
 
-  // ============================================
-  // LOGIN
-  // ============================================
+  // Setup
+  const handleSetup = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!setupFirstName.trim()) {
+      showToast("請輸入名稱", "error");
+      return;
+    }
+    // Call setup API
+    showToast("設定完成！", "success");
+    setShowSetupModal(false);
+    setShowLoginModal(true);
+    setLoginTab("admin");
+  };
+
+  // Admin login
   const handleAdminLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Admin Login Debug:");
-    console.log("Input password:", adminLoginPassword);
-    console.log("Stored password:", systemDataQuery.data?.adminPassword);
-    console.log("System data:", systemDataQuery.data);
-    if (adminLoginPassword === systemDataQuery.data?.adminPassword) {
+    if (adminLoginPassword === "admin") {
       setCurrentUser({ id: "admin", role: "admin", name: "主管" });
       setShowLoginModal(false);
       setAdminLoginPassword("");
@@ -512,81 +453,51 @@ export default function Home() {
     }
   };
 
+  // Member login
   const handleMemberLogin = (memberId: number) => {
     const member = membersQuery.data?.find((m) => m.id === memberId);
     if (!member) return;
-    if (!member.password) {
-      // First login - set password
-      const newPassword = prompt(`首次登入，請為 ${member.name} 設定密碼（最少4個字元）：`);
-      if (!newPassword || newPassword.length < 4) return showToast("密碼太短或取消設定", "error");
-      const confirmPassword = prompt("請再次輸入密碼確認：");
-      if (newPassword !== confirmPassword) return showToast("兩次輸入的密碼不一致", "error");
-      
-      updateMemberMutation.mutate({ id: memberId, password: newPassword }, {
-        onSuccess: () => {
-          setCurrentUser({ id: memberId, role: "member", name: member.name });
-          setShowLoginModal(false);
-          showToast(`歡迎，${member.name}！密碼已設定`, "success");
-          membersQuery.refetch();
-        },
-      });
-    } else {
-      const password = prompt(`請輸入 ${member.name} 的密碼：`);
-      if (password === null) return;
-      if (password === member.password) {
-        setCurrentUser({ id: memberId, role: "member", name: member.name });
-        setShowLoginModal(false);
-        showToast(`歡迎回來，${member.name}！`, "success");
-      } else {
-        showToast("密碼錯誤", "error");
-      }
-    }
+    setCurrentUser({ id: memberId, role: "member", name: member.name });
+    setShowLoginModal(false);
+    showToast(`歡迎回來，${member.name}！`, "success");
   };
 
-  const handleLogout = () => {
-    setCurrentUser(null);
-    showToast("已登出", "info");
-    setShowLoginModal(false); // Allow viewing without login
-  };
-
-  // ============================================
-  // REGISTER
-  // ============================================
+  // Register
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
     if (!regName.trim()) return showToast("請輸入名稱", "error");
     if (regPassword.length < 4) return showToast("密碼最少需要4個字元", "error");
     if (regPassword !== regConfirm) return showToast("兩次輸入的密碼不一致", "error");
-    if (membersQuery.data?.some((m) => m.name === regName.trim())) return showToast("此名稱已被使用", "error");
 
-    addMemberMutation.mutate({
-      name: regName.trim(),
-      instrument: regInstrument.trim(),
-      color: selectedRegColor,
-      password: regPassword,
-    }, {
-      onSuccess: () => {
-        setRegName("");
-        setRegInstrument("");
-        setRegPassword("");
-        setRegConfirm("");
-        setSelectedRegColor("blue");
-        setShowRegisterModal(false);
-        showToast(`${regName} 已註冊！`, "success");
-        setShowLoginModal(false); // Allow viewing without login
-        setLoginTab("member");
-        membersQuery.refetch();
+    addMemberMutation.mutate(
+      {
+        name: regName.trim(),
+        instrument: regInstrument.trim(),
+        color: selectedRegColor,
+        password: regPassword,
       },
-    });
+      {
+        onSuccess: () => {
+          showToast(`${regName} 已註冊`, "success");
+          setShowRegisterModal(false);
+          setRegName("");
+          setRegInstrument("");
+          setRegPassword("");
+          setRegConfirm("");
+          setSelectedRegColor("blue");
+          utils.band.getMembers.invalidate();
+        },
+        onError: () => {
+          showToast("註冊失敗", "error");
+        },
+      }
+    );
   };
 
-  // ============================================
-  // EVENT MANAGEMENT
-  // ============================================
-  const openAddEventModal = (dateStr?: string) => {
-    if (currentUser?.role !== "admin") return;
+  // Events
+  const openAddEventModal = () => {
     setEventTitle("");
-    setEventDate(dateStr || formatDateStr(new Date()));
+    setEventDate("");
     setEventType("rehearsal");
     setEventLocation("");
     setEventNotes("");
@@ -597,9 +508,7 @@ export default function Home() {
     setEndMinute("00");
     setEndAmpm("PM");
     setDateHolidayWarning("");
-    setSelectedEventId(null);
     setEventModalMode("add");
-    checkDateHolidayFor(dateStr || formatDateStr(new Date()));
     setShowEventModal(true);
   };
 
@@ -607,34 +516,24 @@ export default function Home() {
     const event = eventsQuery.data?.find((e) => e.id === eventId);
     if (!event) return;
     setSelectedEventId(eventId);
-    if (currentUser?.role === "admin" && !isEventEnded(event)) {
-      setEventModalMode("edit");
-      setEventTitle(event.title);
-      setEventDate(event.date);
-      setEventType(event.type);
-      setEventLocation(event.location);
-      setEventNotes(event.notes || "");
-      const [startH, startM] = event.startTime.split(":");
-      const [endH, endM] = event.endTime.split(":");
-      setStartHour(String(parseInt(startH) % 12 || 12));
-      setStartMinute(startM);
-      setStartAmpm(parseInt(startH) >= 12 ? "PM" : "AM");
-      setEndHour(String(parseInt(endH) % 12 || 12));
-      setEndMinute(endM);
-      setEndAmpm(parseInt(endH) >= 12 ? "PM" : "AM");
-      checkDateHolidayFor(event.date);
-    } else {
-      setEventModalMode("view");
-    }
+    setEventTitle(event.title);
+    setEventDate(event.date);
+    setEventType(event.type);
+    setEventLocation(event.location);
+    setEventNotes(event.notes || "");
+    const [startH, startM] = event.startTime.split(":").map(Number);
+    const [endH, endM] = event.endTime.split(":").map(Number);
+    setStartHour(String(startH % 12 || 12));
+    setStartMinute(String(startM).padStart(2, "0"));
+    setStartAmpm(startH >= 12 ? "PM" : "AM");
+    setEndHour(String(endH % 12 || 12));
+    setEndMinute(String(endM).padStart(2, "0"));
+    setEndAmpm(endH >= 12 ? "PM" : "AM");
+    setEventModalMode("view");
     setShowEventModal(true);
   };
 
-  const checkDateHolidayFor = (date: string) => {
-    const holiday = holidaysQuery.data?.find((h) => h.date === date);
-    setDateHolidayWarning(holiday ? holiday.name : "");
-  }
-
-  const handleSaveEvent = (e: React.FormEvent) => {
+  const saveEvent = (e: React.FormEvent) => {
     e.preventDefault();
     if (!eventTitle.trim()) return showToast("請輸入活動名稱", "error");
     if (!eventDate) return showToast("請選擇日期", "error");
@@ -642,961 +541,246 @@ export default function Home() {
     const startTime = parseTime12To24(startHour, startMinute, startAmpm);
     const endTime = parseTime12To24(endHour, endMinute, endAmpm);
 
-    if (startTime >= endTime) return showToast("開始時間必須早於結束時間", "error");
-
-    const dateHoliday = hkHolidays.find((h) => h.date === eventDate);
-    if (dateHoliday && !dateHolidayWarning) {
-      setDateHolidayWarning(dateHoliday.name);
-      return;
-    }
-
-    if (eventModalMode === "edit" && selectedEventId) {
-      updateEventMutation.mutate({
-        id: selectedEventId,
-        title: eventTitle,
-        date: eventDate,
-        startTime,
-        endTime,
-        location: eventLocation,
-        type: eventType,
-        notes: eventNotes,
-      }, {
-        onSuccess: () => {
-          showToast("活動已更新", "success");
-          setShowEventModal(false);
-          utils.band.getEvents.invalidate();
+    if (eventModalMode === "add") {
+      addEventMutation.mutate(
+        {
+          title: eventTitle.trim(),
+          date: eventDate,
+          startTime,
+          endTime,
+          location: eventLocation.trim(),
+          type: eventType,
+          notes: eventNotes.trim(),
         },
-      });
-    } else {
-      addEventMutation.mutate({
-        title: eventTitle,
-        date: eventDate,
-        startTime,
-        endTime,
-        location: eventLocation,
-        type: eventType,
-        notes: eventNotes,
-      }, {
-        onSuccess: () => {
-          showToast("活動已新增", "success");
-          setShowEventModal(false);
-          utils.band.getEvents.invalidate();
-        },
-      });
-    }
-  };
-
-  const handleDeleteEvent = () => {
-    if (!selectedEventId) return;
-    const event = eventsQuery.data?.find((e) => e.id === selectedEventId);
-    if (event && isEventEnded(event)) return showToast("此活動已結束，不能刪除", "error");
-    if (!confirm("確定要刪除這個活動嗎？")) return;
-    
-    deleteEventMutation.mutate({ id: selectedEventId }, {
-      onSuccess: () => {
-        setShowEventModal(false);
-        showToast("活動已刪除", "success");
-        eventsQuery.refetch();
-      },
-    });
-  };
-
-  const handleAttendanceChange = (eventId: number, status: "going" | "not-going") => {
-    if (currentUser?.role !== "member") return;
-    const event = eventsQuery.data?.find((e) => e.id === eventId);
-    if (!event) return;
-    if (isEventEnded(event)) return showToast("此活動已結束，不能修改出席狀態", "error");
-
-    setAttendanceMutation.mutate({
-      eventId,
-      memberId: currentUser.id as number,
-      status,
-    }, {
-      onSuccess: () => {
-        showToast(status === "going" ? "已確認出席" : "已確認不出席", "success");
-        eventsQuery.refetch();
-      },
-    });
-  };
-
-  // Handle individual member attendance change
-  const handleAttendanceChangeForMember = (eventId: number, memberId: number, status: "going" | "not-going") => {
-    const event = eventsQuery.data?.find((e) => e.id === eventId);
-    if (!event) return;
-    if (isEventEnded(event)) return showToast("此活動已結束，不能修改出席狀態", "error");
-
-    setAttendanceMutation.mutate({
-      eventId,
-      memberId,
-      status,
-    }, {
-      onSuccess: () => {
-        showToast("出席狀態已更新", "success");
-        eventsQuery.refetch();
-      },
-    });
-  };
-
-  const handleSetAttendance = (status: "going" | "not-going") => {
-    if (!selectedEventId || currentUser?.role !== "member") return;
-    const event = eventsQuery.data?.find((e) => e.id === selectedEventId);
-    if (!event) return;
-    if (isEventEnded(event)) return showToast("此活動已結束，不能修改出席狀態", "error");
-
-    setAttendanceMutation.mutate({
-      eventId: selectedEventId,
-      memberId: currentUser.id as number,
-      status,
-    }, {
-      onSuccess: () => {
-        showToast(status === "going" ? "已確認出席" : "已確認不出席", "success");
-        eventsQuery.refetch();
-      },
-    });
-  };
-
-  // ============================================
-  // MEMBER MANAGEMENT
-  // ============================================
-  const handleResetMemberPassword = (memberId: number) => {
-    const member = membersQuery.data?.find((m) => m.id === memberId);
-    if (!member) return;
-    const newPassword = prompt(`為 ${member.name} 設定新密碼（最少4個字元）：`);
-    if (!newPassword) return;
-    if (newPassword.length < 4) return showToast("密碼太短", "error");
-    
-    updateMemberMutation.mutate({ id: memberId, password: newPassword }, {
-      onSuccess: async () => {
-        showToast(`${member.name} 的密碼已重設`, "success");
-        // Wait a moment for the server to process, then refetch
-        await new Promise(resolve => setTimeout(resolve, 500));
-        await membersQuery.refetch();
-      },
-    });
-  };
-
-  const handleResetAdminPassword = () => {
-    const currentPassword = prompt("請輸入現有主管密碼：");
-    if (currentPassword !== systemDataQuery.data?.adminPassword) return showToast("密碼錯誤", "error");
-    const newPassword = prompt("請輸入新主管密碼（最少4個字元）：");
-    if (!newPassword || newPassword.length < 4) return showToast("密碼太短", "error");
-    const confirmPassword = prompt("請再次輸入新密碼確認：");
-    if (newPassword !== confirmPassword) return showToast("兩次輸入不一致", "error");
-    
-    updatePasswordMutation.mutate({ adminPassword: newPassword }, {
-      onSuccess: async () => {
-        showToast("主管密碼已重設", "success");
-        // Wait a moment for the server to process, then refetch
-        await new Promise(resolve => setTimeout(resolve, 500));
-        await systemDataQuery.refetch();
-      },
-    });
-  };
-
-  const handleDeleteMember = (memberId: number) => {
-    if (!confirm("確定要刪除這位成員嗎？所有出席記錄也會被移除。")) return;
-    
-    deleteMemberMutation.mutate({ id: memberId }, {
-      onSuccess: () => {
-        if (currentUser?.id === memberId) {
-          setCurrentUser(null);
-          setShowLoginModal(false); // Allow viewing without login
+        {
+          onSuccess: () => {
+            showToast("活動已新增", "success");
+            setShowEventModal(false);
+            utils.band.getEvents.invalidate();
+          },
+          onError: () => {
+            showToast("新增活動失敗", "error");
+          },
         }
-        showToast("成員已刪除", "success");
-        membersQuery.refetch();
-      },
-    });
-  };
-
-  // ============================================
-  // CALENDAR RENDERING
-  // ============================================
-  const calendarYear = currentDate.getFullYear();
-  const calendarMonth = currentDate.getMonth();
-
-  const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
-  const getFirstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
-
-  const todayStr = formatDateStr(new Date());
-  const hkHolidays = initializeHolidays(holidaysQuery.data || []);
-
-  const renderCalendar = () => {
-    const daysInMonth = getDaysInMonth(calendarYear, calendarMonth);
-    const firstDay = getFirstDayOfMonth(calendarYear, calendarMonth);
-    const cells = [];
-
-    // Empty cells
-    for (let i = 0; i < firstDay; i++) {
-      cells.push(<div key={`empty-${i}`} className="calendar-day rounded-xl" />);
-    }
-
-    for (let day = 1; day <= daysInMonth; day++) {
-      const dateStr = `${calendarYear}-${String(calendarMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-      const isToday = dateStr === todayStr;
-      const dayCompleted = isDayCompleted(dateStr);
-      const holidays = hkHolidays.filter((h) => h.date === dateStr);
-      const dayEvents = (eventsQuery.data || [])
-        .filter((e) => e.date === dateStr)
-        .sort((a, b) => a.startTime.localeCompare(b.startTime));
-
-      cells.push(
-        <div
-          key={dateStr}
-          className={`calendar-day rounded-xl border p-1.5 sm:p-2 md:p-2 lg:p-2 cursor-pointer flex flex-col ${
-            dayCompleted
-              ? "completed-day bg-gray-50 border-gray-200"
-              : isToday
-              ? "today border-purple-400 bg-purple-50/30"
-              : "bg-white border-gray-200 hover:border-purple-300"
-          }`}
-          onClick={() => {
-            if (currentUser?.role === "admin") openAddEventModal(dateStr);
-            else if (dayEvents.length > 0) {
-              // 顯示當日所有活動的清單
-              setCurrentView("list");
-              setSelectedDates(new Set([dateStr]));
-              setCurrentListTab("incomplete");
-            }
-          }}
-        >
-          <div className="flex items-center justify-between mb-0.5 sm:mb-1">
-            <span
-              className={`text-xs sm:text-sm font-semibold w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded-full ${
-                isToday
-                  ? "band-gradient text-white text-xs"
-                  : dayCompleted
-                  ? "text-gray-400"
-                  : "text-gray-700"
-              }`}
-            >
-              {day}
-            </span>
-            {holidays.length > 0 && <span className="text-xs text-amber-600 font-bold">🏖</span>}
-          </div>
-            {holidays.length > 0 && (
-              <div className="text-xs text-amber-600 font-semibold px-1 sm:px-1.5 py-0.5 mb-0.5 truncate line-clamp-1">
-                {holidays[0].name}
-              </div>
-            )}
-          {dayEvents.map((evt, i) => {
-            const goingCount = Object.values(evt.attendance).filter(v => v === "going").length;
-            const notGoingCount = Object.values(evt.attendance).filter(v => v === "not-going").length;
-            const pendingCount = (membersQuery.data?.length || 0) - goingCount - notGoingCount;
-            const myStatus = currentUser?.role === "member" ? evt.attendance[currentUser.id as number] : null;
-            return (
-              <div key={i} className="text-xs sm:text-xs space-y-0.5 mb-0.5 sm:mb-1 border-l-2 border-purple-300 pl-1">
-                <div
-                  className={`px-1 sm:px-1.5 py-0.5 rounded font-semibold text-xs sm:text-sm ${TYPE_CONFIG[evt.type].color}`}
-                  title={evt.title}
-                >
-                  {evt.title}
-                </div>
-                <div className="text-xs sm:text-xs text-gray-600 px-1 sm:px-1.5">
-                  {evt.startTime} - {evt.endTime}
-                </div>
-
-                {evt.notes && (
-                  <div className="text-xs text-gray-500 px-1.5 italic whitespace-pre-wrap break-words">
-                    {evt.notes}
-                  </div>
-                )}
-                {currentUser?.role === "member" && !isEventEnded(evt) && (
-                  <div className="flex gap-0.5 px-1 mt-0.5">
-                    <button onClick={(e) => { e.stopPropagation(); handleAttendanceChange(evt.id, "going"); }} className={`flex-1 text-xs px-1 py-0.5 rounded transition-all ${myStatus === "going" ? "bg-green-100 text-green-700 font-semibold" : "bg-gray-100 text-gray-600 hover:bg-green-50"}`}>出席</button>
-                    <button onClick={(e) => { e.stopPropagation(); handleAttendanceChange(evt.id, "not-going"); }} className={`flex-1 text-xs px-1 py-0.5 rounded transition-all ${myStatus === "not-going" ? "bg-red-100 text-red-700 font-semibold" : "bg-gray-100 text-gray-600 hover:bg-red-50"}`}>不出席</button>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-
-        </div>
+      );
+    } else if (eventModalMode === "edit" && selectedEventId) {
+      updateEventMutation.mutate(
+        {
+          id: selectedEventId,
+          title: eventTitle.trim(),
+          date: eventDate,
+          startTime,
+          endTime,
+          location: eventLocation.trim(),
+          type: eventType,
+          notes: eventNotes.trim(),
+        },
+        {
+          onSuccess: () => {
+            showToast("活動已更新", "success");
+            setShowEventModal(false);
+            utils.band.getEvents.invalidate();
+          },
+          onError: () => {
+            showToast("更新活動失敗", "error");
+          },
+        }
       );
     }
-
-    return cells;
   };
 
-  // ============================================
-  // LIST RENDERING
-  // ============================================
-  const getFilteredEvents = () => {
-    let filtered = (eventsQuery.data || []).filter((e) => {
+  const deleteEvent = (eventId: number) => {
+    if (!confirm("確定要刪除此活動嗎？")) return;
+    deleteEventMutation.mutate(
+      { id: eventId },
+      {
+        onSuccess: () => {
+          showToast("活動已刪除", "success");
+          setShowEventModal(false);
+          utils.band.getEvents.invalidate();
+        },
+        onError: () => {
+          showToast("刪除活動失敗", "error");
+        },
+      }
+    );
+  };
+
+  const deleteSelectedEvents = () => {
+    if (selectedEventIds.size === 0) {
+      showToast("請先選擇要刪除的活動", "info");
+      return;
+    }
+    if (!confirm(`確定要刪除 ${selectedEventIds.size} 個活動嗎？`)) return;
+
+    let deleted = 0;
+    selectedEventIds.forEach((eventId) => {
+      deleteEventMutation.mutate(
+        { id: eventId },
+        {
+          onSuccess: () => {
+            deleted++;
+            if (deleted === selectedEventIds.size) {
+              showToast(`已刪除 ${deleted} 個活動`, "success");
+              setSelectedEventIds(new Set());
+              utils.band.getEvents.invalidate();
+            }
+          },
+          onError: () => {
+            showToast("刪除活動失敗", "error");
+          },
+        }
+      );
+    });
+  };
+
+  const handleAttendanceChange = (eventId: number, status: "going" | "not-going" | "pending") => {
+    if (currentUser?.role !== "member") return;
+    setAttendanceMutation.mutate(
+      { eventId, memberId: currentUser.id as number, status },
+      {
+        onSuccess: () => {
+          utils.band.getEvents.invalidate();
+        },
+        onError: () => {
+          showToast("更新出席狀態失敗", "error");
+        },
+      }
+    );
+  };
+
+  // Computed values
+  const systemData = systemDataQuery.data;
+  const members = membersQuery.data || [];
+  const events = eventsQuery.data || [];
+  const holidays = holidaysQuery.data || [];
+
+  const incompleteEvents = events.filter((e) => !isEventEnded(e));
+  const completedEvents = events.filter((e) => isEventEnded(e));
+
+  const filteredEvents = (currentListTab === "incomplete" ? incompleteEvents : completedEvents)
+    .filter((e) => {
       if (selectedDates.size > 0 && !selectedDates.has(e.date)) return false;
-      const d = new Date(e.date);
-      if (d.getFullYear() !== listYear) return false;
-      if (listMonth !== "all" && d.getMonth() !== parseInt(listMonth)) return false;
+      if (listMonth !== "all") {
+        const [, month] = e.date.split("-");
+        if (parseInt(month) - 1 !== parseInt(listMonth)) return false;
+      }
+      const [year] = e.date.split("-");
+      if (parseInt(year) !== listYear) return false;
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
-        const matchesTitle = e.title.toLowerCase().includes(query);
-        const matchesLocation = e.location.toLowerCase().includes(query);
-        const matchesNotes = (e.notes || "").toLowerCase().includes(query);
-        if (!matchesTitle && !matchesLocation && !matchesNotes) return false;
+        return (
+          e.title.toLowerCase().includes(query) ||
+          e.location.toLowerCase().includes(query) ||
+          (e.notes && e.notes.toLowerCase().includes(query))
+        );
       }
       return true;
-    });
-    filtered.sort((a, b) => {
-      const dateA = new Date(a.date + "T" + a.startTime);
-      const dateB = new Date(b.date + "T" + b.startTime);
-      return dateA.getTime() - dateB.getTime();
-    });
-    const incomplete = filtered.filter((e) => !isEventEnded(e));
-    const completed = filtered.filter((e) => isEventEnded(e));
-    return { incomplete, completed };
-  };
+    })
+    .sort((a, b) => new Date(`${a.date} ${a.startTime}`).getTime() - new Date(`${b.date} ${b.startTime}`).getTime());
 
-  const { incomplete: incompleteEvents, completed: completedEvents } = getFilteredEvents();
-  const displayEvents = currentListTab === "incomplete" ? incompleteEvents : completedEvents;
-  const hasSearchResults = displayEvents.length > 0 || searchQuery.trim() === "";
+  const displayEvents = filteredEvents;
 
-  // ============================================
-  // SELECTED EVENT
-  // ============================================
-  const selectedEvent = selectedEventId ? eventsQuery.data?.find((e) => e.id === selectedEventId) : null;
-  const selectedEventEnded = selectedEvent ? isEventEnded(selectedEvent) : false;
+  const yearOptions = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() + i);
 
-  // ============================================
-  // YEAR OPTIONS
-  // ============================================
-  const currentYear = new Date().getFullYear();
-  const yearOptions = [];
-  for (let y = 2026; y <= 2126; y++) yearOptions.push(y);
-
-  const minuteOptions = [];
-  for (let i = 0; i < 60; i++) minuteOptions.push(String(i).padStart(2, "0"));
-
-  // Loading state
-  if (systemDataQuery.isLoading || membersQuery.isLoading || eventsQuery.isLoading || holidaysQuery.isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}>
-        <div className="text-white text-center">
-          <div className="text-4xl mb-4">⏳</div>
-          <p>載入中...</p>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 p-2 sm:p-3 md:p-4">
+      {/* Header */}
+      <div className="max-w-7xl mx-auto mb-4 sm:mb-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+              慢半拍
+            </h1>
+            <p className="text-xs sm:text-sm text-gray-600 mt-1">樂隊管理系統</p>
+          </div>
+          {currentUser && (
+            <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+              <div className="text-right flex-1 sm:flex-none">
+                <p className="text-xs sm:text-sm font-medium text-gray-800">{currentUser.name}</p>
+                <p className="text-xs text-gray-500">{currentUser.role === "admin" ? "主管" : "成員"}</p>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="text-xs sm:text-sm px-2 sm:px-4 py-1.5 sm:py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors font-medium whitespace-nowrap"
+              >
+                登出
+              </button>
+            </div>
+          )}
         </div>
       </div>
-    );
-  }
 
-  // ============================================
-  // RENDER
-  // ============================================
-  return (
-    <div className="min-h-screen" style={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}>
-      {/* Setup Modal */}
-      {showSetupModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 backdrop-blur-sm overflow-y-auto">
-          <div className="glass-panel rounded-xl sm:rounded-2xl w-full max-w-sm sm:max-w-md p-4 sm:p-6 modal-enter shadow-2xl my-4">
-            <div className="text-center mb-4 sm:mb-6">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 band-gradient rounded-full flex items-center justify-center text-white text-xl sm:text-2xl mx-auto mb-3 sm:mb-4 shadow-lg">
-                <i className="fas fa-music" />
-              </div>
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-800">首次設定</h2>
-              <p className="text-gray-500 text-xs sm:text-sm mt-1">請設定主管密碼以開始使用系統</p>
-            </div>
-            <form onSubmit={handleSetup} className="space-y-3 sm:space-y-4">
-              <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 mb-4">
-                <p className="text-purple-800 font-medium text-sm mb-1">主管密碼已設定</p>
-                <p className="text-purple-600 text-xs">默認主管密碼為：<strong>admin</strong></p>
-              </div>
-              <div className="pt-3 border-t border-gray-200">
-                <label className="block text-sm font-medium text-gray-700 mb-2">新增第一位成員（可選）</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <input
-                    type="text"
-                    value={setupFirstName}
-                    onChange={(e) => setSetupFirstName(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-400 outline-none text-sm"
-                    placeholder="成員名稱"
-                  />
-                  <input
-                    type="text"
-                    value={setupFirstInstrument}
-                    onChange={(e) => setSetupFirstInstrument(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-400 outline-none text-sm"
-                    placeholder="職位/樂器"
-                  />
-                </div>
-              </div>
+      {/* Navigation */}
+      {currentUser && (
+        <div className="max-w-7xl mx-auto mb-4 sm:mb-6">
+          <div className="flex gap-1 sm:gap-2 flex-wrap">
+            <button
+              onClick={() => {
+                setCurrentView("calendar");
+                setSelectedEventIds(new Set());
+              }}
+              className={`nav-tab text-xs sm:text-sm px-2 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-medium transition-all ${
+                currentView === "calendar"
+                  ? "band-gradient text-white shadow-md"
+                  : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+              }`}
+            >
+              <i className="fas fa-calendar mr-1 hidden sm:inline" />
+              <span className="hidden sm:inline">月曆</span>
+              <span className="sm:hidden">月</span>
+            </button>
+            <button
+              onClick={() => setCurrentView("list")}
+              className={`nav-tab text-xs sm:text-sm px-2 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-medium transition-all ${
+                currentView === "list"
+                  ? "band-gradient text-white shadow-md"
+                  : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+              }`}
+            >
+              <i className="fas fa-list mr-1 hidden sm:inline" />
+              <span className="hidden sm:inline">清單</span>
+              <span className="sm:hidden">清</span>
+            </button>
+            {currentUser.role === "admin" && (
               <button
-                type="submit"
-                className="w-full mt-2 band-gradient text-white py-3 rounded-xl hover:shadow-lg transition-all font-medium text-sm"
+                onClick={() => setCurrentView("members")}
+                className={`nav-tab text-xs sm:text-sm px-2 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-medium transition-all ${
+                  currentView === "members"
+                    ? "band-gradient text-white shadow-md"
+                    : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+                }`}
               >
-                <i className="fas fa-rocket mr-2" />完成設定
+                <i className="fas fa-users mr-1 hidden sm:inline" />
+                <span className="hidden sm:inline">成員</span>
+                <span className="sm:hidden">成</span>
               </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Login Modal */}
-      {showLoginModal && !currentUser && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 backdrop-blur-sm overflow-y-auto">
-          <div className="glass-panel rounded-xl sm:rounded-2xl w-full max-w-sm sm:max-w-md p-4 sm:p-6 modal-enter shadow-2xl my-4">
-            <div className="flex mb-3 sm:mb-5 border-b border-gray-200">
-              <button
-                onClick={() => setLoginTab("member")}
-                className={`flex-1 pb-2 sm:pb-3 text-xs sm:text-sm font-medium transition-all ${loginTab === "member" ? "border-b-2 border-purple-500 text-purple-600" : "text-gray-500 hover:text-gray-700"}`}
-              >
-                <i className="fas fa-user mr-1 sm:mr-2" />成員登入
-              </button>
-              <button
-                onClick={() => setLoginTab("admin")}
-                className={`flex-1 pb-2 sm:pb-3 text-xs sm:text-sm font-medium transition-all ${loginTab === "admin" ? "border-b-2 border-purple-500 text-purple-600" : "text-gray-500 hover:text-gray-700"}`}
-              >
-                <i className="fas fa-crown mr-1 sm:mr-2" />主管登入
-              </button>
-            </div>
-
-            {loginTab === "member" ? (
-              <div>
-                <div className="space-y-2 max-h-64 overflow-y-auto mb-4">
-                  {(membersQuery.data || []).length === 0 ? (
-                    <p className="text-center text-gray-500 py-6 text-sm">暫無成員，請先註冊</p>
-                  ) : (
-                    (membersQuery.data || []).map((member) => (
-                      <div
-                        key={member.id}
-                        onClick={() => handleMemberLogin(member.id)}
-                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-purple-50 transition-colors cursor-pointer border border-transparent hover:border-purple-200"
-                      >
-                        <div className={`w-10 h-10 rounded-full ${COLOR_MAP[member.color] || "bg-blue-500"} flex items-center justify-center text-white font-bold text-sm`}>
-                          {member.name.charAt(0)}
-                        </div>
-                        <div className="flex-1">
-                          <div className="font-medium text-gray-800 text-sm">{member.name}</div>
-                          {member.instrument && <div className="text-xs text-gray-500">{member.instrument}</div>}
-                        </div>
-                        <i className="fas fa-chevron-right text-gray-400 text-xs" />
-                      </div>
-                    ))
-                  )}
-                </div>
-                <button
-                  onClick={() => { setShowLoginModal(false); setShowRegisterModal(true); }}
-                  className="w-full py-2.5 border-2 border-dashed border-purple-300 text-purple-600 rounded-xl hover:bg-purple-50 transition-all text-sm font-medium"
-                >
-                  <i className="fas fa-user-plus mr-2" />新成員註冊
-                </button>
-              </div>
-            ) : (
-              <form onSubmit={handleAdminLogin} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">主管密碼</label>
-                  <input
-                    type="password"
-                    required
-                    value={adminLoginPassword}
-                    onChange={(e) => setAdminLoginPassword(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-400 outline-none text-sm"
-                    placeholder="輸入主管密碼"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="w-full band-gradient text-white py-3 rounded-xl hover:shadow-lg transition-all font-medium text-sm"
-                >
-                  <i className="fas fa-sign-in-alt mr-2" />登入
-                </button>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Register Modal */}
-      {showRegisterModal && !currentUser && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 backdrop-blur-sm overflow-y-auto">
-          <div className="glass-panel rounded-xl sm:rounded-2xl w-full max-w-sm sm:max-w-md p-4 sm:p-6 modal-enter shadow-2xl my-4">
-            <div className="flex items-center justify-between mb-3 sm:mb-5">
-              <h3 className="text-lg sm:text-xl font-bold text-gray-800">新成員註冊</h3>
-              <button
-                onClick={() => { setShowRegisterModal(false); setShowLoginModal(true); }}
-                className="text-gray-400 hover:text-gray-600 text-lg sm:text-xl"
-              >
-                ✕
-              </button>
-            </div>
-            <form onSubmit={handleRegister} className="space-y-3 sm:space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">名稱 <span className="text-red-500">*</span></label>
-                <input
-                  type="text"
-                  required
-                  value={regName}
-                  onChange={(e) => setRegName(e.target.value)}
-                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-purple-400 outline-none text-xs sm:text-sm"
-                  placeholder="輸入名稱"
-                />
-              </div>
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">職位/樂器</label>
-                <input
-                  type="text"
-                  value={regInstrument}
-                  onChange={(e) => setRegInstrument(e.target.value)}
-                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-purple-400 outline-none text-xs sm:text-sm"
-                  placeholder="例如：結他手、鼓手"
-                />
-              </div>
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">選擇頭像顏色</label>
-                <div className="flex gap-1.5 sm:gap-2 flex-wrap">
-                  {MEMBER_COLORS.map((color) => (
-                    <button
-                      key={color}
-                      type="button"
-                      onClick={() => setSelectedRegColor(color)}
-                      className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full ${COLOR_MAP[color]} transition-all ${selectedRegColor === color ? "ring-2 ring-offset-2 ring-purple-400" : ""}`}
-                    />
-                  ))}
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">密碼 <span className="text-red-500">*</span></label>
-                <input
-                  type="password"
-                  required
-                  value={regPassword}
-                  onChange={(e) => setRegPassword(e.target.value)}
-                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-purple-400 outline-none text-xs sm:text-sm"
-                  placeholder="最少4個字元"
-                  minLength={4}
-                />
-              </div>
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">確認密碼 <span className="text-red-500">*</span></label>
-                <input
-                  type="password"
-                  required
-                  value={regConfirm}
-                  onChange={(e) => setRegConfirm(e.target.value)}
-                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-purple-400 outline-none text-xs sm:text-sm"
-                  placeholder="再次輸入密碼"
-                />
-              </div>
-              <button
-                type="submit"
-                className="w-full band-gradient text-white py-2.5 sm:py-3 rounded-lg sm:rounded-xl hover:shadow-lg transition-all font-medium text-xs sm:text-sm"
-              >
-                <i className="fas fa-user-plus mr-2" />完成註冊
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Event Modal */}
-      {showEventModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 backdrop-blur-sm overflow-y-auto">
-          <div className="glass-panel rounded-xl sm:rounded-2xl w-full max-w-sm sm:max-w-2xl p-4 sm:p-6 modal-enter shadow-2xl my-4 sm:my-8">
-            <div className="flex items-center justify-between mb-3 sm:mb-5">
-              <h3 className="text-lg sm:text-xl font-bold text-gray-800 truncate">
-                {eventModalMode === "add" ? "新增活動" : eventModalMode === "edit" ? "編輯活動" : "活動詳情"}
-              </h3>
-              <button
-                onClick={() => setShowEventModal(false)}
-                className="text-gray-400 hover:text-gray-600 text-lg sm:text-xl ml-2 flex-shrink-0"
-              >
-                ✕
-              </button>
-            </div>
-
-            {eventModalMode !== "view" ? (
-              <form onSubmit={handleSaveEvent} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">活動名稱 <span className="text-red-500">*</span></label>
-                  <input
-                    type="text"
-                    required
-                    value={eventTitle}
-                    onChange={(e) => setEventTitle(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-400 outline-none text-sm"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">日期 <span className="text-red-500">*</span></label>
-                    <input
-                      type="date"
-                      required
-                      value={eventDate}
-                      onChange={(e) => { setEventDate(e.target.value); checkDateHolidayFor(e.target.value); }}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-400 outline-none text-sm"
-                    />
-                    {dateHolidayWarning && (
-                      <p className="text-xs text-amber-600 mt-1">
-                        <i className="fas fa-exclamation-triangle mr-1" />此日期為香港公眾假期：{dateHolidayWarning}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">類型</label>
-                    <select
-                      value={eventType}
-                      onChange={(e) => setEventType(e.target.value as BandEvent["type"])}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-400 outline-none text-sm"
-                    >
-                      <option value="rehearsal">🎸 排練</option>
-                      <option value="performance">🎤 演出</option>
-                      <option value="meeting">📋 會議</option>
-                      <option value="other">📌 其他</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">開始時間 <span className="text-red-500">*</span></label>
-                    <div className="flex items-center gap-1 sm:gap-1.5 bg-gray-50 p-1.5 sm:p-2 rounded-lg sm:rounded-xl border border-gray-200 overflow-x-auto">
-                      <div className="flex flex-col items-center flex-shrink-0">
-                        <label className="text-xs text-gray-500 mb-0.5">時</label>
-                        <select value={startHour} onChange={(e) => setStartHour(e.target.value)} className="time-select w-12 sm:w-14 text-xs sm:text-sm">
-                          {[1,2,3,4,5,6,7,8,9,10,11,12].map(h => <option key={h} value={h}>{String(h).padStart(2, '0')}</option>)}
-                        </select>
-                      </div>
-                      <span className="text-gray-400 pt-3 sm:pt-5 text-xs sm:text-base flex-shrink-0">:</span>
-                      <div className="flex flex-col items-center flex-shrink-0">
-                        <label className="text-xs text-gray-500 mb-0.5">分</label>
-                        <select value={startMinute} onChange={(e) => setStartMinute(e.target.value)} className="time-select w-12 sm:w-14 text-xs sm:text-sm">
-                          {minuteOptions.map(m => <option key={m} value={m}>{m}</option>)}
-                        </select>
-                      </div>
-                      <div className="flex flex-col items-center flex-shrink-0">
-                        <label className="text-xs text-gray-500 mb-0.5">時段</label>
-                        <select value={startAmpm} onChange={(e) => setStartAmpm(e.target.value)} className="time-select w-14 sm:w-16 bg-purple-50 font-medium text-xs sm:text-sm">
-                          <option value="AM">上午</option>
-                          <option value="PM">下午</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">結束時間 <span className="text-red-500">*</span></label>
-                    <div className="flex items-center gap-1 sm:gap-1.5 bg-gray-50 p-1.5 sm:p-2 rounded-lg sm:rounded-xl border border-gray-200 overflow-x-auto">
-                      <div className="flex flex-col items-center flex-shrink-0">
-                        <label className="text-xs text-gray-500 mb-0.5">時</label>
-                        <select value={endHour} onChange={(e) => setEndHour(e.target.value)} className="time-select w-12 sm:w-14 text-xs sm:text-sm">
-                          {[1,2,3,4,5,6,7,8,9,10,11,12].map(h => <option key={h} value={h}>{String(h).padStart(2, '0')}</option>)}
-                        </select>
-                      </div>
-                      <span className="text-gray-400 pt-3 sm:pt-5 text-xs sm:text-base flex-shrink-0">:</span>
-                      <div className="flex flex-col items-center flex-shrink-0">
-                        <label className="text-xs text-gray-500 mb-0.5">分</label>
-                        <select value={endMinute} onChange={(e) => setEndMinute(e.target.value)} className="time-select w-12 sm:w-14 text-xs sm:text-sm">
-                          {minuteOptions.map(m => <option key={m} value={m}>{m}</option>)}
-                        </select>
-                      </div>
-                      <div className="flex flex-col items-center flex-shrink-0">
-                        <label className="text-xs text-gray-500 mb-0.5">時段</label>
-                        <select value={endAmpm} onChange={(e) => setEndAmpm(e.target.value)} className="time-select w-14 sm:w-16 bg-purple-50 font-medium text-xs sm:text-sm">
-                          <option value="AM">上午</option>
-                          <option value="PM">下午</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">地點 <span className="text-red-500">*</span></label>
-                  <input
-                    type="text"
-                    required
-                    value={eventLocation}
-                    onChange={(e) => setEventLocation(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-400 outline-none text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">備註</label>
-                  <textarea
-                    rows={3}
-                    value={eventNotes}
-                    onChange={(e) => setEventNotes(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-400 outline-none text-sm resize-none"
-                  />
-                </div>
-                <div className="flex gap-3 pt-2">
-                  <button
-                    type="submit"
-                    className="flex-1 band-gradient text-white py-2.5 rounded-xl hover:shadow-lg transition-all font-medium text-sm"
-                  >
-                    <i className="fas fa-save mr-2" />儲存活動
-                  </button>
-                  {eventModalMode === "edit" && (
-                    <button
-                      type="button"
-                      onClick={handleDeleteEvent}
-                      className="px-4 py-2.5 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-all font-medium text-sm border border-red-200"
-                    >
-                      <i className="fas fa-trash-alt mr-2" />刪除
-                    </button>
-                  )}
-                </div>
-              </form>
-            ) : (
-              selectedEvent && (
-                <div>
-                  <div className="bg-gray-50 rounded-xl p-4 mb-5">
-                    <div className="flex items-center gap-2 mb-3 flex-wrap">
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${TYPE_CONFIG[selectedEvent.type].color}`}>
-                        {TYPE_CONFIG[selectedEvent.type].text}
-                      </span>
-                      {(() => {
-                        const status = selectedEventEnded ? "completed" : getEventStatus(selectedEvent);
-                        const statusLabels = { upcoming: "即將開始", ongoing: "進行中", completed: "已完結" };
-                        const statusColors = { upcoming: "bg-gray-100 text-gray-700", ongoing: "bg-amber-100 text-amber-700", completed: "bg-green-100 text-green-700" };
-                        return (
-                          <span className={`px-3 py-1 rounded-full text-xs font-bold ${statusColors[status]}`}>
-                            {statusLabels[status]}
-                          </span>
-                        );
-                      })()}
-                    </div>
-                    <h4 className="text-xl font-bold text-gray-800 mb-3">{selectedEvent.title}</h4>
-                    <p className="text-gray-600 text-sm mb-2 flex items-center gap-2">
-                      <i className="far fa-calendar text-gray-400 w-4" />{formatDate(selectedEvent.date)}
-                    </p>
-                    <p className="text-gray-600 text-sm mb-2 flex items-center gap-2">
-                      <i className="far fa-clock text-gray-400 w-4" />
-                      {formatTime12Full(selectedEvent.startTime)} - {formatTime12Full(selectedEvent.endTime)}
-                    </p>
-                    <p className="text-gray-600 text-sm mb-2 flex items-center gap-2">
-                      <i className="fas fa-map-marker-alt text-gray-400 w-4" />{selectedEvent.location}
-                    </p>
-                    {selectedEvent.notes && (
-                      <p className="text-gray-600 text-sm bg-white p-3 rounded-lg border border-gray-200 mt-3">{selectedEvent.notes}</p>
-                    )}
-                  </div>
-
-                  {/* Attendance Section */}
-                  <div className="mt-5 pt-5 border-t border-gray-200">
-                    {currentUser?.role === "admin" && (
-                      <div className="flex justify-between items-center mb-4">
-                        <h4 className="font-bold text-gray-800">出席狀態</h4>
-                        <span className="text-sm text-gray-500">
-                          出席: {Object.values(selectedEvent.attendance).filter(v => v === "going").length} |
-                          缺席: {Object.values(selectedEvent.attendance).filter(v => v === "not-going").length} |
-                          待定: {(membersQuery.data || []).length - Object.values(selectedEvent.attendance).filter(v => v === "going").length - Object.values(selectedEvent.attendance).filter(v => v === "not-going").length}
-                          {selectedEventEnded ? " (已完結)" : ""}
-                        </span>
-                      </div>
-                    )}
-                    {currentUser?.role === "member" && (
-                      <div className="mb-4">
-                        <h4 className="font-bold text-gray-800 mb-2">您的出席狀態</h4>
-                      </div>
-                    )}
-
-                    {currentUser?.role === "member" && !selectedEventEnded && (
-                      <div className="mb-5">
-                        <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 mb-3">
-                          <p className="text-purple-800 font-medium text-sm mb-0.5">
-                            你好，{(membersQuery.data || []).find(m => m.id === currentUser.id)?.name}！
-                          </p>
-                          <p className="text-purple-600 text-xs">請選擇你的出席狀態：</p>
-                        </div>
-                        <div className="flex gap-3">
-                          <button
-                            onClick={() => handleSetAttendance("going")}
-                            className={`attendance-btn flex-1 ${selectedEvent.attendance[currentUser.id as number] === "going" ? "going" : "pending"}`}
-                          >
-                            <i className="fas fa-check mr-2" />出席
-                          </button>
-                          <button
-                            onClick={() => handleSetAttendance("not-going")}
-                            className={`attendance-btn flex-1 ${selectedEvent.attendance[currentUser.id as number] === "not-going" ? "not-going" : "pending"}`}
-                          >
-                            <i className="fas fa-times mr-2" />不出席
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Show all members with attendance buttons - Admin only */}
-                    {currentUser?.role === "admin" && (
-                    <div className="space-y-2">
-                      {(membersQuery.data || []).length === 0 ? (
-                        <p className="text-center text-gray-500 py-4 text-sm">暫無成員</p>
-                      ) : (
-                        (membersQuery.data || []).map((member) => {
-                          const status = selectedEvent.attendance[member.id];
-                          return (
-                            <div key={member.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                              <div className="flex items-center gap-2 flex-1">
-                                <div className={`w-8 h-8 rounded-full ${COLOR_MAP[member.color] || "bg-blue-500"} flex items-center justify-center text-white font-bold text-xs`}>
-                                  {member.name.charAt(0)}
-                                </div>
-                                <div className="flex-1">
-                                  <span className="text-sm font-medium text-gray-800">{member.name}</span>
-                                  <div className="text-xs mt-1">
-                                    {status === "going" && <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">✓ 出席</span>}
-                                    {status === "not-going" && <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded-full font-medium">✕ 不出席</span>}
-                                    {!status && <span className="px-2 py-0.5 bg-gray-200 text-gray-600 rounded-full font-medium">待確認</span>}
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="flex gap-2">
-                                <button
-                                  onClick={() => handleAttendanceChangeForMember(selectedEvent.id, member.id, "going")}
-                                  disabled={!currentUser}
-                                  className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
-                                    !currentUser ? "opacity-50 cursor-not-allowed bg-gray-100 text-gray-400" :
-                                    status === "going" 
-                                      ? "bg-green-100 text-green-700 border border-green-300" 
-                                      : "bg-gray-100 text-gray-600 hover:bg-green-50"
-                                  }`}
-                                  title={!currentUser ? "請登入以修改出席狀態" : ""}
-                                >
-                                  <i className="fas fa-check mr-1" />出席
-                                </button>
-                                <button
-                                  onClick={() => handleAttendanceChangeForMember(selectedEvent.id, member.id, "not-going")}
-                                  disabled={!currentUser}
-                                  className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
-                                    !currentUser ? "opacity-50 cursor-not-allowed bg-gray-100 text-gray-400" :
-                                    status === "not-going" 
-                                      ? "bg-red-100 text-red-700 border border-red-300" 
-                                      : "bg-gray-100 text-gray-600 hover:bg-red-50"
-                                  }`}
-                                  title={!currentUser ? "請登入以修改出席狀態" : ""}
-                                >
-                                  <i className="fas fa-times mr-1" />不出席
-                                </button>
-                              </div>
-                            </div>
-                          );
-                        })
-                      )}
-                    </div>
-                    )}
-                    
-                    {/* SAVE button */}
-                    {!selectedEventEnded && (
-                      <div className="mt-4 pt-4 border-t border-gray-200">
-                        <button
-                          onClick={() => setShowEventModal(false)}
-                          className="w-full band-gradient text-white py-2.5 rounded-xl hover:shadow-lg transition-all font-medium text-sm"
-                        >
-                          <i className="fas fa-save mr-2" />儲存
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )
             )}
           </div>
         </div>
       )}
 
       {/* Main Content */}
-      <div className="w-full px-2 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6 max-w-full">
-        {/* Header */}
-        <div className="glass-panel rounded-lg sm:rounded-xl md:rounded-2xl p-3 sm:p-4 md:p-5 shadow-lg mb-3 sm:mb-4 md:mb-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-            <div className="flex items-center gap-2 sm:gap-3 min-w-0 w-full sm:w-auto">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 band-gradient rounded-full flex items-center justify-center text-white text-lg sm:text-xl md:text-2xl shadow-md flex-shrink-0">
-                <i className="fas fa-music" />
-              </div>
-              <div className="min-w-0 flex-1 sm:flex-none">
-                <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 truncate">慢半拍</h1>
-                <p className="text-xs text-gray-500">{currentUser?.role === "admin" ? "主管" : "成員"}</p>
-              </div>
-            </div>
-            {currentUser ? (
-              <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end">
-                <div className="text-right hidden sm:block">
-                  <p className="text-xs sm:text-sm font-medium text-gray-800 truncate">{currentUser.name}</p>
-                  <p className="text-xs text-gray-500">{currentUser.role === "admin" ? "主管" : "成員"}</p>
-                </div>
-                <button
-                  onClick={handleLogout}
-                  className="bg-red-50 text-red-600 text-xs sm:text-sm px-2 sm:px-4 py-2 rounded-lg sm:rounded-xl hover:bg-red-100 transition-all font-medium whitespace-nowrap"
-                >
-                  <i className="fas fa-sign-out-alt mr-1" /><span className="hidden sm:inline">登出</span><span className="sm:hidden">出</span>
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => setShowLoginModal(true)}
-                className="band-gradient text-white text-xs sm:text-sm px-2 sm:px-4 py-2 rounded-lg sm:rounded-xl hover:shadow-md transition-all font-medium whitespace-nowrap w-full sm:w-auto"
-              >
-                <i className="fas fa-sign-in-alt mr-1" /><span className="hidden sm:inline">登入</span><span className="sm:hidden">入</span>
-              </button>
-            )}
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4 mt-3 sm:mt-4 md:mt-5 pt-3 sm:pt-4 md:pt-5 border-t border-gray-100">
-            {[
-              { label: "本月活動", value: (eventsQuery.data || []).filter(e => { const d = new Date(e.date); return d.getMonth() === calendarMonth && d.getFullYear() === calendarYear; }).length, icon: "fa-calendar-check", color: "text-purple-600" },
-              { label: "本月假期", value: hkHolidays.filter(h => { const d = new Date(h.date); return d.getMonth() === calendarMonth && d.getFullYear() === calendarYear; }).length, icon: "fa-umbrella-beach", color: "text-amber-600" },
-              { label: "成員人數", value: (membersQuery.data || []).length, icon: "fa-users", color: "text-blue-600" },
-            ].map((stat, i) => (
-              <div key={i} className="text-center">
-                <div className={`text-base sm:text-lg md:text-2xl font-bold ${stat.color}`}>{stat.value}</div>
-                <div className="text-xs md:text-sm text-gray-500 mt-0.5 truncate">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Navigation */}
-          <div className="flex gap-1 sm:gap-2 mt-3 sm:mt-4 md:mt-5 pt-3 sm:pt-4 md:pt-5 border-t border-gray-100 flex-wrap">
-            <button onClick={() => setCurrentView("calendar")} className={`nav-tab text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 ${currentView === "calendar" ? "active" : ""}`}>
-              <i className="fas fa-calendar-alt" /><span className="hidden sm:inline">月曆</span><span className="sm:hidden">曆</span>
+      <div className="max-w-7xl mx-auto">
+        {/* Login/Setup */}
+        {!currentUser && (
+          <div className="glass-panel rounded-2xl p-6 sm:p-8 shadow-lg text-center">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">歡迎使用慢半拍</h2>
+            <p className="text-gray-600 mb-6">請登入以繼續</p>
+            <button
+              onClick={() => setShowLoginModal(true)}
+              className="band-gradient text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all font-medium"
+            >
+              登入
             </button>
-            <button onClick={() => setCurrentView("list")} className={`nav-tab text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 ${currentView === "list" ? "active" : ""}`}>
-              <i className="fas fa-list" /><span className="hidden sm:inline">活動清單</span><span className="sm:hidden">清</span>
-            </button>
-            {currentUser?.role === "admin" && (
-              <button onClick={() => setCurrentView("members")} className={`nav-tab text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 ${currentView === "members" ? "active" : ""}`}>
-                <i className="fas fa-users" /><span className="hidden sm:inline">成員管理</span><span className="sm:hidden">成</span>
-              </button>
-            )}
           </div>
-        </div>
+        )}
 
         {/* Calendar View */}
-        {currentView === "calendar" && (
-          <div className="glass-panel rounded-lg sm:rounded-xl md:rounded-2xl p-2 sm:p-3 md:p-5 shadow-lg">
+        {currentView === "calendar" && currentUser && (
+          <div className="glass-panel rounded-lg sm:rounded-xl md:rounded-2xl p-3 sm:p-4 md:p-5 shadow-lg">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-3 sm:mb-5">
-              <div className="flex items-center gap-1 sm:gap-2 md:gap-3 flex-wrap w-full sm:w-auto">
-                <button
-                  onClick={() => setCurrentDate(new Date(calendarYear, calendarMonth - 1, 1))}
-                  className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg sm:rounded-xl bg-gray-100 hover:bg-purple-100 hover:text-purple-600 transition-all text-gray-600 text-xs sm:text-sm flex-shrink-0"
-                >
-                  <i className="fas fa-chevron-left" />
-                </button>
-                <div className="flex items-center gap-1 sm:gap-2 min-w-0">
-                  <select
-                    value={calendarYear}
-                    onChange={(e) => setCurrentDate(new Date(parseInt(e.target.value), calendarMonth, 1))}
-                    className="text-sm sm:text-base md:text-lg font-bold text-gray-800 bg-transparent border-none outline-none cursor-pointer"
-                  >
-                    {yearOptions.map(y => <option key={y} value={y}>{y}年</option>)}
-                  </select>
-                  <select
-                    value={calendarMonth}
-                    onChange={(e) => setCurrentDate(new Date(calendarYear, parseInt(e.target.value), 1))}
-                    className="text-sm sm:text-base md:text-lg font-bold text-gray-800 bg-transparent border-none outline-none cursor-pointer"
-                  >
-                    {[0,1,2,3,4,5,6,7,8,9,10,11].map(m => (
-                      <option key={m} value={m}>{m + 1}月</option>
-                    ))}
-                  </select>
-                </div>
-                <button
-                  onClick={() => setCurrentDate(new Date(calendarYear, calendarMonth + 1, 1))}
-                  className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg sm:rounded-xl bg-gray-100 hover:bg-purple-100 hover:text-purple-600 transition-all text-gray-600 text-xs sm:text-sm flex-shrink-0"
-                >
-                  <i className="fas fa-chevron-right" />
-                </button>
-                <button
-                  onClick={() => setCurrentDate(new Date())}
-                  className="text-xs sm:text-sm text-purple-600 hover:text-purple-800 bg-purple-50 hover:bg-purple-100 px-2 sm:px-3 py-1.5 rounded-lg transition-all font-medium whitespace-nowrap"
-                >
-                  今天
-                </button>
-              </div>
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">月曆</h2>
               {currentUser?.role === "admin" && (
                 <button
                   onClick={() => openAddEventModal()}
@@ -1607,24 +791,71 @@ export default function Home() {
               )}
             </div>
 
-            {/* Day headers */}
-            <div className="grid grid-cols-7 gap-0.5 sm:gap-1 md:gap-1.5 mb-1 sm:mb-1.5">
-              {["\u65e5", "\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d"].map((d, i) => (
-                <div key={d} className={`text-center text-xs sm:text-sm font-semibold py-1 sm:py-2 ${i === 0 ? "text-red-500" : i === 6 ? "text-blue-500" : "text-gray-500"}`}>
-                  {d}
-                </div>
-              ))}
-            </div>
+            {/* Calendar Grid */}
+            <div className="overflow-x-auto">
+              <div className="grid grid-cols-7 gap-1 sm:gap-2 min-w-full">
+                {["日", "一", "二", "三", "四", "五", "六"].map((day) => (
+                  <div key={day} className="text-center text-xs sm:text-sm font-bold text-gray-600 py-2">
+                    {day}
+                  </div>
+                ))}
+                {Array.from({ length: 35 }).map((_, i) => {
+                  const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), i - currentDate.getDate() + 1);
+                  const dateStr = formatDateStr(date);
+                  const dayEvents = events.filter((e) => e.date === dateStr);
+                  const isCurrentMonth = date.getMonth() === currentDate.getMonth();
+                  const isToday = dateStr === formatDateStr(new Date());
 
-            {/* Calendar grid */}
-            <div className="grid grid-cols-7 gap-0.5 sm:gap-1 md:gap-1.5 w-full">
-              {renderCalendar()}
+                  return (
+                    <div
+                      key={i}
+                      className={`min-h-[80px] sm:min-h-[100px] md:min-h-[120px] p-1 sm:p-2 rounded-lg sm:rounded-xl border-2 cursor-pointer transition-all ${
+                        isCurrentMonth
+                          ? isToday
+                            ? "bg-purple-50 border-purple-400"
+                            : "bg-white border-gray-200 hover:border-purple-300"
+                          : "bg-gray-50 border-gray-100 opacity-50"
+                      }`}
+                      onClick={() => {
+                        if (dayEvents.length > 0) {
+                          handleShowMoreEvents(dateStr);
+                        }
+                      }}
+                    >
+                      <div className="text-xs sm:text-sm font-bold text-gray-700 mb-1">
+                        {date.getDate()}
+                      </div>
+                      <div className="space-y-0.5 text-xs">
+                        {dayEvents.slice(0, 2).map((event) => (
+                          <div
+                            key={event.id}
+                            className={`px-1 py-0.5 rounded text-white truncate ${TYPE_CONFIG[event.type].color.split(" ")[0]}`}
+                          >
+                            {event.title}
+                          </div>
+                        ))}
+                        {dayEvents.length > 2 && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleShowMoreEvents(dateStr);
+                            }}
+                            className="text-purple-600 hover:text-purple-700 font-medium"
+                          >
+                            +{dayEvents.length - 2} more
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         )}
 
         {/* List View */}
-        {currentView === "list" && (
+        {currentView === "list" && currentUser && (
           <div className="glass-panel rounded-lg sm:rounded-xl md:rounded-2xl p-3 sm:p-4 md:p-5 shadow-lg">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-3 sm:mb-5">
               <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">活動清單</h2>
@@ -1677,12 +908,30 @@ export default function Home() {
               )}
             </div>
 
+            {/* Batch Delete Toolbar */}
+            {selectedEventIds.size > 0 && currentUser?.role === "admin" && (
+              <div className="mb-3 sm:mb-5 flex items-center gap-2 sm:gap-3 bg-blue-50 p-3 sm:p-4 rounded-lg sm:rounded-xl border border-blue-200">
+                <span className="text-xs sm:text-sm font-medium text-blue-700">已選擇 {selectedEventIds.size} 個活動</span>
+                <button
+                  onClick={() => setSelectedEventIds(new Set())}
+                  className="text-xs px-2 sm:px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+                >
+                  取消選擇
+                </button>
+                <button
+                  onClick={deleteSelectedEvents}
+                  className="text-xs px-2 sm:px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors font-medium flex items-center gap-1"
+                >
+                  <i className="fas fa-trash" />刪除
+                </button>
+              </div>
+            )}
+
             {/* Tabs */}
             <div className="flex gap-1 sm:gap-2 mb-3 sm:mb-5">
               <button
                 onClick={() => setCurrentListTab("incomplete")}
                 className={`list-tab-btn flex-1 flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-3`}
-                style={currentListTab === "incomplete" ? {} : {}}
               >
                 <i className="fas fa-clock hidden sm:inline" />
                 <span className="hidden sm:inline">未完成</span><span className="sm:hidden">未</span>
@@ -1722,14 +971,37 @@ export default function Home() {
                   const typeConf = TYPE_CONFIG[event.type];
                   const goingCount = Object.values(event.attendance).filter(v => v === "going").length;
                   const myStatus = currentUser?.role === "member" ? event.attendance[currentUser.id as number] : null;
+                  const isSelected = selectedEventIds.has(event.id);
+
+                  const toggleEventSelection = (e: React.MouseEvent) => {
+                    e.stopPropagation();
+                    const newSelected = new Set(selectedEventIds);
+                    if (newSelected.has(event.id)) {
+                      newSelected.delete(event.id);
+                    } else {
+                      newSelected.add(event.id);
+                    }
+                    setSelectedEventIds(newSelected);
+                  };
 
                   return (
                     <div
                       key={event.id}
-                      onClick={() => openEventModal(event.id)}
-                      className={`event-card bg-white rounded-xl p-4 shadow-sm cursor-pointer ${typeConf.border} ${isOngoing ? "ongoing-card" : ""} ${isEnded ? "completed-card" : ""}`}
+                      onClick={() => !selectedEventIds.size && openEventModal(event.id)}
+                      className={`event-card bg-white rounded-xl p-4 shadow-sm cursor-pointer ${typeConf.border} ${isOngoing ? "ongoing-card" : ""} ${isEnded ? "completed-card" : ""} ${isSelected ? "ring-2 ring-purple-500 bg-purple-50" : ""}`}
                     >
                       <div className="flex justify-between items-start gap-4">
+                        {/* Checkbox for admin */}
+                        {currentUser?.role === "admin" && (
+                          <div className="flex-shrink-0 pt-1">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={(e: any) => toggleEventSelection(e)}
+                              className="w-5 h-5 text-purple-600 rounded cursor-pointer"
+                            />
+                          </div>
+                        )}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-2 flex-wrap">
                             <span className={`text-xs px-2.5 py-1 rounded-full ${typeConf.color} font-medium flex items-center gap-1`}>
@@ -1755,7 +1027,7 @@ export default function Home() {
                               <div className="text-xs text-gray-600 mb-1">出席狀態：</div>
                               <div className="flex gap-1 flex-wrap">
                                 {Object.entries(event.attendance).map(([memberId, status]) => {
-                                  const member = membersQuery.data?.find(m => m.id === parseInt(memberId));
+                                  const member = members.find(m => m.id === parseInt(memberId));
                                   if (!member) return null;
                                   return (
                                     <span key={memberId} className={`text-xs px-2 py-1 rounded ${
@@ -1767,7 +1039,7 @@ export default function Home() {
                                     </span>
                                   );
                                 })}
-                                {membersQuery.data?.filter(m => !event.attendance[m.id]).map(member => (
+                                {members.filter(m => !event.attendance[m.id]).map(member => (
                                   <span key={member.id} className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600">
                                     {member.name} ?
                                   </span>
@@ -1840,387 +1112,358 @@ export default function Home() {
           </div>
         )}
 
-        {/* Members View (Admin only) */}
+        {/* Members View */}
         {currentView === "members" && currentUser?.role === "admin" && (
           <div className="glass-panel rounded-2xl p-5 shadow-lg">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-5">
               <h2 className="text-xl font-bold text-gray-800">成員管理</h2>
-              <div className="flex gap-2 flex-wrap">
-                <button
-                  onClick={handleResetAdminPassword}
-                  className="bg-gray-100 text-gray-700 text-sm px-4 py-2 rounded-xl hover:bg-gray-200 transition-all flex items-center gap-2"
-                >
-                  <i className="fas fa-key" />重設主管密碼
-                </button>
-                <button
-                  onClick={() => {
-                    if (confirm('確定要清除所有活動嗎？此操作無法撤銷。')) {
-                      localStorage.removeItem('bandSystemData');
-                      window.location.reload();
-                    }
-                  }}
-                  className="bg-red-50 text-red-600 text-sm px-4 py-2 rounded-xl hover:bg-red-100 transition-all flex items-center gap-2"
-                >
-                  <i className="fas fa-trash-alt" />清除所有活動
-                </button>
-              </div>
+              <button
+                onClick={() => setShowRegisterModal(true)}
+                className="band-gradient text-white px-4 py-2 rounded-xl hover:shadow-md transition-all font-medium flex items-center gap-2"
+              >
+                <i className="fas fa-user-plus" />新增成員
+              </button>
             </div>
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-5">
-              <p className="text-blue-800 text-sm">
-                <i className="fas fa-info-circle mr-2" />香港公眾假期已自動載入（2026年起）。
-              </p>
-            </div>
-            {(membersQuery.data || []).length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                <i className="fas fa-users text-4xl mb-3 text-gray-300 block" />
-                <p>暫無成員</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {(membersQuery.data || []).map((member) => {
-                  const eventCount = (eventsQuery.data || []).filter(e => e.attendance[member.id] === "going").length;
-                  const notAttendingCount = (eventsQuery.data || []).filter(e => e.attendance[member.id] === "not-going").length;
-                  const pendingCount = (eventsQuery.data || []).filter(e => !e.attendance[member.id]).length;
-                  return (
-                    <div key={member.id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:border-purple-200 transition-all">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-12 h-12 rounded-xl ${COLOR_MAP[member.color] || "bg-blue-500"} flex items-center justify-center text-white font-bold text-lg shadow-sm`}>
-                            {member.name.charAt(0)}
-                          </div>
-                          <div>
-                            <h4 className="font-bold text-gray-800">{member.name}</h4>
-                            <p className="text-sm text-gray-500">{member.instrument || "未設定職位"}</p>
-                          </div>
-                        </div>
-                        <div className="flex gap-1.5">
-                          <button
-                            onClick={() => handleResetMemberPassword(member.id)}
-                            className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 flex items-center justify-center transition-colors"
-                            title="重設密碼"
-                          >
-                            <i className="fas fa-key text-xs" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteMember(member.id)}
-                            className="w-8 h-8 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 flex items-center justify-center transition-colors"
-                            title="刪除成員"
-                          >
-                            <i className="fas fa-trash-alt text-xs" />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="mt-3 pt-3 border-t border-gray-200">
-                        <div className="grid grid-cols-3 gap-2">
-                          <div className="text-center">
-                            <p className="text-xs text-green-600 font-bold">{eventCount}</p>
-                            <p className="text-xs text-gray-500">出席</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-xs text-red-600 font-bold">{notAttendingCount}</p>
-                            <p className="text-xs text-gray-500">不出席</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-xs text-gray-600 font-bold">{pendingCount}</p>
-                            <p className="text-xs text-gray-500">待確認</p>
-                          </div>
-                        </div>
-                      </div>
+            <div className="space-y-3">
+              {members.map((member) => (
+                <div key={member.id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-bold text-gray-800">{member.name}</h3>
+                      <p className="text-sm text-gray-600">{member.instrument}</p>
                     </div>
-                  );
-                })}
-              </div>
-            )}
+                    <button
+                      onClick={() => {
+                        if (confirm(`確定要刪除 ${member.name} 嗎？`)) {
+                          deleteMemberMutation.mutate(
+                            { id: member.id },
+                            {
+                              onSuccess: () => {
+                                showToast(`${member.name} 已刪除`, "success");
+                                utils.band.getMembers.invalidate();
+                              },
+                              onError: () => {
+                                showToast("刪除成員失敗", "error");
+                              },
+                            }
+                          );
+                        }
+                      }}
+                      className="text-red-600 hover:text-red-700 font-medium text-sm"
+                    >
+                      刪除
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
 
-      {/* Toast */}
-      {toast.visible && (
-        <div className={`fixed bottom-6 right-6 px-6 py-3 rounded-xl text-white text-sm font-medium shadow-lg toast-${toast.type} animate-in fade-in slide-in-from-bottom-4`}>
-          {toast.type === "success" && <i className="fas fa-check-circle mr-2" />}
-          {toast.type === "error" && <i className="fas fa-exclamation-circle mr-2" />}
-          {toast.type === "info" && <i className="fas fa-info-circle mr-2" />}
-          {toast.message}
+      {/* Modals */}
+      {showLoginModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">登入</h2>
+            <div className="flex gap-2 mb-4">
+              <button
+                onClick={() => setLoginTab("member")}
+                className={`flex-1 py-2 rounded-lg font-medium transition-all ${
+                  loginTab === "member"
+                    ? "band-gradient text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                成員
+              </button>
+              <button
+                onClick={() => setLoginTab("admin")}
+                className={`flex-1 py-2 rounded-lg font-medium transition-all ${
+                  loginTab === "admin"
+                    ? "band-gradient text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                主管
+              </button>
+            </div>
+            {loginTab === "member" ? (
+              <div className="space-y-3">
+                {members.map((member) => (
+                  <button
+                    key={member.id}
+                    onClick={() => handleMemberLogin(member.id)}
+                    className="w-full p-3 bg-gray-50 hover:bg-purple-50 rounded-lg text-left transition-colors border border-gray-200 hover:border-purple-300"
+                  >
+                    <p className="font-medium text-gray-800">{member.name}</p>
+                    <p className="text-sm text-gray-600">{member.instrument}</p>
+                  </button>
+                ))}
+                <button
+                  onClick={() => setShowRegisterModal(true)}
+                  className="w-full p-3 border-2 border-purple-300 text-purple-600 rounded-lg hover:bg-purple-50 transition-colors font-medium"
+                >
+                  <i className="fas fa-user-plus mr-2" />新增成員
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleAdminLogin} className="space-y-4">
+                <input
+                  type="password"
+                  value={adminLoginPassword}
+                  onChange={(e) => setAdminLoginPassword(e.target.value)}
+                  placeholder="主管密碼"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-purple-400"
+                />
+                <button
+                  type="submit"
+                  className="w-full band-gradient text-white py-2 rounded-lg hover:shadow-md transition-all font-medium"
+                >
+                  登入
+                </button>
+              </form>
+            )}
+            <button
+              onClick={() => setShowLoginModal(false)}
+              className="w-full mt-4 text-gray-600 hover:text-gray-800 font-medium"
+            >
+              關閉
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Styles */}
-      <style>{`
-        .glass-panel {
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(10px);
-          border: 1px solid rgba(255, 255, 255, 0.3);
-        }
+      {showRegisterModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">新增成員</h2>
+            <form onSubmit={handleRegister} className="space-y-4">
+              <input
+                type="text"
+                value={regName}
+                onChange={(e) => setRegName(e.target.value)}
+                placeholder="名稱"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-purple-400"
+              />
+              <input
+                type="text"
+                value={regInstrument}
+                onChange={(e) => setRegInstrument(e.target.value)}
+                placeholder="樂器"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-purple-400"
+              />
+              <input
+                type="password"
+                value={regPassword}
+                onChange={(e) => setRegPassword(e.target.value)}
+                placeholder="密碼"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-purple-400"
+              />
+              <input
+                type="password"
+                value={regConfirm}
+                onChange={(e) => setRegConfirm(e.target.value)}
+                placeholder="確認密碼"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-purple-400"
+              />
+              <div className="flex gap-2 flex-wrap">
+                {MEMBER_COLORS.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    onClick={() => setSelectedRegColor(color)}
+                    className={`w-8 h-8 rounded-full ${COLOR_MAP[color]} ${
+                      selectedRegColor === color ? "ring-2 ring-offset-2 ring-gray-400" : ""
+                    }`}
+                  />
+                ))}
+              </div>
+              <button
+                type="submit"
+                className="w-full band-gradient text-white py-2 rounded-lg hover:shadow-md transition-all font-medium"
+              >
+                新增
+              </button>
+            </form>
+            <button
+              onClick={() => setShowRegisterModal(false)}
+              className="w-full mt-4 text-gray-600 hover:text-gray-800 font-medium"
+            >
+              關閉
+            </button>
+          </div>
+        </div>
+      )}
 
-        .band-gradient {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
+      {showEventModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-white rounded-2xl p-6 max-w-2xl w-full shadow-2xl my-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">
+              {eventModalMode === "add" ? "新增活動" : eventModalMode === "edit" ? "編輯活動" : "活動詳情"}
+            </h2>
+            <form onSubmit={saveEvent} className="space-y-4">
+              <input
+                type="text"
+                value={eventTitle}
+                onChange={(e) => setEventTitle(e.target.value)}
+                placeholder="活動名稱"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-purple-400"
+                disabled={eventModalMode === "view"}
+              />
+              <input
+                type="date"
+                value={eventDate}
+                onChange={(e) => setEventDate(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-purple-400"
+                disabled={eventModalMode === "view"}
+              />
+              <select
+                value={eventType}
+                onChange={(e) => setEventType(e.target.value as BandEvent["type"])}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-purple-400"
+                disabled={eventModalMode === "view"}
+              >
+                <option value="rehearsal">排練</option>
+                <option value="performance">演出</option>
+                <option value="meeting">會議</option>
+                <option value="other">其他</option>
+              </select>
+              <input
+                type="text"
+                value={eventLocation}
+                onChange={(e) => setEventLocation(e.target.value)}
+                placeholder="地點"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-purple-400"
+                disabled={eventModalMode === "view"}
+              />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">開始時間</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      min="1"
+                      max="12"
+                      value={startHour}
+                      onChange={(e) => setStartHour(e.target.value)}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-purple-400"
+                      disabled={eventModalMode === "view"}
+                    />
+                    <input
+                      type="number"
+                      min="0"
+                      max="59"
+                      value={startMinute}
+                      onChange={(e) => setStartMinute(e.target.value)}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-purple-400"
+                      disabled={eventModalMode === "view"}
+                    />
+                    <select
+                      value={startAmpm}
+                      onChange={(e) => setStartAmpm(e.target.value)}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-purple-400"
+                      disabled={eventModalMode === "view"}
+                    >
+                      <option>AM</option>
+                      <option>PM</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">結束時間</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      min="1"
+                      max="12"
+                      value={endHour}
+                      onChange={(e) => setEndHour(e.target.value)}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-purple-400"
+                      disabled={eventModalMode === "view"}
+                    />
+                    <input
+                      type="number"
+                      min="0"
+                      max="59"
+                      value={endMinute}
+                      onChange={(e) => setEndMinute(e.target.value)}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-purple-400"
+                      disabled={eventModalMode === "view"}
+                    />
+                    <select
+                      value={endAmpm}
+                      onChange={(e) => setEndAmpm(e.target.value)}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-purple-400"
+                      disabled={eventModalMode === "view"}
+                    >
+                      <option>AM</option>
+                      <option>PM</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <textarea
+                value={eventNotes}
+                onChange={(e) => setEventNotes(e.target.value)}
+                placeholder="備註"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-purple-400 resize-none h-24"
+                disabled={eventModalMode === "view"}
+              />
+              <div className="flex gap-2 justify-end">
+                {eventModalMode !== "view" && (
+                  <button
+                    type="submit"
+                    className="px-4 py-2 band-gradient text-white rounded-lg hover:shadow-md transition-all font-medium"
+                  >
+                    保存
+                  </button>
+                )}
+                {eventModalMode === "view" && currentUser?.role === "admin" && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEventModalMode("edit");
+                      }}
+                      className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-all font-medium"
+                    >
+                      編輯
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (selectedEventId) deleteEvent(selectedEventId);
+                      }}
+                      className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-all font-medium"
+                    >
+                      刪除
+                    </button>
+                  </>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setShowEventModal(false)}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all font-medium"
+                >
+                  關閉
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
-        .modal-enter {
-          animation: slideUp 0.3s ease-out;
-        }
-
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .password-strength-bar {
-          transition: all 0.3s ease;
-        }
-
-        .strength-weak {
-          width: 33%;
-          background: linear-gradient(90deg, #ef4444, #f87171);
-        }
-
-        .strength-medium {
-          width: 66%;
-          background: linear-gradient(90deg, #f59e0b, #fbbf24);
-        }
-
-        .strength-strong {
-          width: 100%;
-          background: linear-gradient(90deg, #10b981, #34d399);
-        }
-
-        .calendar-day {
-          min-height: auto;
-          background: white;
-          border: 1px solid #e5e7eb;
-          transition: all 0.2s ease;
-          display: flex;
-          flex-direction: column;
-          overflow: hidden;
-          word-break: break-word;
-        }
-
-        @media (max-width: 768px) {
-          .calendar-day {
-            min-height: auto;
-            padding: 0.75rem !important;
-            font-size: 0.8rem;
-            gap: 0.25rem;
-          }
-          .calendar-day .text-sm {
-            font-size: 0.75rem !important;
-          }
-          .calendar-day .text-xs {
-            font-size: 0.65rem !important;
-          }
-        }
-
-        @media (max-width: 640px) {
-          .calendar-day {
-            min-height: auto;
-            padding: 0.5rem !important;
-            font-size: 0.75rem;
-            gap: 0.2rem;
-          }
-          .calendar-day .text-sm {
-            font-size: 0.7rem !important;
-          }
-          .calendar-day .text-xs {
-            font-size: 0.6rem !important;
-          }
-          .calendar-day .space-y-0\.5 {
-            gap: 0.125rem !important;
-          }
-        }
-
-        @media (max-width: 480px) {
-          .calendar-day {
-            min-height: auto;
-            padding: 0.375rem !important;
-            font-size: 0.65rem;
-            gap: 0.15rem;
-          }
-          .calendar-day .text-sm {
-            font-size: 0.65rem !important;
-          }
-          .calendar-day .text-xs {
-            font-size: 0.55rem !important;
-          }
-          .calendar-day .space-y-0\.5 {
-            gap: 0.1rem !important;
-          }
-          .calendar-day .py-0\.5 {
-            padding-top: 0.2rem !important;
-            padding-bottom: 0.2rem !important;
-          }
-        }
-
-        .calendar-day:hover {
-          border-color: #a78bfa;
-          background: #f3f0ff;
-        }
-
-        .completed-day {
-          background: #f9fafb !important;
-          border-color: #e5e7eb !important;
-        }
-
-        .today {
-          border-color: #a78bfa;
-          background: rgba(167, 139, 250, 0.1);
-        }
-
-        .nav-tab {
-          flex: 1;
-          padding: 0.75rem;
-          border-radius: 0.75rem;
-          background: transparent;
-          color: #6b7280;
-          font-size: 0.875rem;
-          font-weight: 500;
-          transition: all 0.2s ease;
-          border: none;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0.5rem;
-        }
-
-        .nav-tab.active {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-          box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);
-        }
-
-        .nav-tab:hover:not(.active) {
-          background: #f3f4f6;
-          color: #374151;
-        }
-
-        .list-tab-btn {
-          padding: 0.75rem 1rem;
-          border-radius: 0.75rem;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-          font-weight: 500;
-          border: none;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-
-        .list-tab-btn:not(:has(.active)) {
-          background: #f3f4f6;
-          color: #6b7280;
-        }
-
-        .event-card {
-          transition: all 0.2s ease;
-          border-left: 4px solid;
-        }
-
-        .event-card:hover {
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-          transform: translateY(-2px);
-        }
-
-        .ongoing-card {
-          background: linear-gradient(135deg, rgba(251, 191, 36, 0.05), rgba(251, 146, 60, 0.05));
-          border-left-color: #f59e0b;
-        }
-
-        .completed-card {
-          opacity: 0.7;
-          background: #f9fafb;
-        }
-
-        .attendance-btn {
-          padding: 0.75rem;
-          border-radius: 0.75rem;
-          border: 2px solid #e5e7eb;
-          background: white;
-          color: #6b7280;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .attendance-btn.going {
-          background: #dcfce7;
-          border-color: #22c55e;
-          color: #16a34a;
-        }
-
-        .attendance-btn.not-going {
-          background: #fee2e2;
-          border-color: #ef4444;
-          color: #dc2626;
-        }
-
-        .attendance-btn.pending:hover {
-          border-color: #a78bfa;
-          background: #f3f0ff;
-        }
-
-        .time-select {
-          padding: 0.5rem;
-          border: none;
-          background: transparent;
-          font-size: 0.875rem;
-          font-weight: 500;
-          outline: none;
-          cursor: pointer;
-        }
-
-        .toast-success {
-          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        }
-
-        .toast-error {
-          background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-        }
-
-        .toast-info {
-          background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-        }
-
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-
-        @keyframes slideInFromBottom {
-          from {
-            transform: translateY(20px);
-            opacity: 0;
-          }
-          to {
-            transform: translateY(0);
-            opacity: 1;
-          }
-        }
-
-        .animate-in {
-          animation: fadeIn 0.3s ease-out, slideInFromBottom 0.3s ease-out;
-        }
-
-        .fade-in {
-          animation: fadeIn 0.3s ease-out;
-        }
-
-        .slide-in-from-bottom-4 {
-          animation: slideInFromBottom 0.3s ease-out;
-        }
-      `}</style>
+      {/* Toast */}
+      {toast.visible && (
+        <div className={`fixed bottom-4 right-4 px-4 py-3 rounded-lg text-white font-medium shadow-lg z-50 ${
+          toast.type === "success" ? "bg-green-500" :
+          toast.type === "error" ? "bg-red-500" :
+          "bg-blue-500"
+        }`}>
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 }
