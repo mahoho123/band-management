@@ -122,8 +122,12 @@ export const bandRouter = router({
     .mutation(async ({ input }) => {
       const result = await addBandEvent(input);
       const io = getIO();
+      console.log('[Band Router] addEvent - io instance:', io ? 'exists' : 'null');
       if (io) {
+        console.log('[Band Router] Emitting event:added');
         io.sockets.emit("event:added");
+      } else {
+        console.log('[Band Router] WARNING: io is null, cannot emit event');
       }
       return result;
     }),
