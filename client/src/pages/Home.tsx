@@ -978,9 +978,9 @@ export default function Home() {
                 )}
                 {currentUser?.role === "member" && !isEventEnded(evt) && (
                   <div className="flex gap-0.5 px-1 mt-0.5 flex-wrap">
-                    <button onClick={(e) => { e.stopPropagation(); handleAttendanceChange(evt.id, "going"); }} className={`text-xs px-1.5 py-0.5 rounded transition-all ${myStatus === "going" ? "bg-green-100 text-green-700 font-semibold" : "bg-gray-100 text-gray-600 hover:bg-green-50"}`}>✓</button>
-                    <button onClick={(e) => { e.stopPropagation(); handleAttendanceChange(evt.id, "not-going"); }} className={`text-xs px-1.5 py-0.5 rounded transition-all ${myStatus === "not-going" ? "bg-red-100 text-red-700 font-semibold" : "bg-gray-100 text-gray-600 hover:bg-red-50"}`}>✗</button>
-                    <button onClick={(e) => { e.stopPropagation(); handleAttendanceChange(evt.id, "unknown"); }} className={`text-xs px-1.5 py-0.5 rounded transition-all ${myStatus === "unknown" ? "bg-gray-400 text-white font-semibold" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>?</button>
+                    <button onClick={(e) => { e.stopPropagation(); handleAttendanceChange(evt.id, "going"); }} className={`text-xs px-1.5 py-0.5 rounded transition-all ${myStatus === "going" ? "bg-green-100 text-green-700 font-semibold" : "bg-gray-100 text-gray-600 hover:bg-green-50"}`}>出席</button>
+                    <button onClick={(e) => { e.stopPropagation(); handleAttendanceChange(evt.id, "not-going"); }} className={`text-xs px-1.5 py-0.5 rounded transition-all ${myStatus === "not-going" ? "bg-red-100 text-red-700 font-semibold" : "bg-gray-100 text-gray-600 hover:bg-red-50"}`}>不出席</button>
+                    <button onClick={(e) => { e.stopPropagation(); handleAttendanceChange(evt.id, "unknown"); }} className={`text-xs px-1.5 py-0.5 rounded transition-all ${myStatus === "unknown" ? "bg-gray-400 text-white font-semibold" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>未知道</button>
                   </div>
                 )}
               </div>
