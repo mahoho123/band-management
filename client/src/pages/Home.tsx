@@ -702,7 +702,7 @@ export default function Home() {
     });
   };
 
-  const handleAttendanceChange = (eventId: number, status: "going" | "not-going") => {
+  const handleAttendanceChange = (eventId: number, status: "going" | "not-going" | "unknown") => {
     if (currentUser?.role !== "member") return;
     const event = eventsQuery.data?.find((e) => e.id === eventId);
     if (!event) return;
@@ -721,7 +721,7 @@ export default function Home() {
   };
 
   // Handle individual member attendance change
-  const handleAttendanceChangeForMember = (eventId: number, memberId: number, status: "going" | "not-going") => {
+  const handleAttendanceChangeForMember = (eventId: number, memberId: number, status: "going" | "not-going" | "unknown") => {
     const event = eventsQuery.data?.find((e) => e.id === eventId);
     if (!event) return;
     if (isEventEnded(event)) return showToast("此活動已結束，不能修改出席狀態", "error");
@@ -738,7 +738,7 @@ export default function Home() {
     });
   };
 
-  const handleSetAttendance = (status: "going" | "not-going") => {
+  const handleSetAttendance = (status: "going" | "not-going" | "unknown") => {
     if (!selectedEventId || currentUser?.role !== "member") return;
     const event = eventsQuery.data?.find((e) => e.id === selectedEventId);
     if (!event) return;
@@ -882,7 +882,7 @@ export default function Home() {
           {dayEvents.map((evt, i) => {
             const goingCount = Object.values(evt.attendance).filter(v => v === "going").length;
             const notGoingCount = Object.values(evt.attendance).filter(v => v === "not-going").length;
-            const pendingCount = (membersQuery.data?.length || 0) - goingCount - notGoingCount;
+            const unknownCount = Object.values(evt.attendance).filter(v => v === "unknown").length;
             const myStatus = currentUser?.role === "member" ? evt.attendance[currentUser.id as number] : null;
             return (
               <div key={i} className="text-xs sm:text-xs space-y-0.5 mb-0.5 sm:mb-1 border-l-2 border-purple-300 pl-1">
@@ -902,9 +902,10 @@ export default function Home() {
                   </div>
                 )}
                 {currentUser?.role === "member" && !isEventEnded(evt) && (
-                  <div className="flex gap-0.5 px-1 mt-0.5">
-                    <button onClick={(e) => { e.stopPropagation(); handleAttendanceChange(evt.id, "going"); }} className={`flex-1 text-xs px-1 py-0.5 rounded transition-all ${myStatus === "going" ? "bg-green-100 text-green-700 font-semibold" : "bg-gray-100 text-gray-600 hover:bg-green-50"}`}>出席</button>
-                    <button onClick={(e) => { e.stopPropagation(); handleAttendanceChange(evt.id, "not-going"); }} className={`flex-1 text-xs px-1 py-0.5 rounded transition-all ${myStatus === "not-going" ? "bg-red-100 text-red-700 font-semibold" : "bg-gray-100 text-gray-600 hover:bg-red-50"}`}>不出席</button>
+                  <div className="flex gap-0.5 px-1 mt-0.5 flex-wrap">
+                    <button onClick={(e) => { e.stopPropagation(); handleAttendanceChange(evt.id, "going"); }} className={`flex-1 min-w-16 text-xs px-1 py-0.5 rounded transition-all ${myStatus === "going" ? "bg-green-100 text-green-700 font-semibold" : "bg-gray-100 text-gray-600 hover:bg-green-50"}`}>出席</button>
+                    <button onClick={(e) => { e.stopPropagation(); handleAttendanceChange(evt.id, "not-going"); }} className={`flex-1 min-w-16 text-xs px-1 py-0.5 rounded transition-all ${myStatus === "not-going" ? "bg-red-100 text-red-700 font-semibold" : "bg-gray-100 text-gray-600 hover:bg-red-50"}`}>不出席</button>
+                    <button onClick={(e) => { e.stopPropagation(); handleAttendanceChange(evt.id, "unknown"); }} className={`flex-1 min-w-16 text-xs px-1 py-0.5 rounded transition-all ${myStatus === "unknown" ? "bg-gray-400 text-white font-semibold" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>未知道</button>
                   </div>
                 )}
               </div>
@@ -1376,7 +1377,7 @@ export default function Home() {
                         <span className="text-sm text-gray-500">
                           出席: {Object.values(selectedEvent.attendance).filter(v => v === "going").length} |
                           缺席: {Object.values(selectedEvent.attendance).filter(v => v === "not-going").length} |
-                          待定: {(membersQuery.data || []).length - Object.values(selectedEvent.attendance).filter(v => v === "going").length - Object.values(selectedEvent.attendance).filter(v => v === "not-going").length}
+                          未知道: {Object.values(selectedEvent.attendance).filter(v => v === "unknown").length}
                           {selectedEventEnded ? " (已完結)" : ""}
                         </span>
                       </div>
@@ -1395,18 +1396,24 @@ export default function Home() {
                           </p>
                           <p className="text-purple-600 text-xs">請選擇你的出席狀態：</p>
                         </div>
-                        <div className="flex gap-3">
+                        <div className="flex gap-3 flex-wrap">
                           <button
                             onClick={() => handleSetAttendance("going")}
-                            className={`attendance-btn flex-1 ${selectedEvent.attendance[currentUser.id as number] === "going" ? "going" : "pending"}`}
+                            className={`attendance-btn flex-1 min-w-24 ${selectedEvent.attendance[currentUser.id as number] === "going" ? "going" : "pending"}`}
                           >
                             <i className="fas fa-check mr-2" />出席
                           </button>
                           <button
                             onClick={() => handleSetAttendance("not-going")}
-                            className={`attendance-btn flex-1 ${selectedEvent.attendance[currentUser.id as number] === "not-going" ? "not-going" : "pending"}`}
+                            className={`attendance-btn flex-1 min-w-24 ${selectedEvent.attendance[currentUser.id as number] === "not-going" ? "not-going" : "pending"}`}
                           >
                             <i className="fas fa-times mr-2" />不出席
+                          </button>
+                          <button
+                            onClick={() => handleSetAttendance("unknown")}
+                            className={`attendance-btn flex-1 min-w-24 ${selectedEvent.attendance[currentUser.id as number] === "unknown" ? "unknown" : "pending"}`}
+                          >
+                            <i className="fas fa-question mr-2" />未知道
                           </button>
                         </div>
                       </div>

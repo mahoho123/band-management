@@ -60,7 +60,7 @@ export const bandAttendance = mysqlTable("band_attendance", {
   id: int("id").autoincrement().primaryKey(),
   eventId: int("eventId").notNull(),
   memberId: int("memberId").notNull(),
-  status: mysqlEnum("status", ["going", "not-going", "pending"]).default("pending").notNull(),
+  status: mysqlEnum("status", ["going", "not-going", "unknown"]).default("unknown").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

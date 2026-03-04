@@ -1,0 +1,1 @@
+ALTER TABLE `band_attendance` MODIFY COLUMN `status` enum('going','not-going','unknown') NOT NULL DEFAULT 'unknown';

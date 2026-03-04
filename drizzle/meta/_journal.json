@@ -15,6 +15,13 @@
       "when": 1772552588903,
       "tag": "0001_tranquil_gabe_jones",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1772616114163,
+      "tag": "0002_careless_cannonball",
+      "breakpoints": true
     }
   ]
 }

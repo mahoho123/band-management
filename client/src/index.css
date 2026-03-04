@@ -304,6 +304,13 @@
   border-color: #d1d5db;
 }
 
+.attendance-btn.unknown {
+  background: linear-gradient(135deg, #6b7280, #4b5563);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+}
+
 .modal-enter {
   animation: modalSlideIn 0.25s ease-out;
 }
