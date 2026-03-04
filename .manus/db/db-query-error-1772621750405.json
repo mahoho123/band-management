@@ -1,0 +1,8 @@
+{
+  "query": "DELETE FROM band_event_attendance; DELETE FROM band_events;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ssV1gG8ge5UMiMb.root --database nisJJQWqpdHcjeFLPNJCii --execute DELETE FROM band_event_attendance; DELETE FROM band_events;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1146 (42S02) at line 1: Table 'nisjjqwqpdhcjeflpnjcii.band_event_attendance' doesn't exist"
+  ]
+}

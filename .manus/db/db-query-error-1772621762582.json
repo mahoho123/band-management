@@ -1,0 +1,8 @@
+{
+  "query": "DELETE FROM band_attendance; DELETE FROM band_events; SELECT key_name, value FROM band_system_data WHERE key_name = 'admin_password';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ssV1gG8ge5UMiMb.root --database nisJJQWqpdHcjeFLPNJCii --execute DELETE FROM band_attendance; DELETE FROM band_events; SELECT key_name, value FROM band_system_data WHERE key_name = 'admin_password';",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'key_name' in 'where clause'"
+  ]
+}

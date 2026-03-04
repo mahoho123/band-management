@@ -1,0 +1,13 @@
+{
+  "query": "SELECT adminPassword FROM band_system_data LIMIT 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ssV1gG8ge5UMiMb.root --database nisJJQWqpdHcjeFLPNJCii --execute SELECT adminPassword FROM band_system_data LIMIT 1;",
+  "rows": [
+    {
+      "adminPassword": "newPassword456"
+    }
+  ],
+  "messages": [],
+  "stdout": "adminPassword\nnewPassword456\n",
+  "stderr": "",
+  "execution_time_ms": 1570
+}
