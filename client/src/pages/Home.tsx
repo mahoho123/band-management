@@ -713,9 +713,25 @@ export default function Home() {
       memberId: currentUser.id as number,
       status,
     }, {
+      onMutate: async () => {
+        await utils.band.getEvents.cancel();
+        const previousEvents = utils.band.getEvents.getData();
+        if (previousEvents) {
+          utils.band.getEvents.setData(undefined, previousEvents.map(e => 
+            e.id === eventId 
+              ? { ...e, attendance: { ...e.attendance, [currentUser.id as number]: status } }
+              : e
+          ));
+        }
+        return { previousEvents };
+      },
+      onError: (err, newData, context) => {
+        if (context?.previousEvents) {
+          utils.band.getEvents.setData(undefined, context.previousEvents);
+        }
+      },
       onSuccess: () => {
-        showToast(status === "going" ? "已確認出席" : "已確認不出席", "success");
-        eventsQuery.refetch();
+        showToast(status === "going" ? "已確認出席" : status === "not-going" ? "已確認不出席" : "已標記未知道", "success");
       },
     });
   };
@@ -731,9 +747,25 @@ export default function Home() {
       memberId,
       status,
     }, {
+      onMutate: async () => {
+        await utils.band.getEvents.cancel();
+        const previousEvents = utils.band.getEvents.getData();
+        if (previousEvents) {
+          utils.band.getEvents.setData(undefined, previousEvents.map(e => 
+            e.id === eventId 
+              ? { ...e, attendance: { ...e.attendance, [memberId]: status } }
+              : e
+          ));
+        }
+        return { previousEvents };
+      },
+      onError: (err, newData, context) => {
+        if (context?.previousEvents) {
+          utils.band.getEvents.setData(undefined, context.previousEvents);
+        }
+      },
       onSuccess: () => {
         showToast("出席狀態已更新", "success");
-        eventsQuery.refetch();
       },
     });
   };
@@ -749,9 +781,25 @@ export default function Home() {
       memberId: currentUser.id as number,
       status,
     }, {
+      onMutate: async () => {
+        await utils.band.getEvents.cancel();
+        const previousEvents = utils.band.getEvents.getData();
+        if (previousEvents) {
+          utils.band.getEvents.setData(undefined, previousEvents.map(e => 
+            e.id === selectedEventId 
+              ? { ...e, attendance: { ...e.attendance, [currentUser.id as number]: status } }
+              : e
+          ));
+        }
+        return { previousEvents };
+      },
+      onError: (err, newData, context) => {
+        if (context?.previousEvents) {
+          utils.band.getEvents.setData(undefined, context.previousEvents);
+        }
+      },
       onSuccess: () => {
-        showToast(status === "going" ? "已確認出席" : "已確認不出席", "success");
-        eventsQuery.refetch();
+        showToast(status === "going" ? "已確認出席" : status === "not-going" ? "已確認不出席" : "已標記未知道", "success");
       },
     });
   };
