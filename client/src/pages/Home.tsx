@@ -948,7 +948,7 @@ export default function Home() {
             </span>
           </div>
             {holidays.length > 0 && (
-              <div className="text-[9px] sm:text-[10px] text-amber-600 font-medium px-1 sm:px-1.5 py-0 mb-0.5 truncate line-clamp-1 leading-tight">
+              <div className="text-xs sm:text-sm text-amber-600 font-semibold px-1 sm:px-1.5 py-0.5 mb-0.5 truncate line-clamp-1">
                 {holidays[0].name}
               </div>
             )}
