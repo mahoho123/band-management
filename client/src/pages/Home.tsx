@@ -1885,11 +1885,11 @@ export default function Home() {
                   </button>
                   <button
                     onClick={() => {
-                      for (const id of selectedEventIds) {
-                        deleteEventMutation.mutate({ id });
-                      }
+                      const idsToDelete = Array.from(selectedEventIds);
+                      const count = idsToDelete.length;
+                      idsToDelete.forEach(id => deleteEventMutation.mutate({ id }));
                       setSelectedEventIds(new Set());
-                      showToast(`Deleted ${selectedEventIds.size} events`, "success");
+                      showToast(`Deleted ${count} events`, "success");
                     }}
                     className="text-xs bg-red-500 text-white px-3 py-1.5 rounded-lg hover:bg-red-600 transition-all font-medium flex items-center gap-1"
                   >
