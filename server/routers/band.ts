@@ -207,7 +207,7 @@ export const bandRouter = router({
       const result = await addBandHoliday(input);
       const io = getIO();
       if (io) {
-        io.emit("holiday:added");
+        io.sockets.emit("holiday:added");
       }
       return result;
     }),

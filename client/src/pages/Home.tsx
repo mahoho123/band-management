@@ -7,6 +7,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 import { trpc } from "@/lib/trpc";
 
 // ============================================
@@ -310,6 +311,9 @@ interface ToastState {
 const AUTO_REFRESH_INTERVAL = 5000; // 5 seconds
 
 export default function Home() {
+  // 啟用實時同步
+  useRealtimeSync();
+
   // tRPC queries
   const systemDataQuery = trpc.band.getSystemData.useQuery(undefined, { refetchInterval: 500, staleTime: 0, refetchOnWindowFocus: true, refetchOnMount: true });
   const membersQuery = trpc.band.getMembers.useQuery(undefined, { refetchInterval: 500, staleTime: 0, refetchOnWindowFocus: true, refetchOnMount: true });
@@ -327,6 +331,7 @@ export default function Home() {
   const deleteEventMutation = trpc.band.deleteEvent.useMutation();
   const setAttendanceMutation = trpc.band.setAttendance.useMutation();
   const addHolidayMutation = trpc.band.addHoliday.useMutation();
+  const utils = trpc.useUtils();
 
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -627,20 +632,25 @@ export default function Home() {
   const checkDateHolidayFor = (date: string) => {
     const holiday = holidaysQuery.data?.find((h) => h.date === date);
     setDateHolidayWarning(holiday ? holiday.name : "");
-  };
+  }
 
   const handleSaveEvent = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedEventId && isDayCompleted(eventDate)) {
-      return showToast("新增活動不能選擇已過期的日期", "error");
-    }
+    if (!eventTitle.trim()) return showToast("請輸入活動名稱", "error");
+    if (!eventDate) return showToast("請選擇日期", "error");
 
     const startTime = parseTime12To24(startHour, startMinute, startAmpm);
     const endTime = parseTime12To24(endHour, endMinute, endAmpm);
 
-    if (endTime <= startTime) return showToast("結束時間必須晚於開始時間", "error");
+    if (startTime >= endTime) return showToast("開始時間必須早於結束時間", "error");
 
-    if (selectedEventId) {
+    const dateHoliday = hkHolidays.find((h) => h.date === eventDate);
+    if (dateHoliday && !dateHolidayWarning) {
+      setDateHolidayWarning(dateHoliday.name);
+      return;
+    }
+
+    if (eventModalMode === "edit" && selectedEventId) {
       updateEventMutation.mutate({
         id: selectedEventId,
         title: eventTitle,
@@ -654,7 +664,7 @@ export default function Home() {
         onSuccess: () => {
           showToast("活動已更新", "success");
           setShowEventModal(false);
-          eventsQuery.refetch();
+          utils.band.getEvents.invalidate();
         },
       });
     } else {
@@ -670,7 +680,7 @@ export default function Home() {
         onSuccess: () => {
           showToast("活動已新增", "success");
           setShowEventModal(false);
-          eventsQuery.refetch();
+          utils.band.getEvents.invalidate();
         },
       });
     }
