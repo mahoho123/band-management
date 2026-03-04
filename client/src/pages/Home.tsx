@@ -383,6 +383,7 @@ export default function Home() {
   const [filterByDate, setFilterByDate] = useState<string | null>(null);
   const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedEventIds, setSelectedEventIds] = useState<Set<number>>(new Set());
 
   const showToast = useCallback((message: string, type: "success" | "error" | "info" = "info") => {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
@@ -1699,9 +1700,37 @@ export default function Home() {
                 <span className={`px-1.5 sm:px-2 py-0.5 rounded-full text-xs font-bold ${currentListTab === "completed" ? "bg-white/20" : "bg-gray-200 text-gray-600"}`}>
                   {completedEvents.length}
                 </span>
-              </button>
+               </button>
             </div>
 
+            {/* Batch Operations Toolbar */}
+            {selectedEventIds.size > 0 && currentUser?.role === "admin" && (
+              <div className="bg-purple-50 border-2 border-purple-200 rounded-lg p-3 mb-4 flex items-center justify-between gap-3">
+                <span className="text-sm font-medium text-purple-700">
+                  Selected {selectedEventIds.size} events
+                </span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setSelectedEventIds(new Set())}
+                    className="text-xs bg-white text-gray-700 px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-50 transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      for (const id of selectedEventIds) {
+                        deleteEventMutation.mutate({ id });
+                      }
+                      setSelectedEventIds(new Set());
+                      showToast(`Deleted ${selectedEventIds.size} events`, "success");
+                    }}
+                    className="text-xs bg-red-500 text-white px-3 py-1.5 rounded-lg hover:bg-red-600 transition-all font-medium flex items-center gap-1"
+                  >
+                    <i className="fas fa-trash" />Delete
+                  </button>
+                </div>
+              </div>
+            )}
             {/* Events */}
             <div className="space-y-3">
               {displayEvents.length === 0 ? (
@@ -1723,13 +1752,35 @@ export default function Home() {
                   const goingCount = Object.values(event.attendance).filter(v => v === "going").length;
                   const myStatus = currentUser?.role === "member" ? event.attendance[currentUser.id as number] : null;
 
+                  const isSelected = selectedEventIds.has(event.id);
+                  const toggleEventSelection = (e: any) => {
+                    e.stopPropagation();
+                    const newSelected = new Set(selectedEventIds);
+                    if (newSelected.has(event.id)) {
+                      newSelected.delete(event.id);
+                    } else {
+                      newSelected.add(event.id);
+                    }
+                    setSelectedEventIds(newSelected);
+                  };
+
                   return (
                     <div
                       key={event.id}
-                      onClick={() => openEventModal(event.id)}
-                      className={`event-card bg-white rounded-xl p-4 shadow-sm cursor-pointer ${typeConf.border} ${isOngoing ? "ongoing-card" : ""} ${isEnded ? "completed-card" : ""}`}
+                      onClick={() => !selectedEventIds.size && openEventModal(event.id)}
+                      className={`event-card bg-white rounded-xl p-4 shadow-sm cursor-pointer ${typeConf.border} ${isOngoing ? "ongoing-card" : ""} ${isEnded ? "completed-card" : ""} ${isSelected ? "ring-2 ring-purple-500 bg-purple-50" : ""}`}
                     >
                       <div className="flex justify-between items-start gap-4">
+                        {currentUser?.role === "admin" && (
+                          <div className="flex-shrink-0 pt-1">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={(e: any) => toggleEventSelection(e)}
+                              className="w-5 h-5 text-purple-600 rounded cursor-pointer"
+                            />
+                          </div>
+                        )}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-2 flex-wrap">
                             <span className={`text-xs px-2.5 py-1 rounded-full ${typeConf.color} font-medium flex items-center gap-1`}>
