@@ -429,7 +429,7 @@ export default function Home() {
     } else {
       // System is set up, show login modal
       setShowSetupModal(false);
-      setShowLoginModal(false); // Allow viewing without login
+      setShowLoginModal(true); // Show login modal for users to log in
     }
   }, [systemDataQuery.data, systemDataQuery.isLoading]);
 
@@ -1023,7 +1023,7 @@ export default function Home() {
       )}
 
       {/* Login Modal */}
-      {showLoginModal && (
+      {showLoginModal && !currentUser && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 backdrop-blur-sm overflow-y-auto">
           <div className="glass-panel rounded-xl sm:rounded-2xl w-full max-w-sm sm:max-w-md p-4 sm:p-6 modal-enter shadow-2xl my-4">
             <div className="flex mb-3 sm:mb-5 border-b border-gray-200">
@@ -1098,7 +1098,7 @@ export default function Home() {
       )}
 
       {/* Register Modal */}
-      {showRegisterModal && (
+      {showRegisterModal && !currentUser && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 backdrop-blur-sm overflow-y-auto">
           <div className="glass-panel rounded-xl sm:rounded-2xl w-full max-w-sm sm:max-w-md p-4 sm:p-6 modal-enter shadow-2xl my-4">
             <div className="flex items-center justify-between mb-3 sm:mb-5">
