@@ -760,30 +760,34 @@ export default function Home() {
     if (!event) return;
     if (isEventEnded(event)) return showToast("此活動已結束，不能修改出席狀態", "error");
 
+    // 立即更新本地狀態 - 零延遲
+    setLocalAttendance(prev => ({
+      ...prev,
+      [eventId]: {
+        ...prev[eventId],
+        [memberId]: status
+      }
+    }));
+
+    // 後台同步到服務器
     setAttendanceMutation.mutate({
       eventId,
       memberId,
       status,
     }, {
-      onMutate: async () => {
-        await utils.band.getEvents.cancel();
-        const previousEvents = utils.band.getEvents.getData();
-        if (previousEvents) {
-          utils.band.getEvents.setData(undefined, previousEvents.map(e => 
-            e.id === eventId 
-              ? { ...e, attendance: { ...e.attendance, [memberId]: status } }
-              : e
-          ));
-        }
-        return { previousEvents };
-      },
-      onError: (err, newData, context) => {
-        if (context?.previousEvents) {
-          utils.band.getEvents.setData(undefined, context.previousEvents);
-        }
-      },
       onSuccess: () => {
         showToast("出席狀態已更新", "success");
+      },
+      onError: () => {
+        // 失敗時回滾本地狀態
+        setLocalAttendance(prev => ({
+          ...prev,
+          [eventId]: {
+            ...prev[eventId],
+            [memberId]: event.attendance[memberId] || "unknown"
+          }
+        }));
+        showToast("更新出席狀態失敗", "error");
       },
     });
   };
@@ -792,32 +796,36 @@ export default function Home() {
     if (!selectedEventId || currentUser?.role !== "member") return;
     const event = eventsQuery.data?.find((e) => e.id === selectedEventId);
     if (!event) return;
-    if (isEventEnded(event)) return showToast("此活動已結束，不能修改出席狀態", "error");
+    if (isEventEnded(event)) return showToast("此活b動已結束，不能修改出席狀態", "error");
 
+    // 立即更新本地狀態 - 零延遲
+    setLocalAttendance(prev => ({
+      ...prev,
+      [selectedEventId]: {
+        ...prev[selectedEventId],
+        [currentUser.id as number]: status
+      }
+    }));
+
+    // 後台同步到服務器
     setAttendanceMutation.mutate({
       eventId: selectedEventId,
       memberId: currentUser.id as number,
       status,
     }, {
-      onMutate: async () => {
-        await utils.band.getEvents.cancel();
-        const previousEvents = utils.band.getEvents.getData();
-        if (previousEvents) {
-          utils.band.getEvents.setData(undefined, previousEvents.map(e => 
-            e.id === selectedEventId 
-              ? { ...e, attendance: { ...e.attendance, [currentUser.id as number]: status } }
-              : e
-          ));
-        }
-        return { previousEvents };
-      },
-      onError: (err, newData, context) => {
-        if (context?.previousEvents) {
-          utils.band.getEvents.setData(undefined, context.previousEvents);
-        }
-      },
       onSuccess: () => {
         showToast(status === "going" ? "已確認出席" : status === "not-going" ? "已確認不出席" : "已標記未知道", "success");
+      },
+      onError: () => {
+        // 失敗時回滾本地狀態
+        setLocalAttendance(prev => ({
+          ...prev,
+          [selectedEventId]: {
+            ...prev[selectedEventId],
+            [currentUser.id as number]: event.attendance[currentUser.id as number] || "unknown"
+          }
+        }));
+        showToast("更新出席狀態失敗", "error");
       },
     });
   };
@@ -1491,53 +1499,60 @@ export default function Home() {
                       <div className="mt-5 pt-5 border-t border-gray-200">
                         <h4 className="font-bold text-gray-800 mb-3">成員出席狀態</h4>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                          {/* Going */}
-                          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                            <h5 className="font-semibold text-green-700 text-sm mb-2 flex items-center gap-1">
-                              <i className="fas fa-check" /> 出席 ({Object.values(selectedEvent.attendance).filter(v => v === "going").length})
-                            </h5>
-                            <div className="space-y-1">
-                              {(membersQuery.data || []).filter(m => selectedEvent.attendance[m.id] === "going").length === 0 ? (
-                                <p className="text-xs text-gray-500">暫無</p>
-                              ) : (
-                                (membersQuery.data || []).filter(m => selectedEvent.attendance[m.id] === "going").map(member => (
-                                  <div key={member.id} className="text-xs text-green-700 font-medium">{member.name}</div>
-                                ))
-                              )}
-                            </div>
-                          </div>
-                          
-                          {/* Not Going */}
-                          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                            <h5 className="font-semibold text-red-700 text-sm mb-2 flex items-center gap-1">
-                              <i className="fas fa-times" /> 不出席 ({Object.values(selectedEvent.attendance).filter(v => v === "not-going").length})
-                            </h5>
-                            <div className="space-y-1">
-                              {(membersQuery.data || []).filter(m => selectedEvent.attendance[m.id] === "not-going").length === 0 ? (
-                                <p className="text-xs text-gray-500">暫無</p>
-                              ) : (
-                                (membersQuery.data || []).filter(m => selectedEvent.attendance[m.id] === "not-going").map(member => (
-                                  <div key={member.id} className="text-xs text-red-700 font-medium">{member.name}</div>
-                                ))
-                              )}
-                            </div>
-                          </div>
-                          
-                          {/* Unknown */}
-                          <div className="bg-gray-100 border border-gray-300 rounded-lg p-3">
-                            <h5 className="font-semibold text-gray-700 text-sm mb-2 flex items-center gap-1">
-                              <i className="fas fa-question" /> 未知道 ({Object.values(selectedEvent.attendance).filter(v => v === "unknown").length})
-                            </h5>
-                            <div className="space-y-1">
-                              {(membersQuery.data || []).filter(m => selectedEvent.attendance[m.id] === "unknown").length === 0 ? (
-                                <p className="text-xs text-gray-500">暫無</p>
-                              ) : (
-                                (membersQuery.data || []).filter(m => selectedEvent.attendance[m.id] === "unknown").map(member => (
-                                  <div key={member.id} className="text-xs text-gray-700 font-medium">{member.name}</div>
-                                ))
-                              )}
-                            </div>
-                          </div>
+                          {(() => {
+                            const attendance = localAttendance[selectedEvent.id] || selectedEvent.attendance;
+                            return (
+                              <>
+                                {/* Going */}
+                                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                                  <h5 className="font-semibold text-green-700 text-sm mb-2 flex items-center gap-1">
+                                    <i className="fas fa-check" /> 出席 ({Object.values(attendance).filter(v => v === "going").length})
+                                  </h5>
+                                  <div className="space-y-1">
+                                    {(membersQuery.data || []).filter(m => attendance[m.id] === "going").length === 0 ? (
+                                      <p className="text-xs text-gray-500">暫無</p>
+                                    ) : (
+                                      (membersQuery.data || []).filter(m => attendance[m.id] === "going").map(member => (
+                                        <div key={member.id} className="text-xs text-green-700 font-medium">{member.name}</div>
+                                      ))
+                                    )}
+                                  </div>
+                                </div>
+                                
+                                {/* Not Going */}
+                                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                                  <h5 className="font-semibold text-red-700 text-sm mb-2 flex items-center gap-1">
+                                    <i className="fas fa-times" /> 不出席 ({Object.values(attendance).filter(v => v === "not-going").length})
+                                  </h5>
+                                  <div className="space-y-1">
+                                    {(membersQuery.data || []).filter(m => attendance[m.id] === "not-going").length === 0 ? (
+                                      <p className="text-xs text-gray-500">暫無</p>
+                                    ) : (
+                                      (membersQuery.data || []).filter(m => attendance[m.id] === "not-going").map(member => (
+                                        <div key={member.id} className="text-xs text-red-700 font-medium">{member.name}</div>
+                                      ))
+                                    )}
+                                  </div>
+                                </div>
+                                
+                                {/* Unknown */}
+                                <div className="bg-gray-100 border border-gray-300 rounded-lg p-3">
+                                  <h5 className="font-semibold text-gray-700 text-sm mb-2 flex items-center gap-1">
+                                    <i className="fas fa-question" /> 未知道 ({Object.values(attendance).filter(v => v === "unknown").length})
+                                  </h5>
+                                  <div className="space-y-1">
+                                    {(membersQuery.data || []).filter(m => attendance[m.id] === "unknown").length === 0 ? (
+                                      <p className="text-xs text-gray-500">暫無</p>
+                                    ) : (
+                                      (membersQuery.data || []).filter(m => attendance[m.id] === "unknown").map(member => (
+                                        <div key={member.id} className="text-xs text-gray-700 font-medium">{member.name}</div>
+                                      ))
+                                    )}
+                                  </div>
+                                </div>
+                              </>
+                            );
+                          })()}
                         </div>
                       </div>
                     )}
