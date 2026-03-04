@@ -339,6 +339,9 @@ export default function Home() {
   const [currentListTab, setCurrentListTab] = useState<"incomplete" | "completed">("incomplete");
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
   const [selectedRegColor, setSelectedRegColor] = useState("blue");
+  
+  // 本地出席狀態緩存 - 用於零延遲更新
+  const [localAttendance, setLocalAttendance] = useState<Record<number, Record<number, string>>>({});
 
   // Modal states
   const [showSetupModal, setShowSetupModal] = useState(false);
@@ -434,6 +437,17 @@ export default function Home() {
       setShowLoginModal(true); // Show login modal for users to log in
     }
   }, [systemDataQuery.data, systemDataQuery.isLoading]);
+
+  // 初始化本地出席狀態緩存
+  useEffect(() => {
+    if (eventsQuery.data) {
+      const newLocalAttendance: Record<number, Record<number, string>> = {};
+      eventsQuery.data.forEach(event => {
+        newLocalAttendance[event.id] = { ...event.attendance };
+      });
+      setLocalAttendance(newLocalAttendance);
+    }
+  }, [eventsQuery.data]);
 
   // Refresh every minute to check event completion
   useEffect(() => {
@@ -708,30 +722,34 @@ export default function Home() {
     if (!event) return;
     if (isEventEnded(event)) return showToast("此活動已結束，不能修改出席狀態", "error");
 
+    // 立即更新本地狀態 - 零延遲
+    setLocalAttendance(prev => ({
+      ...prev,
+      [eventId]: {
+        ...prev[eventId],
+        [currentUser.id as number]: status
+      }
+    }));
+
+    // 後台同步到服務器
     setAttendanceMutation.mutate({
       eventId,
       memberId: currentUser.id as number,
       status,
     }, {
-      onMutate: async () => {
-        await utils.band.getEvents.cancel();
-        const previousEvents = utils.band.getEvents.getData();
-        if (previousEvents) {
-          utils.band.getEvents.setData(undefined, previousEvents.map(e => 
-            e.id === eventId 
-              ? { ...e, attendance: { ...e.attendance, [currentUser.id as number]: status } }
-              : e
-          ));
-        }
-        return { previousEvents };
-      },
-      onError: (err, newData, context) => {
-        if (context?.previousEvents) {
-          utils.band.getEvents.setData(undefined, context.previousEvents);
-        }
-      },
       onSuccess: () => {
         showToast(status === "going" ? "已確認出席" : status === "not-going" ? "已確認不出席" : "已標記未知道", "success");
+      },
+      onError: () => {
+        // 失敗時回滾本地狀態
+        setLocalAttendance(prev => ({
+          ...prev,
+          [eventId]: {
+            ...prev[eventId],
+            [currentUser.id as number]: event.attendance[currentUser.id as number] || "unknown"
+          }
+        }));
+        showToast("更新出席狀態失敗", "error");
       },
     });
   };
@@ -928,10 +946,11 @@ export default function Home() {
               </div>
             )}
           {dayEvents.map((evt, i) => {
-            const goingCount = Object.values(evt.attendance).filter(v => v === "going").length;
-            const notGoingCount = Object.values(evt.attendance).filter(v => v === "not-going").length;
-            const unknownCount = Object.values(evt.attendance).filter(v => v === "unknown").length;
-            const myStatus = currentUser?.role === "member" ? evt.attendance[currentUser.id as number] : null;
+            const attendance = localAttendance[evt.id] || evt.attendance;
+            const goingCount = Object.values(attendance).filter(v => v === "going").length;
+            const notGoingCount = Object.values(attendance).filter(v => v === "not-going").length;
+            const unknownCount = Object.values(attendance).filter(v => v === "unknown").length;
+            const myStatus = currentUser?.role === "member" ? attendance[currentUser.id as number] : null;
             return (
               <div key={i} className="text-xs sm:text-xs space-y-0.5 mb-0.5 sm:mb-1 border-l-2 border-purple-300 pl-1">
                 <div
@@ -1937,27 +1956,34 @@ export default function Home() {
                           <div className="mt-2 pt-2 border-t border-gray-200 w-full">
                             <div className="text-xs text-gray-600 mb-1">出席統計:</div>
                             <div className="space-y-1">
-                              {/* Going */}
-                              {(membersQuery.data || []).filter(m => event.attendance[m.id] === "going").length > 0 && (
-                                <div className="text-xs">
-                                  <span className="px-2 py-0.5 rounded bg-green-100 text-green-700 font-medium mr-1 inline-block">✓ 出席</span>
-                                  <span className="text-gray-700">{(membersQuery.data || []).filter(m => event.attendance[m.id] === "going").map(m => m.name).join(", ")}</span>
-                                </div>
-                              )}
-                              {/* Not Going */}
-                              {(membersQuery.data || []).filter(m => event.attendance[m.id] === "not-going").length > 0 && (
-                                <div className="text-xs">
-                                  <span className="px-2 py-0.5 rounded bg-red-100 text-red-700 font-medium mr-1 inline-block">✗ 不出席</span>
-                                  <span className="text-gray-700">{(membersQuery.data || []).filter(m => event.attendance[m.id] === "not-going").map(m => m.name).join(", ")}</span>
-                                </div>
-                              )}
-                              {/* Unknown */}
-                              {(membersQuery.data || []).filter(m => event.attendance[m.id] === "unknown").length > 0 && (
-                                <div className="text-xs">
-                                  <span className="px-2 py-0.5 rounded bg-gray-200 text-gray-700 font-medium mr-1 inline-block">? 未知道</span>
-                                  <span className="text-gray-700">{(membersQuery.data || []).filter(m => event.attendance[m.id] === "unknown").map(m => m.name).join(", ")}</span>
-                                </div>
-                              )}
+                              {(() => {
+                                const attendance = localAttendance[event.id] || event.attendance;
+                                return (
+                                  <>
+                                    {/* Going */}
+                                    {(membersQuery.data || []).filter(m => attendance[m.id] === "going").length > 0 && (
+                                      <div className="text-xs">
+                                        <span className="px-2 py-0.5 rounded bg-green-100 text-green-700 font-medium mr-1 inline-block">✓ 出席</span>
+                                        <span className="text-gray-700">{(membersQuery.data || []).filter(m => attendance[m.id] === "going").map(m => m.name).join(", ")}</span>
+                                      </div>
+                                    )}
+                                    {/* Not Going */}
+                                    {(membersQuery.data || []).filter(m => attendance[m.id] === "not-going").length > 0 && (
+                                      <div className="text-xs">
+                                        <span className="px-2 py-0.5 rounded bg-red-100 text-red-700 font-medium mr-1 inline-block">✗ 不出席</span>
+                                        <span className="text-gray-700">{(membersQuery.data || []).filter(m => attendance[m.id] === "not-going").map(m => m.name).join(", ")}</span>
+                                      </div>
+                                    )}
+                                    {/* Unknown */}
+                                    {(membersQuery.data || []).filter(m => attendance[m.id] === "unknown").length > 0 && (
+                                      <div className="text-xs">
+                                        <span className="px-2 py-0.5 rounded bg-gray-200 text-gray-700 font-medium mr-1 inline-block">? 未知道</span>
+                                        <span className="text-gray-700">{(membersQuery.data || []).filter(m => attendance[m.id] === "unknown").map(m => m.name).join(", ")}</span>
+                                      </div>
+                                    )}
+                                  </>
+                                );
+                              })()}
                             </div>
                           </div>
                           {currentUser?.role === "admin" && (
