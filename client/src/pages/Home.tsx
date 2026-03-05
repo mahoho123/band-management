@@ -928,6 +928,41 @@ export default function Home() {
     return msg;
   };
 
+  const generateMonthlyNotification = (year: number, month: number, events: BandEvent[]) => {
+    const monthEvents = events
+      .filter(e => {
+        const [y, m] = e.date.split("-").map(Number);
+        return y === year && m === month + 1;
+      })
+      .sort((a, b) => a.date.localeCompare(b.date));
+    
+    const monthLabel = `${year}年${month + 1}月`;
+    let msg = `【${monthLabel}活動通知】\n\n`;
+    
+    if (monthEvents.length === 0) {
+      msg += `本月暫無活動安排。`;
+    } else {
+      monthEvents.forEach(e => {
+        const typeLabel = TYPE_CONFIG[e.type]?.text || e.type;
+        const startTime = formatTime12Full(e.startTime);
+        const [, , day] = e.date.split("-").map(Number);
+        const weekDay = ["日", "一", "二", "三", "四", "五", "六"][new Date(e.date).getDay()];
+        msg += `📅 ${month + 1}月${day}日（${weekDay}）${startTime} ${typeLabel}：${e.title}\n`;
+        if (e.location) msg += `   📍 ${e.location}\n`;
+      });
+      msg += `\n請登入以下連結確認每個活動的出席狀態，謝謝！\n🔗 https://bandmanage-nisjjqwq.manus.space`;
+    }
+    return msg;
+  };
+
+  const handleOpenMonthlyNotification = () => {
+    const events = systemData.events;
+    const msg = generateMonthlyNotification(calendarYear, calendarMonth, events);
+    setWhatsAppMessage(msg);
+    setWhatsAppScene("reminder");
+    setShowWhatsAppModal(true);
+  };
+
   const handleOpenWhatsAppNotification = (scene: "reminder" | "summary" = "summary") => {
     if (!selectedEvent) return;
     const msg = scene === "reminder"
@@ -2022,12 +2057,21 @@ export default function Home() {
                 </button>
               </div>
               {currentUser?.role === "admin" && (
-                <button
-                  onClick={() => openAddEventModal()}
-                  className="band-gradient text-white text-xs sm:text-sm px-2 sm:px-4 py-2 rounded-lg sm:rounded-xl hover:shadow-md transition-all font-medium flex items-center gap-1 sm:gap-2 whitespace-nowrap w-full sm:w-auto justify-center sm:justify-start"
-                >
-                  <i className="fas fa-plus" /><span className="hidden sm:inline">新增活動</span><span className="sm:hidden">新</span>
-                </button>
+                <div className="flex items-center gap-1 sm:gap-2 w-full sm:w-auto">
+                  <button
+                    onClick={handleOpenMonthlyNotification}
+                    title="發送本月活動 WhatsApp 通知"
+                    className="text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100 text-xs px-2 py-2 rounded-lg transition-all font-medium flex items-center gap-1 whitespace-nowrap border border-green-200"
+                  >
+                    <i className="fab fa-whatsapp text-sm" /><span className="hidden sm:inline">本月通知</span>
+                  </button>
+                  <button
+                    onClick={() => openAddEventModal()}
+                    className="band-gradient text-white text-xs sm:text-sm px-2 sm:px-4 py-2 rounded-lg sm:rounded-xl hover:shadow-md transition-all font-medium flex items-center gap-1 sm:gap-2 whitespace-nowrap flex-1 sm:flex-none justify-center sm:justify-start"
+                  >
+                    <i className="fas fa-plus" /><span className="hidden sm:inline">新增活動</span><span className="sm:hidden">新</span>
+                  </button>
+                </div>
               )}
             </div>
 
