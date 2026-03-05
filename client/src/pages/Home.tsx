@@ -924,6 +924,7 @@ export default function Home() {
     msg += `⏰ 時間：${startTime} - ${endTime}\n`;
     if (event.location) msg += `📍 地點：${event.location}\n`;
     msg += `\n請確認出席，謝謝！`;
+    msg += `\n\n🔗 出席登記：https://bandmanage-nisjjqwq.manus.space`;
     return msg;
   };
 
