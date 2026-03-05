@@ -390,6 +390,7 @@ export default function Home() {
 
   // WhatsApp notification states
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
+  const [showWhatsAppGuide, setShowWhatsAppGuide] = useState(false);
   const [whatsAppMessage, setWhatsAppMessage] = useState("");
   const [whatsAppMode, setWhatsAppMode] = useState<"personal" | "group" | "copy">("personal");
   const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
@@ -1821,6 +1822,84 @@ export default function Home() {
         </div>
       )}
 
+
+      {/* WhatsApp Guide Modal */}
+      {showWhatsAppGuide && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 backdrop-blur-sm overflow-y-auto">
+          <div className="glass-panel rounded-xl sm:rounded-2xl w-full max-w-sm sm:max-w-2xl p-4 sm:p-6 modal-enter shadow-2xl my-4 sm:my-8">
+            <div className="flex items-center justify-between mb-4 sm:mb-5">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-800 flex items-center gap-2">
+                <i className="fab fa-whatsapp text-green-500" />WhatsApp 通知功能使用指南
+              </h3>
+              <button
+                onClick={() => setShowWhatsAppGuide(false)}
+                className="text-gray-400 hover:text-gray-600 text-lg sm:text-xl ml-2 flex-shrink-0"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4 text-sm sm:text-base">
+              <div className="bg-blue-50 border-l-4 border-blue-400 p-3 rounded">
+                <h4 className="font-bold text-blue-900 mb-2">📱 功能概述</h4>
+                <p className="text-blue-800">WhatsApp 通知功能只有主管可以使用。主管可以在活動詳情中發送通知給所有成員，無需企業帳號。</p>
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="font-bold text-gray-800">📋 使用步驟</h4>
+                
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <p className="font-semibold text-gray-800 mb-2">步驟 1：打開活動詳情</p>
+                  <p className="text-gray-700">在月曆或活動清單中點擊任何活動，打開活動詳情模態框。</p>
+                </div>
+
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <p className="font-semibold text-gray-800 mb-2">步驟 2：點擊「發送 WhatsApp 通知」</p>
+                  <p className="text-gray-700">在活動詳情底部找到綠色的「發送 WhatsApp 通知」按鈕，點擊打開通知編輯器。</p>
+                </div>
+
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <p className="font-semibold text-gray-800 mb-2">步驟 3：選擇發送方式</p>
+                  <ul className="text-gray-700 space-y-2 ml-4 list-disc">
+                    <li><strong>個人帳戶</strong>：複製信息，手動發送給指定成員</li>
+                    <li><strong>群組</strong>：打開 WhatsApp Web，發送到群組</li>
+                    <li><strong>複製摘要</strong>：複製出席狀態摘要到剪貼板</li>
+                  </ul>
+                </div>
+
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <p className="font-semibold text-gray-800 mb-2">步驟 4：編輯信息（可選）</p>
+                  <p className="text-gray-700">系統會自動生成出席狀態摘要。你可以編輯信息內容，添加額外信息如「請務必準時到達」。</p>
+                </div>
+
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <p className="font-semibold text-gray-800 mb-2">步驟 5：發送通知</p>
+                  <p className="text-gray-700">根據選擇的方式發送通知。個人帳戶模式會複製信息，群組模式會打開 WhatsApp Web。</p>
+                </div>
+              </div>
+
+              <div className="bg-green-50 border-l-4 border-green-400 p-3 rounded">
+                <h4 className="font-bold text-green-900 mb-2">✅ 提示</h4>
+                <ul className="text-green-800 space-y-1 ml-4 list-disc">
+                  <li>出席狀態摘要會自動生成，包括所有成員的出席情況</li>
+                  <li>你可以自由編輯信息，添加任何額外信息</li>
+                  <li>複製摘要功能適合已有的 WhatsApp 群組</li>
+                  <li>個人帳戶模式需要成員的 WhatsApp 號碼（未來版本支持）</li>
+                </ul>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowWhatsAppGuide(false)}
+              className="w-full mt-4 bg-green-500 text-white py-2.5 rounded-xl hover:bg-green-600 transition-all font-medium"
+            >
+              關閉
+            </button>
+          </div>
+        </div>
+      )}
+
+
       {/* Main Content */}
       <div className="w-full px-2 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6 max-w-full">
         {/* Header */}
@@ -1879,6 +1958,13 @@ export default function Home() {
             </button>
             <button onClick={() => setCurrentView("list")} className={`nav-tab text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 ${currentView === "list" ? "active" : ""}`}>
               <i className="fas fa-list" /><span className="hidden sm:inline">活動清單</span><span className="sm:hidden">清</span>
+            </button>
+            <button
+              onClick={() => setShowWhatsAppGuide(true)}
+              className="nav-tab text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2"
+              title="WhatsApp 功能使用指南"
+            >
+              <i className="fas fa-question-circle" /><span className="hidden sm:inline">幫助</span><span className="sm:hidden">?</span>
             </button>
             {currentUser?.role === "admin" && (
               <button onClick={() => setCurrentView("members")} className={`nav-tab text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 ${currentView === "members" ? "active" : ""}`}>
@@ -2072,6 +2158,24 @@ export default function Home() {
                 </div>
               </div>
             )}
+
+            {/* Clear All Events Button */}
+            {currentUser?.role === "admin" && eventsQuery.data && eventsQuery.data.length > 0 && (
+              <div className="mb-4 flex justify-end">
+                <button
+                  onClick={() => {
+                    if (confirm("確定要清除所有活動嗎？此操作無法撤銷。")) {
+                      eventsQuery.data?.forEach(event => deleteEventMutation.mutate({ id: event.id }));
+                      showToast("已清除所有活動", "success");
+                    }
+                  }}
+                  className="text-xs bg-red-100 text-red-700 border border-red-300 px-3 py-1.5 rounded-lg hover:bg-red-200 transition-all font-medium flex items-center gap-1"
+                >
+                  <i className="fas fa-broom" />清除所有活動
+                </button>
+              </div>
+            )}
+
             {/* Events */}
             <div className="space-y-3">
               {displayEvents.length === 0 ? (
