@@ -395,6 +395,7 @@ export default function Home() {
   const [whatsAppMode, setWhatsAppMode] = useState<"personal" | "group" | "copy">("personal");
   const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
   const [personalPhoneNumber, setPersonalPhoneNumber] = useState("");
+  const [whatsAppScene, setWhatsAppScene] = useState<"reminder" | "summary">("summary");
 
   const showToast = useCallback((message: string, type: "success" | "error" | "info" = "info") => {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
@@ -913,10 +914,26 @@ export default function Home() {
     return summary;
   };
 
-  const handleOpenWhatsAppNotification = () => {
+  const generateReminderMessage = (event: BandEvent) => {
+    const dateStr = formatDate(event.date);
+    const startTime = formatTime12Full(event.startTime);
+    const endTime = formatTime12Full(event.endTime);
+    const typeLabel = TYPE_CONFIG[event.type]?.text || event.type;
+    let msg = `【${event.title}】${typeLabel}提醒\n\n`;
+    msg += `📅 日期：${dateStr}\n`;
+    msg += `⏰ 時間：${startTime} - ${endTime}\n`;
+    if (event.location) msg += `📍 地點：${event.location}\n`;
+    msg += `\n請確認出席，謝謝！`;
+    return msg;
+  };
+
+  const handleOpenWhatsAppNotification = (scene: "reminder" | "summary" = "summary") => {
     if (!selectedEvent) return;
-    const summary = generateAttendanceSummary(selectedEvent);
-    setWhatsAppMessage(summary);
+    const msg = scene === "reminder"
+      ? generateReminderMessage(selectedEvent)
+      : generateAttendanceSummary(selectedEvent);
+    setWhatsAppMessage(msg);
+    setWhatsAppScene(scene);
     setShowWhatsAppModal(true);
   };
 
@@ -1337,12 +1354,23 @@ export default function Home() {
             
             {eventModalMode === "view" && currentUser?.role === "admin" && selectedEvent && (
               <div className="mb-4 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 bg-green-50 border-b border-green-200">
-                <button
-                  onClick={handleOpenWhatsAppNotification}
-                  className="w-full bg-green-500 text-white py-2.5 rounded-lg hover:bg-green-600 transition-all font-medium text-sm flex items-center justify-center gap-2"
-                >
+                <p className="text-xs text-green-700 font-medium mb-2 flex items-center gap-1">
                   <i className="fab fa-whatsapp" />發送 WhatsApp 通知
-                </button>
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleOpenWhatsAppNotification("reminder")}
+                    className="flex-1 bg-green-500 text-white py-2.5 rounded-lg hover:bg-green-600 transition-all font-medium text-sm flex items-center justify-center gap-1.5"
+                  >
+                    <i className="fas fa-bell text-xs" />活動前提醒
+                  </button>
+                  <button
+                    onClick={() => handleOpenWhatsAppNotification("summary")}
+                    className="flex-1 bg-teal-500 text-white py-2.5 rounded-lg hover:bg-teal-600 transition-all font-medium text-sm flex items-center justify-center gap-1.5"
+                  >
+                    <i className="fas fa-list-check text-xs" />出席狀態摘要
+                  </button>
+                </div>
               </div>
             )}
 
@@ -1699,12 +1727,23 @@ export default function Home() {
                     {/* WhatsApp Notification Button */}
                     {currentUser?.role === "admin" && (
                       <div className="mt-4 pt-4 border-t border-gray-200">
-                        <button
-                          onClick={handleOpenWhatsAppNotification}
-                          className="w-full bg-green-50 text-green-700 border border-green-300 py-2.5 rounded-xl hover:bg-green-100 transition-all font-medium text-sm flex items-center justify-center gap-2"
-                        >
-                          <i className="fab fa-whatsapp" />發送 WhatsApp 通知
-                        </button>
+                        <p className="text-xs text-gray-500 font-medium mb-2 flex items-center gap-1">
+                          <i className="fab fa-whatsapp text-green-500" />發送 WhatsApp 通知
+                        </p>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleOpenWhatsAppNotification("reminder")}
+                            className="flex-1 bg-green-50 text-green-700 border border-green-300 py-2.5 rounded-xl hover:bg-green-100 transition-all font-medium text-sm flex items-center justify-center gap-1.5"
+                          >
+                            <i className="fas fa-bell text-xs" />活動前提醒
+                          </button>
+                          <button
+                            onClick={() => handleOpenWhatsAppNotification("summary")}
+                            className="flex-1 bg-teal-50 text-teal-700 border border-teal-300 py-2.5 rounded-xl hover:bg-teal-100 transition-all font-medium text-sm flex items-center justify-center gap-1.5"
+                          >
+                            <i className="fas fa-list-check text-xs" />出席狀態摘要
+                          </button>
+                        </div>
                       </div>
                     )}
                     
@@ -1745,48 +1784,20 @@ export default function Home() {
             </div>
 
             <div className="space-y-4">
-              {/* Mode Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">選擇發送方式</label>
-                <div className="flex gap-2 flex-wrap">
-                  <button
-                    onClick={() => setWhatsAppMode("personal")}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                      whatsAppMode === "personal"
-                        ? "bg-green-100 text-green-700 border border-green-300"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                    }`}
-                  >
-                    個人帳戶
-                  </button>
-                  <button
-                    onClick={() => setWhatsAppMode("group")}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                      whatsAppMode === "group"
-                        ? "bg-green-100 text-green-700 border border-green-300"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                    }`}
-                  >
-                    群組
-                  </button>
-                  <button
-                    onClick={() => setWhatsAppMode("copy")}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                      whatsAppMode === "copy"
-                        ? "bg-green-100 text-green-700 border border-green-300"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                    }`}
-                  >
-                    複製摘要
-                  </button>
-                </div>
+              {/* Scene Label */}
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 border border-gray-200">
+                {whatsAppScene === "reminder" ? (
+                  <><i className="fas fa-bell text-green-500" /><span className="text-sm font-medium text-gray-700">活動前提醒</span><span className="text-xs text-gray-500 ml-1">— 發送給成員提醒出席</span></>
+                ) : (
+                  <><i className="fas fa-list-check text-teal-500" /><span className="text-sm font-medium text-gray-700">出席狀態摘要</span><span className="text-xs text-gray-500 ml-1">— 將出席情況通知成員</span></>
+                )}
               </div>
 
               {/* Message Editor */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">自制信息</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">信息內容（可自由編輯）</label>
                 <textarea
-                  rows={6}
+                  rows={7}
                   value={whatsAppMessage}
                   onChange={(e) => setWhatsAppMessage(e.target.value)}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-400 outline-none text-sm resize-none font-mono"
@@ -1794,67 +1805,27 @@ export default function Home() {
                 />
               </div>
 
-              {/* Personal Mode - Phone Number Input */}
-              {whatsAppMode === "personal" && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <i className="fas fa-phone text-green-500 mr-1" />收件人電話號碼
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="tel"
-                      value={personalPhoneNumber}
-                      onChange={(e) => setPersonalPhoneNumber(e.target.value.replace(/[^0-9+]/g, ""))}
-                      placeholder="例：85291234567（包含國家代碼）"
-                      className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-400 outline-none text-sm"
-                    />
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">香港號碼請輸入 852 開頭，例：85291234567</p>
-                </div>
-              )}
+              {/* How-to hint */}
+              <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-xs text-blue-700 flex items-start gap-2">
+                <i className="fas fa-info-circle mt-0.5 flex-shrink-0" />
+                <span>點擊「開啟 WhatsApp」後，WhatsApp 會自動打開並預填好信息。你只需在 WhatsApp 裡選擇要發送的人或群組，按發送即可。手機 App、桌面版、網頁版均支持。</span>
+              </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-3 pt-2">
-                {whatsAppMode === "personal" && (
-                  <button
-                    onClick={() => {
-                      const phone = personalPhoneNumber.replace(/[^0-9]/g, "");
-                      if (!phone) {
-                        showToast("請輸入收件人電話號碼", "error");
-                        return;
-                      }
-                      const message = encodeURIComponent(whatsAppMessage);
-                      window.open(`https://wa.me/${phone}?text=${message}`, "_blank");
-                      showToast("已開啟 WhatsApp，請確認發送", "success");
-                    }}
-                    className="flex-1 bg-green-500 text-white py-2.5 rounded-xl hover:bg-green-600 transition-all font-medium text-sm flex items-center justify-center gap-2"
-                  >
-                    <i className="fab fa-whatsapp" />開啟 WhatsApp 發送
-                  </button>
-                )}
-                {whatsAppMode === "group" && (
-                  <button
-                    onClick={() => {
-                      const message = encodeURIComponent(whatsAppMessage);
-                      window.open(`https://wa.me/?text=${message}`, "_blank");
-                      showToast("已開啟 WhatsApp，請選擇群組發送", "success");
-                    }}
-                    className="flex-1 bg-green-500 text-white py-2.5 rounded-xl hover:bg-green-600 transition-all font-medium text-sm flex items-center justify-center gap-2"
-                  >
-                    <i className="fab fa-whatsapp" />開啟 WhatsApp
-                  </button>
-                )}
-                {whatsAppMode === "copy" && (
-                  <button
-                    onClick={() => handleCopyToClipboard(whatsAppMessage)}
-                    className="flex-1 bg-green-500 text-white py-2.5 rounded-xl hover:bg-green-600 transition-all font-medium text-sm flex items-center justify-center gap-2"
-                  >
-                    <i className="fas fa-copy" />複製摘要
-                  </button>
-                )}
+              <div className="flex gap-3 pt-1">
+                <button
+                  onClick={() => {
+                    const message = encodeURIComponent(whatsAppMessage);
+                    window.open(`https://wa.me/?text=${message}`, "_blank");
+                    showToast("已開啟 WhatsApp，請選擇收件人或群組發送", "success");
+                  }}
+                  className="flex-1 bg-green-500 text-white py-3 rounded-xl hover:bg-green-600 transition-all font-semibold text-sm flex items-center justify-center gap-2 shadow-sm"
+                >
+                  <i className="fab fa-whatsapp text-base" />開啟 WhatsApp
+                </button>
                 <button
                   onClick={() => setShowWhatsAppModal(false)}
-                  className="px-4 py-2.5 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition-all font-medium text-sm"
+                  className="px-5 py-3 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition-all font-medium text-sm"
                 >
                   關閉
                 </button>
@@ -1896,38 +1867,28 @@ export default function Home() {
                 </div>
 
                 <div className="bg-gray-50 p-3 rounded-lg">
-                  <p className="font-semibold text-gray-800 mb-2">步驟 2：點擊「發送 WhatsApp 通知」</p>
-                  <p className="text-gray-700">在活動詳情底部找到綠色的「發送 WhatsApp 通知」按鈕，點擊打開通知編輯器。</p>
+                  <p className="font-semibold text-gray-800 mb-2">步驟 2：選擇發送類型</p>
+                  <p className="text-gray-700">在活動詳情頂部選擇「活動前提醒」或「出席狀態摘要」。活動前發送提醒，活動後發送出席摘要。</p>
                 </div>
 
                 <div className="bg-gray-50 p-3 rounded-lg">
-                  <p className="font-semibold text-gray-800 mb-2">步驟 3：選擇發送方式</p>
-                  <ul className="text-gray-700 space-y-2 ml-4 list-disc">
-                    <li><strong>個人帳戶</strong>：輸入對方電話號碼，點擊後自動開啟 WhatsApp（手機 App 或桌面版）</li>
-                    <li><strong>群組</strong>：點擊後自動開啟 WhatsApp，選擇群組發送（手機 App 或桌面版）</li>
-                    <li><strong>複製摘要</strong>：複製出席狀態摘要到剪貼板，自行貼入 WhatsApp</li>
-                  </ul>
+                  <p className="font-semibold text-gray-800 mb-2">步驟 3：編輯信息（可選）</p>
+                  <p className="text-gray-700">系統會自動生成信息內容。你可以直接編輯，添加額外內容如「請務必準時到達」。</p>
                 </div>
 
                 <div className="bg-gray-50 p-3 rounded-lg">
-                  <p className="font-semibold text-gray-800 mb-2">步驟 4：編輯信息（可選）</p>
-                  <p className="text-gray-700">系統會自動生成出席狀態摘要。你可以編輯信息內容，添加額外信息如「請務必準時到達」。</p>
-                </div>
-
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <p className="font-semibold text-gray-800 mb-2">步驟 5：發送通知</p>
-                  <p className="text-gray-700">點擊「開啟 WhatsApp 發送」按鈕，系統會自動開啟 WhatsApp（手機 App、桌面版或 Web 版都支持）並預充信息。</p>
+                  <p className="font-semibold text-gray-800 mb-2">步驟 4：點擊「開啟 WhatsApp」</p>
+                  <p className="text-gray-700">WhatsApp 會自動打開並預填好信息。你只需在 WhatsApp 裡選擇要發送的人或群組，按發送即可。手機 App、桌面版、網頁版均支持。</p>
                 </div>
               </div>
 
               <div className="bg-green-50 border-l-4 border-green-400 p-3 rounded">
                 <h4 className="font-bold text-green-900 mb-2">✅ 提示</h4>
                 <ul className="text-green-800 space-y-1 ml-4 list-disc">
-                  <li>出席狀態摘要會自動生成，包括所有成員的出席情況</li>
-                  <li>你可以自由編輯信息，添加任何額外信息</li>
-                  <li>個人帳戶模式：香港號碼請輸入 852 開頭，例：85291234567</li>
-                  <li>群組模式：點擊後會開啟 WhatsApp，手動選擇群組發送</li>
-                  <li>複製摘要：適合已有的 WhatsApp 群組，自行貼入發送</li>
+                  <li>不需要輸入任何電話號碼，點擊後在 WhatsApp 裡自由選擇發送對象</li>
+                  <li>可以發送給任何個人或群組，非常靈活</li>
+                  <li>活動前發送「活動前提醒」，活動後發送「出席狀態摘要」</li>
+                  <li>信息內容可自由編輯，添加任何額外內容</li>
                 </ul>
               </div>
             </div>
