@@ -956,8 +956,10 @@ export default function Home() {
   };
 
   const handleOpenMonthlyNotification = () => {
-    const events = systemData.events;
-    const msg = generateMonthlyNotification(calendarYear, calendarMonth, events);
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const events = eventsQuery.data || [];
+    const msg = generateMonthlyNotification(year, month, events);
     setWhatsAppMessage(msg);
     setWhatsAppScene("reminder");
     setShowWhatsAppModal(true);
