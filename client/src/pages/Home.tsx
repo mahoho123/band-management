@@ -388,6 +388,12 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEventIds, setSelectedEventIds] = useState<Set<number>>(new Set());
 
+  // WhatsApp notification states
+  const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
+  const [whatsAppMessage, setWhatsAppMessage] = useState("");
+  const [whatsAppMode, setWhatsAppMode] = useState<"personal" | "group" | "copy">("personal");
+  const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
+
   const showToast = useCallback((message: string, type: "success" | "error" | "info" = "info") => {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     setToast({ message, type, visible: true });
@@ -880,6 +886,38 @@ export default function Home() {
         showToast("成員已刪除", "success");
         membersQuery.refetch();
       },
+    });
+  };
+
+  // ============================================
+  // WHATSAPP NOTIFICATION
+  // ============================================
+  const generateAttendanceSummary = (event: BandEvent) => {
+    const attendance = localAttendance[event.id] || event.attendance;
+    const members = membersQuery.data || [];
+    const going = members.filter(m => attendance[m.id] === "going").map(m => m.name).join(", ");
+    const notGoing = members.filter(m => attendance[m.id] === "not-going").map(m => m.name).join(", ");
+    const unknown = members.filter(m => attendance[m.id] === "unknown").map(m => m.name).join(", ");
+    
+    let summary = `【${event.title}】出席狀態\n\n`;
+    if (going) summary += `✓ 出席: ${going}\n`;
+    if (notGoing) summary += `✗ 不出席: ${notGoing}\n`;
+    if (unknown) summary += `? 未知道: ${unknown}\n`;
+    return summary;
+  };
+
+  const handleOpenWhatsAppNotification = () => {
+    if (!selectedEvent) return;
+    const summary = generateAttendanceSummary(selectedEvent);
+    setWhatsAppMessage(summary);
+    setShowWhatsAppModal(true);
+  };
+
+  const handleCopyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast("已複製到剪貼板", "success");
+    }).catch(() => {
+      showToast("複製失敗", "error");
     });
   };
 
@@ -1627,6 +1665,18 @@ export default function Home() {
                     </div>
                     )}
                     
+                    {/* WhatsApp Notification Button */}
+                    {currentUser?.role === "admin" && (
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <button
+                          onClick={handleOpenWhatsAppNotification}
+                          className="w-full bg-green-50 text-green-700 border border-green-300 py-2.5 rounded-xl hover:bg-green-100 transition-all font-medium text-sm flex items-center justify-center gap-2"
+                        >
+                          <i className="fab fa-whatsapp" />發送 WhatsApp 通知
+                        </button>
+                      </div>
+                    )}
+                    
                     {/* SAVE button */}
                     {!selectedEventEnded && (
                       <div className="mt-4 pt-4 border-t border-gray-200">
@@ -1642,6 +1692,131 @@ export default function Home() {
                 </div>
               )
             )}
+          </div>
+        </div>
+      )}
+
+
+      {/* WhatsApp Notification Modal */}
+      {showWhatsAppModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 backdrop-blur-sm overflow-y-auto">
+          <div className="glass-panel rounded-xl sm:rounded-2xl w-full max-w-sm sm:max-w-2xl p-4 sm:p-6 modal-enter shadow-2xl my-4 sm:my-8">
+            <div className="flex items-center justify-between mb-4 sm:mb-5">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-800 flex items-center gap-2">
+                <i className="fab fa-whatsapp text-green-500" />WhatsApp 通知
+              </h3>
+              <button
+                onClick={() => setShowWhatsAppModal(false)}
+                className="text-gray-400 hover:text-gray-600 text-lg sm:text-xl ml-2 flex-shrink-0"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Mode Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">選擇發送方式</label>
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    onClick={() => setWhatsAppMode("personal")}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                      whatsAppMode === "personal"
+                        ? "bg-green-100 text-green-700 border border-green-300"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                  >
+                    個人帳戶
+                  </button>
+                  <button
+                    onClick={() => setWhatsAppMode("group")}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                      whatsAppMode === "group"
+                        ? "bg-green-100 text-green-700 border border-green-300"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                  >
+                    群組
+                  </button>
+                  <button
+                    onClick={() => setWhatsAppMode("copy")}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                      whatsAppMode === "copy"
+                        ? "bg-green-100 text-green-700 border border-green-300"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                  >
+                    複製摘要
+                  </button>
+                </div>
+              </div>
+
+              {/* Message Editor */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">自制信息</label>
+                <textarea
+                  rows={6}
+                  value={whatsAppMessage}
+                  onChange={(e) => setWhatsAppMessage(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-400 outline-none text-sm resize-none font-mono"
+                  placeholder="編輯你的 WhatsApp 通知信息..."
+                />
+              </div>
+
+              {/* Member Selection for Personal */}
+              {whatsAppMode === "personal" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">選擇成員</label>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {(membersQuery.data || []).map((member) => (
+                      <button
+                        key={member.id}
+                        onClick={() => {
+                          handleCopyToClipboard(whatsAppMessage);
+                          showToast(`已複製信息，請手動發送給 ${member.name}`, "success");
+                        }}
+                        className="w-full text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-all border border-gray-200 flex items-center gap-2"
+                      >
+                        <div className={`w-8 h-8 rounded-full ${COLOR_MAP[member.color] || "bg-blue-500"} flex items-center justify-center text-white font-bold text-xs`}>
+                          {member.name.charAt(0)}
+                        </div>
+                        <span className="text-sm font-medium text-gray-800">{member.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-2">
+                {whatsAppMode === "group" && (
+                  <button
+                    onClick={() => {
+                      const message = encodeURIComponent(whatsAppMessage);
+                      window.open(`https://web.whatsapp.com/send?text=${message}`, "_blank");
+                      showToast("已開啟 WhatsApp Web，請選擇群組發送", "success");
+                    }}
+                    className="flex-1 bg-green-500 text-white py-2.5 rounded-xl hover:bg-green-600 transition-all font-medium text-sm flex items-center justify-center gap-2"
+                  >
+                    <i className="fab fa-whatsapp" />開啟 WhatsApp
+                  </button>
+                )}
+                {whatsAppMode === "copy" && (
+                  <button
+                    onClick={() => handleCopyToClipboard(whatsAppMessage)}
+                    className="flex-1 bg-green-500 text-white py-2.5 rounded-xl hover:bg-green-600 transition-all font-medium text-sm flex items-center justify-center gap-2"
+                  >
+                    <i className="fas fa-copy" />複製摘要
+                  </button>
+                )}
+                <button
+                  onClick={() => setShowWhatsAppModal(false)}
+                  className="px-4 py-2.5 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition-all font-medium text-sm"
+                >
+                  關閉
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
