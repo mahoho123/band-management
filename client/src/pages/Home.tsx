@@ -315,10 +315,12 @@ export default function Home() {
   useRealtimeSync();
 
   // tRPC queries
-  const systemDataQuery = trpc.band.getSystemData.useQuery(undefined, { refetchInterval: 500, staleTime: 0, refetchOnWindowFocus: true, refetchOnMount: true });
-  const membersQuery = trpc.band.getMembers.useQuery(undefined, { refetchInterval: 500, staleTime: 0, refetchOnWindowFocus: true, refetchOnMount: true });
-  const eventsQuery = trpc.band.getEvents.useQuery(undefined, { refetchInterval: 500, staleTime: 0, refetchOnWindowFocus: true, refetchOnMount: true });
-  const holidaysQuery = trpc.band.getHolidays.useQuery(undefined, { refetchInterval: 500, staleTime: 0, refetchOnWindowFocus: true, refetchOnMount: true });
+  // refetchInterval 設為 3000ms（3秒），降低伺服器負載
+  // Socket.IO 推送機制會即時通知更新，輪詢只作備份
+  const systemDataQuery = trpc.band.getSystemData.useQuery(undefined, { refetchInterval: 3000, staleTime: 0, refetchOnWindowFocus: true, refetchOnMount: true });
+  const membersQuery = trpc.band.getMembers.useQuery(undefined, { refetchInterval: 3000, staleTime: 0, refetchOnWindowFocus: true, refetchOnMount: true });
+  const eventsQuery = trpc.band.getEvents.useQuery(undefined, { refetchInterval: 3000, staleTime: 0, refetchOnWindowFocus: true, refetchOnMount: true });
+  const holidaysQuery = trpc.band.getHolidays.useQuery(undefined, { refetchInterval: 30000, staleTime: 0, refetchOnWindowFocus: true, refetchOnMount: true });
 
   // tRPC mutations
   const initSystemMutation = trpc.band.initSystem.useMutation();

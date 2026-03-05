@@ -293,3 +293,8 @@
 - [ ] 移除所有刪除確認對話框（直接刪除）
 - [ ] 移除活動清單中的出席狀態按鈕（只保留活動詳情中的）
 - [ ] 保存檢查點
+
+## 性能修復 (39) - 測試報告問題修復
+- [x] 將 refetchInterval 從 500ms 改為 3000ms（降低伺服器負載）
+- [x] 修復 useRealtimeSync.ts 事件監聽器記憶體洩漏（添加 cleanup）
+- [x] 優化 getBandEvents N+1 查詢（使用 Promise.all 並行查詢取代 N+1）

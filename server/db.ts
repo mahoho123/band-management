@@ -120,24 +120,27 @@ export async function updateBandMember(id: number, data: Partial<BandMember>) {
 export async function getBandEvents() {
   const db = await getDb();
   if (!db) return [];
-  const events = await db.select().from(bandEvents);
   
-  // Fetch attendance for each event
-  const eventsWithAttendance = await Promise.all(
-    events.map(async (event) => {
-      const attendance = await db.select().from(bandAttendance).where(eq(bandAttendance.eventId, event.id));
-      const attendanceMap: Record<number, string> = {};
-      attendance.forEach((a) => {
-        attendanceMap[a.memberId] = a.status;
-      });
-      return {
-        ...event,
-        attendance: attendanceMap,
-      };
-    })
-  );
+  // 使用單一查詢取得所有活動及出席記錄，消除 N+1 查詢問題
+  const [events, allAttendance] = await Promise.all([
+    db.select().from(bandEvents),
+    db.select().from(bandAttendance),
+  ]);
   
-  return eventsWithAttendance;
+  // 將出席記錄按 eventId 分組
+  const attendanceByEvent: Record<number, Record<number, string>> = {};
+  allAttendance.forEach((a) => {
+    if (!attendanceByEvent[a.eventId]) {
+      attendanceByEvent[a.eventId] = {};
+    }
+    attendanceByEvent[a.eventId][a.memberId] = a.status;
+  });
+  
+  // 將出席記錄合併到活動中
+  return events.map((event) => ({
+    ...event,
+    attendance: attendanceByEvent[event.id] ?? {},
+  }));
 }
 
 export async function addBandEvent(event: InsertBandEvent) {

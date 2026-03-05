@@ -88,10 +88,11 @@ export function useRealtimeSync() {
       socket.on(event, handler as any);
     });
 
-    // 清理函數：不移除監聽器，保持連接活躍
+    // 清理函數：移除本次 effect 添加的監聽器，防止記憶體洩漏
     return () => {
-      // 不在這裡斷開連接，保持全局連接
-      // 只有在應用卸載時才斷開
+      Object.entries(eventHandlers).forEach(([event, handler]) => {
+        socket.off(event, handler as any);
+      });
     };
   }, [queryClient]);
 }
