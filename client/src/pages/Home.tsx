@@ -719,7 +719,7 @@ export default function Home() {
     if (!selectedEventId) return;
     const event = eventsQuery.data?.find((e) => e.id === selectedEventId);
     if (event && isEventEnded(event)) return showToast("此活動已結束，不能刪除", "error");
-    if (!confirm("確定要刪除這個活動嗎？")) return;
+
     
     deleteEventMutation.mutate({ id: selectedEventId }, {
       onSuccess: () => {
@@ -883,7 +883,7 @@ export default function Home() {
   };
 
   const handleDeleteMember = (memberId: number) => {
-    if (!confirm("確定要刪除這位成員嗎？所有出席記錄也會被移除。")) return;
+
     
     deleteMemberMutation.mutate({ id: memberId }, {
       onSuccess: () => {
@@ -1078,13 +1078,7 @@ export default function Home() {
                     {evt.notes}
                   </div>
                 )}
-                {currentUser?.role === "member" && !isEventEnded(evt) && (
-                  <div className="flex gap-0.5 px-1 mt-0.5 flex-wrap">
-                    <button onClick={(e) => { e.stopPropagation(); handleAttendanceChange(evt.id, "going"); }} className={`text-xs px-1.5 py-0.5 rounded transition-all ${myStatus === "going" ? "bg-green-100 text-green-700 font-semibold" : "bg-gray-100 text-gray-600 hover:bg-green-50"}`}>出席</button>
-                    <button onClick={(e) => { e.stopPropagation(); handleAttendanceChange(evt.id, "not-going"); }} className={`text-xs px-1.5 py-0.5 rounded transition-all ${myStatus === "not-going" ? "bg-red-100 text-red-700 font-semibold" : "bg-gray-100 text-gray-600 hover:bg-red-50"}`}>不出席</button>
-                    <button onClick={(e) => { e.stopPropagation(); handleAttendanceChange(evt.id, "unknown"); }} className={`text-xs px-1.5 py-0.5 rounded transition-all ${myStatus === "unknown" ? "bg-gray-400 text-white font-semibold" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>未知道</button>
-                  </div>
-                )}
+
               </div>
             );
           })}
@@ -2215,10 +2209,8 @@ export default function Home() {
               <div className="mb-4 flex justify-end">
                 <button
                   onClick={() => {
-                    if (confirm("確定要清除所有活動嗎？此操作無法撤銷。")) {
-                      eventsQuery.data?.forEach(event => deleteEventMutation.mutate({ id: event.id }));
-                      showToast("已清除所有活動", "success");
-                    }
+                    eventsQuery.data?.forEach(event => deleteEventMutation.mutate({ id: event.id }));
+                    showToast("已清除所有活動", "success");
                   }}
                   className="text-xs bg-red-100 text-red-700 border border-red-300 px-3 py-1.5 rounded-lg hover:bg-red-200 transition-all font-medium flex items-center gap-1"
                 >
@@ -2372,45 +2364,7 @@ export default function Home() {
                             </div>
                           )}
                         </div>
-                        <div className="flex flex-col items-end gap-2 min-w-[80px]">
-                          {currentUser?.role === "member" ? (
-                            <div className="flex flex-col items-center gap-2">
-                              <div className="flex gap-2">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleAttendanceChange(event.id, "going");
-                                  }}
-                                  className={`p-2 rounded-lg transition-all ${
-                                    myStatus === "going"
-                                      ? "bg-green-100 text-green-600"
-                                      : "bg-gray-100 text-gray-400 hover:bg-green-50 hover:text-green-500"
-                                  }`}
-                                  title="出席"
-                                >
-                                  <i className="fas fa-check-circle text-lg" />
-                                </button>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleAttendanceChange(event.id, "not-going");
-                                  }}
-                                  className={`p-2 rounded-lg transition-all ${
-                                    myStatus === "not-going"
-                                      ? "bg-red-100 text-red-600"
-                                      : "bg-gray-100 text-gray-400 hover:bg-red-50 hover:text-red-500"
-                                  }`}
-                                  title="不出席"
-                                >
-                                  <i className="fas fa-times-circle text-lg" />
-                                </button>
-                              </div>
-                              {myStatus === undefined && (
-                                <span className="text-xs text-gray-500 font-medium">待確認</span>
-                              )}
-                            </div>
-                          ) : null}
-                        </div>
+
                       </div>
                     </div>
                   );
@@ -2434,10 +2388,8 @@ export default function Home() {
                 </button>
                 <button
                   onClick={() => {
-                    if (confirm('確定要清除所有活動嗎？此操作無法撤銷。')) {
-                      localStorage.removeItem('bandSystemData');
-                      window.location.reload();
-                    }
+                    localStorage.removeItem('bandSystemData');
+                    window.location.reload();
                   }}
                   className="bg-red-50 text-red-600 text-sm px-4 py-2 rounded-xl hover:bg-red-100 transition-all flex items-center gap-2"
                 >
