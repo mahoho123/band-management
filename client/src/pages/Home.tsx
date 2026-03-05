@@ -394,6 +394,7 @@ export default function Home() {
   const [whatsAppMessage, setWhatsAppMessage] = useState("");
   const [whatsAppMode, setWhatsAppMode] = useState<"personal" | "group" | "copy">("personal");
   const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
+  const [personalPhoneNumber, setPersonalPhoneNumber] = useState("");
 
   const showToast = useCallback((message: string, type: "success" | "error" | "info" = "info") => {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
@@ -1793,38 +1794,50 @@ export default function Home() {
                 />
               </div>
 
-              {/* Member Selection for Personal */}
+              {/* Personal Mode - Phone Number Input */}
               {whatsAppMode === "personal" && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">選擇成員</label>
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {(membersQuery.data || []).map((member) => (
-                      <button
-                        key={member.id}
-                        onClick={() => {
-                          handleCopyToClipboard(whatsAppMessage);
-                          showToast(`已複製信息，請手動發送給 ${member.name}`, "success");
-                        }}
-                        className="w-full text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-all border border-gray-200 flex items-center gap-2"
-                      >
-                        <div className={`w-8 h-8 rounded-full ${COLOR_MAP[member.color] || "bg-blue-500"} flex items-center justify-center text-white font-bold text-xs`}>
-                          {member.name.charAt(0)}
-                        </div>
-                        <span className="text-sm font-medium text-gray-800">{member.name}</span>
-                      </button>
-                    ))}
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <i className="fas fa-phone text-green-500 mr-1" />收件人電話號碼
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="tel"
+                      value={personalPhoneNumber}
+                      onChange={(e) => setPersonalPhoneNumber(e.target.value.replace(/[^0-9+]/g, ""))}
+                      placeholder="例：85291234567（包含國家代碼）"
+                      className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-400 outline-none text-sm"
+                    />
                   </div>
+                  <p className="text-xs text-gray-500 mt-1">香港號碼請輸入 852 開頭，例：85291234567</p>
                 </div>
               )}
 
               {/* Action Buttons */}
               <div className="flex gap-3 pt-2">
+                {whatsAppMode === "personal" && (
+                  <button
+                    onClick={() => {
+                      const phone = personalPhoneNumber.replace(/[^0-9]/g, "");
+                      if (!phone) {
+                        showToast("請輸入收件人電話號碼", "error");
+                        return;
+                      }
+                      const message = encodeURIComponent(whatsAppMessage);
+                      window.open(`https://wa.me/${phone}?text=${message}`, "_blank");
+                      showToast("已開啟 WhatsApp，請確認發送", "success");
+                    }}
+                    className="flex-1 bg-green-500 text-white py-2.5 rounded-xl hover:bg-green-600 transition-all font-medium text-sm flex items-center justify-center gap-2"
+                  >
+                    <i className="fab fa-whatsapp" />開啟 WhatsApp 發送
+                  </button>
+                )}
                 {whatsAppMode === "group" && (
                   <button
                     onClick={() => {
                       const message = encodeURIComponent(whatsAppMessage);
-                      window.open(`https://web.whatsapp.com/send?text=${message}`, "_blank");
-                      showToast("已開啟 WhatsApp Web，請選擇群組發送", "success");
+                      window.open(`https://wa.me/?text=${message}`, "_blank");
+                      showToast("已開啟 WhatsApp，請選擇群組發送", "success");
                     }}
                     className="flex-1 bg-green-500 text-white py-2.5 rounded-xl hover:bg-green-600 transition-all font-medium text-sm flex items-center justify-center gap-2"
                   >
@@ -1890,9 +1903,9 @@ export default function Home() {
                 <div className="bg-gray-50 p-3 rounded-lg">
                   <p className="font-semibold text-gray-800 mb-2">步驟 3：選擇發送方式</p>
                   <ul className="text-gray-700 space-y-2 ml-4 list-disc">
-                    <li><strong>個人帳戶</strong>：複製信息，手動發送給指定成員</li>
-                    <li><strong>群組</strong>：打開 WhatsApp Web，發送到群組</li>
-                    <li><strong>複製摘要</strong>：複製出席狀態摘要到剪貼板</li>
+                    <li><strong>個人帳戶</strong>：輸入對方電話號碼，點擊後自動開啟 WhatsApp（手機 App 或桌面版）</li>
+                    <li><strong>群組</strong>：點擊後自動開啟 WhatsApp，選擇群組發送（手機 App 或桌面版）</li>
+                    <li><strong>複製摘要</strong>：複製出席狀態摘要到剪貼板，自行貼入 WhatsApp</li>
                   </ul>
                 </div>
 
@@ -1903,7 +1916,7 @@ export default function Home() {
 
                 <div className="bg-gray-50 p-3 rounded-lg">
                   <p className="font-semibold text-gray-800 mb-2">步驟 5：發送通知</p>
-                  <p className="text-gray-700">根據選擇的方式發送通知。個人帳戶模式會複製信息，群組模式會打開 WhatsApp Web。</p>
+                  <p className="text-gray-700">點擊「開啟 WhatsApp 發送」按鈕，系統會自動開啟 WhatsApp（手機 App、桌面版或 Web 版都支持）並預充信息。</p>
                 </div>
               </div>
 
@@ -1912,8 +1925,9 @@ export default function Home() {
                 <ul className="text-green-800 space-y-1 ml-4 list-disc">
                   <li>出席狀態摘要會自動生成，包括所有成員的出席情況</li>
                   <li>你可以自由編輯信息，添加任何額外信息</li>
-                  <li>複製摘要功能適合已有的 WhatsApp 群組</li>
-                  <li>個人帳戶模式需要成員的 WhatsApp 號碼（未來版本支持）</li>
+                  <li>個人帳戶模式：香港號碼請輸入 852 開頭，例：85291234567</li>
+                  <li>群組模式：點擊後會開啟 WhatsApp，手動選擇群組發送</li>
+                  <li>複製摘要：適合已有的 WhatsApp 群組，自行貼入發送</li>
                 </ul>
               </div>
             </div>
