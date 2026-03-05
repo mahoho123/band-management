@@ -629,25 +629,30 @@ export default function Home() {
     const event = eventsQuery.data?.find((e) => e.id === eventId);
     if (!event) return;
     setSelectedEventId(eventId);
-    if (currentUser?.role === "admin" && !isEventEnded(event)) {
-      setEventModalMode("edit");
-      setEventTitle(event.title);
-      setEventDate(event.date);
-      setEventType(event.type);
-      setEventLocation(event.location);
-      setEventNotes(event.notes || "");
-      const [startH, startM] = event.startTime.split(":");
-      const [endH, endM] = event.endTime.split(":");
-      setStartHour(String(parseInt(startH) % 12 || 12));
-      setStartMinute(startM);
-      setStartAmpm(parseInt(startH) >= 12 ? "PM" : "AM");
-      setEndHour(String(parseInt(endH) % 12 || 12));
-      setEndMinute(endM);
-      setEndAmpm(parseInt(endH) >= 12 ? "PM" : "AM");
-      checkDateHolidayFor(event.date);
-    } else {
-      setEventModalMode("view");
-    }
+    // Always open in view mode first - admin can switch to edit via the Edit button
+    setEventModalMode("view");
+    setShowEventModal(true);
+  };
+
+  const openEventEditModal = (eventId: number) => {
+    const event = eventsQuery.data?.find((e) => e.id === eventId);
+    if (!event) return;
+    setSelectedEventId(eventId);
+    setEventModalMode("edit");
+    setEventTitle(event.title);
+    setEventDate(event.date);
+    setEventType(event.type);
+    setEventLocation(event.location);
+    setEventNotes(event.notes || "");
+    const [startH, startM] = event.startTime.split(":");
+    const [endH, endM] = event.endTime.split(":");
+    setStartHour(String(parseInt(startH) % 12 || 12));
+    setStartMinute(startM);
+    setStartAmpm(parseInt(startH) >= 12 ? "PM" : "AM");
+    setEndHour(String(parseInt(endH) % 12 || 12));
+    setEndMinute(endM);
+    setEndAmpm(parseInt(endH) >= 12 ? "PM" : "AM");
+    checkDateHolidayFor(event.date);
     setShowEventModal(true);
   };
 
@@ -998,10 +1003,13 @@ export default function Home() {
             const unknownCount = Object.values(attendance).filter(v => v === "unknown").length;
             const myStatus = currentUser?.role === "member" ? attendance[currentUser.id as number] : null;
             return (
-              <div key={i} className="text-xs sm:text-xs space-y-0.5 mb-0.5 sm:mb-1 border-l-2 border-purple-300 pl-1">
+              <div key={i} className="text-xs sm:text-xs space-y-0.5 mb-0.5 sm:mb-1 border-l-2 border-purple-300 pl-1"
+              onClick={(e) => { e.stopPropagation(); openEventModal(evt.id); }}
+              style={{ cursor: 'pointer' }}
+            >
                 <div
-                  className={`px-1 sm:px-1.5 py-0.5 rounded font-semibold text-xs sm:text-sm ${TYPE_CONFIG[evt.type].color}`}
-                  title={evt.title}
+                  className={`px-1 sm:px-1.5 py-0.5 rounded font-semibold text-xs sm:text-sm ${TYPE_CONFIG[evt.type].color} hover:opacity-80`}
+                  title={`點擊查看詳情: ${evt.title}`}
                 >
                   {evt.title}
                 </div>
@@ -1302,19 +1310,40 @@ export default function Home() {
 
       {/* Event Modal */}
       {showEventModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 backdrop-blur-sm overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 overflow-y-auto">
           <div className="glass-panel rounded-xl sm:rounded-2xl w-full max-w-sm sm:max-w-2xl p-4 sm:p-6 modal-enter shadow-2xl my-4 sm:my-8">
             <div className="flex items-center justify-between mb-3 sm:mb-5">
               <h3 className="text-lg sm:text-xl font-bold text-gray-800 truncate">
                 {eventModalMode === "add" ? "新增活動" : eventModalMode === "edit" ? "編輯活動" : "活動詳情"}
               </h3>
-              <button
-                onClick={() => setShowEventModal(false)}
-                className="text-gray-400 hover:text-gray-600 text-lg sm:text-xl ml-2 flex-shrink-0"
-              >
-                ✕
-              </button>
+              <div className="flex items-center gap-2 ml-2 flex-shrink-0">
+                {eventModalMode === "view" && currentUser?.role === "admin" && selectedEvent && !isEventEnded(selectedEvent) && (
+                  <button
+                    onClick={() => selectedEvent && openEventEditModal(selectedEvent.id)}
+                    className="text-xs bg-purple-50 text-purple-600 hover:bg-purple-100 px-2.5 py-1.5 rounded-lg transition-all font-medium flex items-center gap-1"
+                  >
+                    <i className="fas fa-edit text-xs" />編輯
+                  </button>
+                )}
+                <button
+                  onClick={() => setShowEventModal(false)}
+                  className="text-gray-400 hover:text-gray-600 text-lg sm:text-xl"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
+            
+            {eventModalMode === "view" && currentUser?.role === "admin" && selectedEvent && (
+              <div className="mb-4 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 bg-green-50 border-b border-green-200">
+                <button
+                  onClick={handleOpenWhatsAppNotification}
+                  className="w-full bg-green-500 text-white py-2.5 rounded-lg hover:bg-green-600 transition-all font-medium text-sm flex items-center justify-center gap-2"
+                >
+                  <i className="fab fa-whatsapp" />發送 WhatsApp 通知
+                </button>
+              </div>
+            )}
 
             {eventModalMode !== "view" ? (
               <form onSubmit={handleSaveEvent} className="space-y-4">
@@ -1700,7 +1729,7 @@ export default function Home() {
 
       {/* WhatsApp Notification Modal */}
       {showWhatsAppModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 backdrop-blur-sm overflow-y-auto">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-2 sm:p-4 backdrop-blur-sm overflow-y-auto">
           <div className="glass-panel rounded-xl sm:rounded-2xl w-full max-w-sm sm:max-w-2xl p-4 sm:p-6 modal-enter shadow-2xl my-4 sm:my-8">
             <div className="flex items-center justify-between mb-4 sm:mb-5">
               <h3 className="text-lg sm:text-xl font-bold text-gray-800 flex items-center gap-2">
