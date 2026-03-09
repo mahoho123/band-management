@@ -338,7 +338,7 @@ export default function Home() {
   // 從 localStorage 讀取已儲存的登入狀態
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(() => {
     try {
-      const saved = localStorage.getItem("bandCurrentUser");
+      const saved = sessionStorage.getItem("bandCurrentUser");
       return saved ? JSON.parse(saved) : null;
     } catch {
       return null;
@@ -544,7 +544,7 @@ export default function Home() {
     if (adminLoginPassword === systemDataQuery.data?.adminPassword) {
       const user = { id: "admin" as const, role: "admin" as const, name: "主管" };
       setCurrentUser(user);
-      localStorage.setItem("bandCurrentUser", JSON.stringify(user));
+      sessionStorage.setItem("bandCurrentUser", JSON.stringify(user));
       setShowLoginModal(false);
       setAdminLoginPassword("");
       showToast("主管登入成功", "success");
@@ -567,7 +567,7 @@ export default function Home() {
         onSuccess: () => {
           const newUser1 = { id: memberId, role: "member" as const, name: member.name };
           setCurrentUser(newUser1);
-          localStorage.setItem("bandCurrentUser", JSON.stringify(newUser1));
+          sessionStorage.setItem("bandCurrentUser", JSON.stringify(newUser1));
           setShowLoginModal(false);
           showToast(`歡迎，${member.name}！密碼已設定`, "success");
           membersQuery.refetch();
@@ -579,7 +579,7 @@ export default function Home() {
       if (password === member.password) {
         const newUser2 = { id: memberId, role: "member" as const, name: member.name };
         setCurrentUser(newUser2);
-        localStorage.setItem("bandCurrentUser", JSON.stringify(newUser2));
+        sessionStorage.setItem("bandCurrentUser", JSON.stringify(newUser2));
         setShowLoginModal(false);
         showToast(`歡迎回來，${member.name}！`, "success");
       } else {
@@ -590,7 +590,7 @@ export default function Home() {
 
   const handleLogout = () => {
     setCurrentUser(null);
-    localStorage.removeItem("bandCurrentUser");
+    sessionStorage.removeItem("bandCurrentUser");
     showToast("已登出", "info");
     setShowLoginModal(false); // Allow viewing without login
   };
@@ -911,7 +911,7 @@ export default function Home() {
       onSuccess: () => {
         if (currentUser?.id === memberId) {
           setCurrentUser(null);
-          localStorage.removeItem("bandCurrentUser");
+          sessionStorage.removeItem("bandCurrentUser");
           setShowLoginModal(false); // Allow viewing without login
         }
         showToast("成員已刪除", "success");
