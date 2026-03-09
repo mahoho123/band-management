@@ -335,7 +335,15 @@ export default function Home() {
   const addHolidayMutation = trpc.band.addHoliday.useMutation();
   const utils = trpc.useUtils();
 
-  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  // 從 localStorage 讀取已儲存的登入狀態
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(() => {
+    try {
+      const saved = localStorage.getItem("bandCurrentUser");
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
   const [currentDate, setCurrentDate] = useState(new Date());
   const [currentView, setCurrentView] = useState<"calendar" | "list" | "members">("calendar");
   const [currentListTab, setCurrentListTab] = useState<"incomplete" | "completed">("incomplete");
@@ -443,9 +451,14 @@ export default function Home() {
       setShowSetupModal(true);
       setShowLoginModal(false);
     } else {
-      // System is set up, show login modal
+      // System is set up
       setShowSetupModal(false);
-      setShowLoginModal(true); // Show login modal for users to log in
+      // 如果沒有已儲存的登入狀態，才顯示登入模態框
+      if (!currentUser) {
+        setShowLoginModal(true);
+      } else {
+        setShowLoginModal(false);
+      }
     }
   }, [systemDataQuery.data, systemDataQuery.isLoading]);
 
@@ -529,7 +542,9 @@ export default function Home() {
     console.log("Stored password:", systemDataQuery.data?.adminPassword);
     console.log("System data:", systemDataQuery.data);
     if (adminLoginPassword === systemDataQuery.data?.adminPassword) {
-      setCurrentUser({ id: "admin", role: "admin", name: "主管" });
+      const user = { id: "admin" as const, role: "admin" as const, name: "主管" };
+      setCurrentUser(user);
+      localStorage.setItem("bandCurrentUser", JSON.stringify(user));
       setShowLoginModal(false);
       setAdminLoginPassword("");
       showToast("主管登入成功", "success");
@@ -550,7 +565,9 @@ export default function Home() {
       
       updateMemberMutation.mutate({ id: memberId, password: newPassword }, {
         onSuccess: () => {
-          setCurrentUser({ id: memberId, role: "member", name: member.name });
+          const newUser1 = { id: memberId, role: "member" as const, name: member.name };
+          setCurrentUser(newUser1);
+          localStorage.setItem("bandCurrentUser", JSON.stringify(newUser1));
           setShowLoginModal(false);
           showToast(`歡迎，${member.name}！密碼已設定`, "success");
           membersQuery.refetch();
@@ -560,7 +577,9 @@ export default function Home() {
       const password = prompt(`請輸入 ${member.name} 的密碼：`);
       if (password === null) return;
       if (password === member.password) {
-        setCurrentUser({ id: memberId, role: "member", name: member.name });
+        const newUser2 = { id: memberId, role: "member" as const, name: member.name };
+        setCurrentUser(newUser2);
+        localStorage.setItem("bandCurrentUser", JSON.stringify(newUser2));
         setShowLoginModal(false);
         showToast(`歡迎回來，${member.name}！`, "success");
       } else {
@@ -571,6 +590,7 @@ export default function Home() {
 
   const handleLogout = () => {
     setCurrentUser(null);
+    localStorage.removeItem("bandCurrentUser");
     showToast("已登出", "info");
     setShowLoginModal(false); // Allow viewing without login
   };
@@ -891,6 +911,7 @@ export default function Home() {
       onSuccess: () => {
         if (currentUser?.id === memberId) {
           setCurrentUser(null);
+          localStorage.removeItem("bandCurrentUser");
           setShowLoginModal(false); // Allow viewing without login
         }
         showToast("成員已刪除", "success");
@@ -1962,7 +1983,7 @@ export default function Home() {
                   onClick={handleLogout}
                   className="bg-red-50 text-red-600 text-xs sm:text-sm px-2 sm:px-4 py-2 rounded-lg sm:rounded-xl hover:bg-red-100 transition-all font-medium whitespace-nowrap"
                 >
-                  <i className="fas fa-sign-out-alt mr-1" /><span className="hidden sm:inline">登出</span><span className="sm:hidden">出</span>
+                  <i className="fas fa-sign-out-alt mr-1" />登出
                 </button>
               </div>
             ) : (
@@ -1970,7 +1991,7 @@ export default function Home() {
                 onClick={() => setShowLoginModal(true)}
                 className="band-gradient text-white text-xs sm:text-sm px-2 sm:px-4 py-2 rounded-lg sm:rounded-xl hover:shadow-md transition-all font-medium whitespace-nowrap w-full sm:w-auto"
               >
-                <i className="fas fa-sign-in-alt mr-1" /><span className="hidden sm:inline">登入</span><span className="sm:hidden">入</span>
+                <i className="fas fa-sign-in-alt mr-1" />登入
               </button>
             )}
           </div>
