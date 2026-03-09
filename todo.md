@@ -298,3 +298,6 @@
 - [x] 將 refetchInterval 從 500ms 改為 3000ms（降低伺服器負載）
 - [x] 修復 useRealtimeSync.ts 事件監聽器記憶體洩漏（添加 cleanup）
 - [x] 優化 getBandEvents N+1 查詢（使用 Promise.all 並行查詢取代 N+1）
+
+## 權限控制 (40)
+- [x] WhatsApp 教學頁面只有主管才能查看（導航「幫助」按鈕只對主管顯示）

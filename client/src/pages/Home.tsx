@@ -1997,13 +1997,15 @@ export default function Home() {
             <button onClick={() => setCurrentView("list")} className={`nav-tab text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 ${currentView === "list" ? "active" : ""}`}>
               <i className="fas fa-list" /><span className="hidden sm:inline">活動清單</span><span className="sm:hidden">清</span>
             </button>
-            <button
-              onClick={() => setShowWhatsAppGuide(true)}
-              className="nav-tab text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2"
-              title="WhatsApp 功能使用指南"
-            >
-              <i className="fas fa-question-circle" /><span className="hidden sm:inline">幫助</span><span className="sm:hidden">?</span>
-            </button>
+            {currentUser?.role === "admin" && (
+              <button
+                onClick={() => setShowWhatsAppGuide(true)}
+                className="nav-tab text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2"
+                title="WhatsApp 功能使用指南"
+              >
+                <i className="fas fa-question-circle" /><span className="hidden sm:inline">幫助</span><span className="sm:hidden">?</span>
+              </button>
+            )}
             {currentUser?.role === "admin" && (
               <button onClick={() => setCurrentView("members")} className={`nav-tab text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 ${currentView === "members" ? "active" : ""}`}>
                 <i className="fas fa-users" /><span className="hidden sm:inline">成員管理</span><span className="sm:hidden">成</span>
