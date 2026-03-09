@@ -2494,11 +2494,14 @@ export default function Home() {
 
       {/* Toast */}
       {toast.visible && (
-        <div className={`fixed bottom-6 right-6 px-6 py-3 rounded-xl text-white text-sm font-medium shadow-lg toast-${toast.type} animate-in fade-in slide-in-from-bottom-4`}>
-          {toast.type === "success" && <i className="fas fa-check-circle mr-2" />}
-          {toast.type === "error" && <i className="fas fa-exclamation-circle mr-2" />}
-          {toast.type === "info" && <i className="fas fa-info-circle mr-2" />}
-          {toast.message}
+        <div
+          style={{ zIndex: 99999 }}
+          className={`fixed bottom-6 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:right-6 px-6 py-4 rounded-2xl text-white text-sm font-semibold shadow-2xl toast-${toast.type} animate-in fade-in slide-in-from-bottom-4 flex items-center gap-2 min-w-[220px] max-w-[90vw] sm:max-w-sm`}
+        >
+          {toast.type === "success" && <i className="fas fa-check-circle text-lg flex-shrink-0" />}
+          {toast.type === "error" && <i className="fas fa-exclamation-circle text-lg flex-shrink-0" />}
+          {toast.type === "info" && <i className="fas fa-info-circle text-lg flex-shrink-0" />}
+          <span>{toast.message}</span>
         </div>
       )}
 
