@@ -740,29 +740,37 @@ export default function Home() {
       }
 
       const total = datesToCreate.length;
-      const results = await Promise.allSettled(
-        datesToCreate.map((date) =>
-          addEventMutation.mutateAsync({
-            title: eventTitle,
-            date,
-            startTime,
-            endTime,
-            location: eventLocation,
-            type: eventType,
-            notes: eventNotes,
-          })
-        )
-      );
-      const completed = results.filter(r => r.status === "fulfilled").length;
-      const failed = results.filter(r => r.status === "rejected").length;
-      if (total > 1) {
-        showToast(`已新增 ${completed} 個活動${failed > 0 ? `（${failed} 個失敗）` : ""}`, failed > 0 ? "error" : "success");
-      } else {
-        showToast("活動已新增", "success");
+      let completed = 0;
+      let failed = 0;
+      try {
+        const results = await Promise.allSettled(
+          datesToCreate.map((date) =>
+            addEventMutation.mutateAsync({
+              title: eventTitle,
+              date,
+              startTime,
+              endTime,
+              location: eventLocation,
+              type: eventType,
+              notes: eventNotes,
+            })
+          )
+        );
+        completed = results.filter(r => r.status === "fulfilled").length;
+        failed = results.filter(r => r.status === "rejected").length;
+        if (total > 1) {
+          showToast(`已新增 ${completed} 個活動${failed > 0 ? `（${failed} 個失敗）` : ""}`, failed > 0 ? "error" : "success");
+        } else {
+          showToast("活動已新增", "success");
+        }
+      } catch (err) {
+        console.error("[handleSaveEvent] error:", err);
+        showToast("新增活動時發生錯誤", "error");
+      } finally {
+        setShowEventModal(false);
+        setCurrentView("calendar");
+        utils.band.getEvents.invalidate();
       }
-      setShowEventModal(false);
-      setCurrentView("calendar");
-      utils.band.getEvents.invalidate();
     }
   };
 
@@ -2380,11 +2388,25 @@ export default function Home() {
                     }
                     setSelectedEventIds(newSelected);
                   };
+                  const handleCardClick = () => {
+                    if (selectedEventIds.size > 0) {
+                      // 已有勾選時，直接切換此卡片的勾選狀態，不彈出詳情
+                      const newSelected = new Set(selectedEventIds);
+                      if (newSelected.has(event.id)) {
+                        newSelected.delete(event.id);
+                      } else {
+                        newSelected.add(event.id);
+                      }
+                      setSelectedEventIds(newSelected);
+                    } else {
+                      openEventModal(event.id);
+                    }
+                  };
 
                   return (
                     <div
                       key={event.id}
-                      onClick={() => !selectedEventIds.size && openEventModal(event.id)}
+                      onClick={handleCardClick}
                       className={`event-card bg-white rounded-xl p-4 shadow-sm cursor-pointer ${typeConf.border} ${isOngoing ? "ongoing-card" : ""} ${isEnded ? "completed-card" : ""} ${isSelected ? "ring-2 ring-purple-500 bg-purple-50" : ""}`}
                     >
                       <div className="flex justify-between items-start gap-4">
