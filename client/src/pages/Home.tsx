@@ -277,10 +277,10 @@ function parseTime12To24(hour: string, minute: string, ampm: string): string {
 }
 
 const TYPE_CONFIG = {
-  rehearsal: { text: "排練", icon: "fa-guitar", color: "bg-blue-100 text-blue-700", border: "border-blue-400" },
-  performance: { text: "演出", icon: "fa-microphone", color: "bg-red-100 text-red-700", border: "border-red-400" },
-  meeting: { text: "會議", icon: "fa-users", color: "bg-green-100 text-green-700", border: "border-green-400" },
-  other: { text: "其他", icon: "fa-calendar", color: "bg-gray-100 text-gray-700", border: "border-gray-400" },
+  rehearsal: { text: "排練", emoji: "🎸", icon: "fa-guitar", color: "bg-blue-100 text-blue-700", border: "border-blue-400" },
+  performance: { text: "演出", emoji: "🎶", icon: "fa-microphone", color: "bg-red-100 text-red-700", border: "border-red-400" },
+  meeting: { text: "會議", emoji: "👥", icon: "fa-users", color: "bg-green-100 text-green-700", border: "border-green-400" },
+  other: { text: "其他", emoji: "📌", icon: "fa-calendar", color: "bg-gray-100 text-gray-700", border: "border-gray-400" },
 };
 
 const MEMBER_COLORS = ["blue", "purple", "green", "red", "yellow", "pink", "indigo", "orange"];
@@ -1095,7 +1095,7 @@ export default function Home() {
                   className={`px-1 sm:px-1.5 py-0.5 rounded font-semibold text-xs sm:text-sm ${TYPE_CONFIG[evt.type].color} hover:opacity-80`}
                   title={`點擊查看詳情: ${evt.title}`}
                 >
-                  {evt.title}
+                  {TYPE_CONFIG[evt.type].emoji} {evt.title}
                 </div>
                 <div className="text-xs sm:text-xs text-gray-600 px-1 sm:px-1.5">
                   {evt.startTime} - {evt.endTime}
