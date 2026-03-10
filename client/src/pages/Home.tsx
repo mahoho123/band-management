@@ -2195,7 +2195,7 @@ export default function Home() {
             {selectedEventIds.size > 0 && currentUser?.role === "admin" && (
               <div className="bg-purple-50 border-2 border-purple-200 rounded-lg p-3 mb-4 flex items-center justify-between gap-3">
                 <span className="text-sm font-medium text-purple-700">
-                  Selected {selectedEventIds.size} / {displayEvents.length} events
+                  已選 {selectedEventIds.size} / {displayEvents.length} 個活動
                 </span>
                 <div className="flex gap-2 flex-wrap">
                   <button
@@ -2205,13 +2205,13 @@ export default function Home() {
                     }}
                     className="text-xs bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg border border-blue-300 hover:bg-blue-100 transition-all font-medium"
                   >
-                    Select All
+                    全選
                   </button>
                   <button
                     onClick={() => setSelectedEventIds(new Set())}
                     className="text-xs bg-white text-gray-700 px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-50 transition-all"
                   >
-                    Deselect All
+                    取消全選
                   </button>
                   <button
                     onClick={() => {
@@ -2219,30 +2219,17 @@ export default function Home() {
                       const count = idsToDelete.length;
                       idsToDelete.forEach(id => deleteEventMutation.mutate({ id }));
                       setSelectedEventIds(new Set());
-                      showToast(`Deleted ${count} events`, "success");
+                      showToast(`已刪除 ${count} 個活動`, "success");
                     }}
                     className="text-xs bg-red-500 text-white px-3 py-1.5 rounded-lg hover:bg-red-600 transition-all font-medium flex items-center gap-1"
                   >
-                    <i className="fas fa-trash" />Delete
+                    <i className="fas fa-trash" />刪除所選
                   </button>
                 </div>
               </div>
             )}
 
-            {/* Clear All Events Button */}
-            {currentUser?.role === "admin" && eventsQuery.data && eventsQuery.data.length > 0 && (
-              <div className="mb-4 flex justify-end">
-                <button
-                  onClick={() => {
-                    eventsQuery.data?.forEach(event => deleteEventMutation.mutate({ id: event.id }));
-                    showToast("已清除所有活動", "success");
-                  }}
-                  className="text-xs bg-red-100 text-red-700 border border-red-300 px-3 py-1.5 rounded-lg hover:bg-red-200 transition-all font-medium flex items-center gap-1"
-                >
-                  <i className="fas fa-broom" />清除所有活動
-                </button>
-              </div>
-            )}
+
 
             {/* Events */}
             <div className="space-y-3">
@@ -2411,15 +2398,7 @@ export default function Home() {
                 >
                   <i className="fas fa-key" />重設主管密碼
                 </button>
-                <button
-                  onClick={() => {
-                    localStorage.removeItem('bandSystemData');
-                    window.location.reload();
-                  }}
-                  className="bg-red-50 text-red-600 text-sm px-4 py-2 rounded-xl hover:bg-red-100 transition-all flex items-center gap-2"
-                >
-                  <i className="fas fa-trash-alt" />清除所有活動
-                </button>
+
               </div>
             </div>
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-5">
