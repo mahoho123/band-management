@@ -694,7 +694,7 @@ export default function Home() {
     setDateHolidayWarning(holiday ? holiday.name : "");
   }
 
-  const handleSaveEvent = (e: React.FormEvent) => {
+  const handleSaveEvent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!eventTitle.trim()) return showToast("請輸入活動名稱", "error");
     if (!eventDate) return showToast("請選擇日期", "error");
@@ -739,43 +739,30 @@ export default function Home() {
         });
       }
 
-      let completed = 0;
-      let failed = 0;
       const total = datesToCreate.length;
-
-      datesToCreate.forEach((date) => {
-        addEventMutation.mutate({
-          title: eventTitle,
-          date,
-          startTime,
-          endTime,
-          location: eventLocation,
-          type: eventType,
-          notes: eventNotes,
-        }, {
-          onSuccess: () => {
-            completed++;
-            if (completed + failed === total) {
-              if (total > 1) {
-                showToast(`已新增 ${completed} 個活動${failed > 0 ? `（${failed} 個失敗）` : ""}`, failed > 0 ? "error" : "success");
-              } else {
-                showToast("活動已新增", "success");
-              }
-              setShowEventModal(false);
-              setCurrentView("calendar");
-              utils.band.getEvents.invalidate();
-            }
-          },
-          onError: () => {
-            failed++;
-            if (completed + failed === total) {
-              showToast(`已新增 ${completed} 個活動（${failed} 個失敗）`, "error");
-              setShowEventModal(false);
-              utils.band.getEvents.invalidate();
-            }
-          },
-        });
-      });
+      const results = await Promise.allSettled(
+        datesToCreate.map((date) =>
+          addEventMutation.mutateAsync({
+            title: eventTitle,
+            date,
+            startTime,
+            endTime,
+            location: eventLocation,
+            type: eventType,
+            notes: eventNotes,
+          })
+        )
+      );
+      const completed = results.filter(r => r.status === "fulfilled").length;
+      const failed = results.filter(r => r.status === "rejected").length;
+      if (total > 1) {
+        showToast(`已新增 ${completed} 個活動${failed > 0 ? `（${failed} 個失敗）` : ""}`, failed > 0 ? "error" : "success");
+      } else {
+        showToast("活動已新增", "success");
+      }
+      setShowEventModal(false);
+      setCurrentView("calendar");
+      utils.band.getEvents.invalidate();
     }
   };
 
