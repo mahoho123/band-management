@@ -1194,9 +1194,9 @@ export default function Home() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 backdrop-blur-sm overflow-y-auto">
           <div className="glass-panel rounded-xl sm:rounded-2xl w-full max-w-sm sm:max-w-md p-4 sm:p-6 modal-enter shadow-2xl my-4">
             <div className="text-center mb-4 sm:mb-6">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-3 sm:mb-4">
                 <img
-                  src="https://private-us-east-1.manuscdn.com/user_upload_by_module/session_file/310519663399040844/GqXoJkgiqMhIdxLs.jpg?Expires=1804688991&Signature=TUR0Yu1i8SzuapG4ybEykP9~AaWs-Oc0VayC0aBcpugoUKlg0KqO9BfUkOpZh96ieO4p9DDAnMinc4wEcRxrmafknBlpYW82Tcm4lPtx-WiQQhpjv26hIB2dtMyFHu9joakhRpReNlsuiVmmt4UVvIjslztEEyATvpI677nUOEPS83VZXFnm~p2V6V-9ChYGLAGb7QpG3RzYPKeIS83SACd5WD75lH~Eu0wUGYd7iGd~Jm33bD4HX~HbeTSY8eOjxg~5BYj8jalU-YILCzMTd9zRddr9G4QTv-frSQ01mC2QsxvECBr1KM-K4G3qu6fqALK32SxadZsH87IpvRzQ4w__&Key-Pair-Id=K2HSFNDJXOU9YS"
+                  src="https://private-us-east-1.manuscdn.com/user_upload_by_module/session_file/310519663399040844/QmYyBhyPJzCGHoAu.png?Expires=1804689314&Signature=ftBwhRzQe-cE2UCnQ~BLlYAekuEr4cPp0p2Ny4JJEEu2exJk4IhaE6mk~Cf~Tl47NM0LqJyErZG5LYyG0zke1c887aQ3ndJc-bZA7-R1QtIOH5UMWJjB1Tqb~ko~cnUmadYmqEgID9l82Yxh-2QunFZ95knlqQ4dHzEPg~UsuE~41CwHWwrxMfmYNXi4swaKHFCanD0LtV3hbyKEJC8OQJMsGTY8qJ9Pyxk7jMdhtnV70t3pxFUJRdu46aGzDmvk7dtt~Niqu3vT9wlbKgd4ExkFxe8wRHwGp5RM4ia1CQtqwWqMIzn5LvSXHkr54Fr~z1y9SLrVejx3DugBolBYrQ__&Key-Pair-Id=K2HSFNDJXOU9YS"
                   alt="慢半拍"
                   className="w-full h-full object-contain"
                 />
@@ -1980,11 +1980,11 @@ export default function Home() {
         <div className="glass-panel rounded-lg sm:rounded-xl md:rounded-2xl p-3 sm:p-4 md:p-5 shadow-lg mb-3 sm:mb-4 md:mb-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0 w-full sm:w-auto">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 flex-shrink-0">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 flex-shrink-0">
                 <img
-                  src="https://private-us-east-1.manuscdn.com/user_upload_by_module/session_file/310519663399040844/GqXoJkgiqMhIdxLs.jpg?Expires=1804688991&Signature=TUR0Yu1i8SzuapG4ybEykP9~AaWs-Oc0VayC0aBcpugoUKlg0KqO9BfUkOpZh96ieO4p9DDAnMinc4wEcRxrmafknBlpYW82Tcm4lPtx-WiQQhpjv26hIB2dtMyFHu9joakhRpReNlsuiVmmt4UVvIjslztEEyATvpI677nUOEPS83VZXFnm~p2V6V-9ChYGLAGb7QpG3RzYPKeIS83SACd5WD75lH~Eu0wUGYd7iGd~Jm33bD4HX~HbeTSY8eOjxg~5BYj8jalU-YILCzMTd9zRddr9G4QTv-frSQ01mC2QsxvECBr1KM-K4G3qu6fqALK32SxadZsH87IpvRzQ4w__&Key-Pair-Id=K2HSFNDJXOU9YS"
+                  src="https://private-us-east-1.manuscdn.com/user_upload_by_module/session_file/310519663399040844/QmYyBhyPJzCGHoAu.png?Expires=1804689314&Signature=ftBwhRzQe-cE2UCnQ~BLlYAekuEr4cPp0p2Ny4JJEEu2exJk4IhaE6mk~Cf~Tl47NM0LqJyErZG5LYyG0zke1c887aQ3ndJc-bZA7-R1QtIOH5UMWJjB1Tqb~ko~cnUmadYmqEgID9l82Yxh-2QunFZ95knlqQ4dHzEPg~UsuE~41CwHWwrxMfmYNXi4swaKHFCanD0LtV3hbyKEJC8OQJMsGTY8qJ9Pyxk7jMdhtnV70t3pxFUJRdu46aGzDmvk7dtt~Niqu3vT9wlbKgd4ExkFxe8wRHwGp5RM4ia1CQtqwWqMIzn5LvSXHkr54Fr~z1y9SLrVejx3DugBolBYrQ__&Key-Pair-Id=K2HSFNDJXOU9YS"
                   alt="慢半拍"
-                  className="w-full h-full object-contain rounded-lg"
+                  className="w-full h-full object-contain"
                 />
               </div>
               <div className="min-w-0 flex-1 sm:flex-none">
