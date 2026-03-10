@@ -339,3 +339,6 @@
 
 ## UI 改善 (51) - Logo 再放大
 - [x] 左上角 logo 再放大（手機 64px、平板 80px、桌面 96px）
+
+## UI 改善 (52) - Favicon 設定
+- [x] 將慢半拍 logo 設定為瀏覽器分頁 favicon（ICO + PNG 16x16/32x32 + Apple Touch Icon 180x180）
