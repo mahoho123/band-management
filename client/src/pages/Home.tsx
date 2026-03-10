@@ -1923,17 +1923,7 @@ export default function Home() {
                       </div>
                     )}
                     
-                    {/* SAVE button */}
-                    {!selectedEventEnded && (
-                      <div className="mt-4 pt-4 border-t border-gray-200">
-                        <button
-                          onClick={() => setShowEventModal(false)}
-                          className="w-full band-gradient text-white py-2.5 rounded-xl hover:shadow-lg transition-all font-medium text-sm"
-                        >
-                          <i className="fas fa-save mr-2" />儲存
-                        </button>
-                      </div>
-                    )}
+                    {/* 成員版本只保留查看，不需要儲存按鈕 */}
                   </div>
                 </div>
               )
