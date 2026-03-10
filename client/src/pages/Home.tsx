@@ -1098,19 +1098,18 @@ export default function Home() {
                   {TYPE_CONFIG[evt.type].emoji} {evt.title}
                 </div>
                 <div className="text-xs sm:text-xs text-gray-600 px-1 sm:px-1.5">
-                  {evt.startTime} - {evt.endTime}
+                  ⏰ {evt.startTime} - {evt.endTime}
                 </div>
 
                 {evt.location && (
-                  <div className="text-xs text-gray-500 px-1 sm:px-1.5 flex items-start gap-0.5">
-                    <i className="fas fa-map-marker-alt text-gray-400 mt-0.5 flex-shrink-0" style={{ fontSize: '0.6rem' }} />
-                    <span className="break-words">{evt.location}</span>
+                  <div className="text-xs text-gray-500 px-1 sm:px-1.5 break-words">
+                    📍 {evt.location}
                   </div>
                 )}
 
                 {evt.notes && (
-                  <div className="text-xs text-gray-500 px-1.5 italic whitespace-pre-wrap break-words">
-                    {evt.notes}
+                  <div className="text-xs text-gray-500 px-1 sm:px-1.5 italic whitespace-pre-wrap break-words">
+                    📝 {evt.notes}
                   </div>
                 )}
 
