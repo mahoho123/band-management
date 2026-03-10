@@ -277,7 +277,7 @@ function parseTime12To24(hour: string, minute: string, ampm: string): string {
 }
 
 const TYPE_CONFIG = {
-  rehearsal: { text: "排練", emoji: "🎸", icon: "fa-guitar", color: "bg-blue-100 text-blue-700", border: "border-blue-400" },
+  rehearsal: { text: "排練", emoji: "🎸", icon: "fa-guitar", color: "bg-amber-100 text-amber-700", border: "border-amber-400" },
   performance: { text: "演出", emoji: "🎶", icon: "fa-microphone", color: "bg-red-100 text-red-700", border: "border-red-400" },
   meeting: { text: "會議", emoji: "👥", icon: "fa-users", color: "bg-green-100 text-green-700", border: "border-green-400" },
   other: { text: "其他", emoji: "📌", icon: "fa-calendar", color: "bg-gray-100 text-gray-700", border: "border-gray-400" },
@@ -285,8 +285,8 @@ const TYPE_CONFIG = {
 
 const MEMBER_COLORS = ["blue", "purple", "green", "red", "yellow", "pink", "indigo", "orange"];
 const COLOR_MAP: Record<string, string> = {
-  blue: "bg-blue-500",
-  purple: "bg-purple-500",
+  blue: "bg-amber-500",
+  purple: "bg-amber-500",
   green: "bg-green-500",
   red: "bg-red-500",
   yellow: "bg-yellow-500",
@@ -1086,8 +1086,8 @@ export default function Home() {
             dayCompleted
               ? "completed-day bg-gray-50 border-gray-200"
               : isToday
-              ? "today border-purple-400 bg-purple-50/30"
-              : "bg-white border-gray-200 hover:border-purple-300"
+              ? "today border-amber-400 bg-amber-50/30"
+              : "bg-white border-gray-200 hover:border-amber-300"
           }`}
           onClick={() => {
             if (currentUser?.role === "admin") openAddEventModal(dateStr);
@@ -1124,7 +1124,7 @@ export default function Home() {
             const unknownCount = Object.values(attendance).filter(v => v === "unknown").length;
             const myStatus = currentUser?.role === "member" ? attendance[currentUser.id as number] : null;
             return (
-              <div key={i} className="text-xs sm:text-xs space-y-0.5 mb-0.5 sm:mb-1 border-l-2 border-purple-300 pl-1"
+              <div key={i} className="text-xs sm:text-xs space-y-0.5 mb-0.5 sm:mb-1 border-l-2 border-amber-300 pl-1"
               onClick={(e) => { e.stopPropagation(); openEventModal(evt.id); }}
               style={{ cursor: 'pointer' }}
             >
@@ -1212,7 +1212,7 @@ export default function Home() {
   // Loading state
   if (systemDataQuery.isLoading || membersQuery.isLoading || eventsQuery.isLoading || holidaysQuery.isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "linear-gradient(135deg, #F4D03F 0%, #D4A017 100%)" }}>
         <div className="text-white text-center">
           <div className="text-4xl mb-4">⏳</div>
           <p>載入中...</p>
@@ -1225,7 +1225,7 @@ export default function Home() {
   // RENDER
   // ============================================
   return (
-    <div className="min-h-screen" style={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}>
+    <div className="min-h-screen" style={{ background: "linear-gradient(135deg, #FFF8E1 0%, #FFF3CD 100%)" }}>
       {/* Setup Modal */}
       {showSetupModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 backdrop-blur-sm overflow-y-auto">
@@ -1242,9 +1242,9 @@ export default function Home() {
               <p className="text-gray-500 text-xs sm:text-sm mt-1">請設定主管密碼以開始使用系統</p>
             </div>
             <form onSubmit={handleSetup} className="space-y-3 sm:space-y-4">
-              <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 mb-4">
-                <p className="text-purple-800 font-medium text-sm mb-1">主管密碼已設定</p>
-                <p className="text-purple-600 text-xs">默認主管密碼為：<strong>admin</strong></p>
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4">
+                <p className="text-amber-800 font-medium text-sm mb-1">主管密碼已設定</p>
+                <p className="text-amber-700 text-xs">默認主管密碼為：<strong>admin</strong></p>
               </div>
               <div className="pt-3 border-t border-gray-200">
                 <label className="block text-sm font-medium text-gray-700 mb-2">新增第一位成員（可選）</label>
@@ -1253,14 +1253,14 @@ export default function Home() {
                     type="text"
                     value={setupFirstName}
                     onChange={(e) => setSetupFirstName(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-400 outline-none text-sm"
+                    className="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-sm"
                     placeholder="成員名稱"
                   />
                   <input
                     type="text"
                     value={setupFirstInstrument}
                     onChange={(e) => setSetupFirstInstrument(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-400 outline-none text-sm"
+                    className="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-sm"
                     placeholder="職位/樂器"
                   />
                 </div>
@@ -1283,13 +1283,13 @@ export default function Home() {
             <div className="flex mb-3 sm:mb-5 border-b border-gray-200">
               <button
                 onClick={() => setLoginTab("member")}
-                className={`flex-1 pb-2 sm:pb-3 text-xs sm:text-sm font-medium transition-all ${loginTab === "member" ? "border-b-2 border-purple-500 text-purple-600" : "text-gray-500 hover:text-gray-700"}`}
+                className={`flex-1 pb-2 sm:pb-3 text-xs sm:text-sm font-medium transition-all ${loginTab === "member" ? "border-b-2 border-amber-500 text-amber-700" : "text-gray-500 hover:text-gray-700"}`}
               >
                 <i className="fas fa-user mr-1 sm:mr-2" />成員登入
               </button>
               <button
                 onClick={() => setLoginTab("admin")}
-                className={`flex-1 pb-2 sm:pb-3 text-xs sm:text-sm font-medium transition-all ${loginTab === "admin" ? "border-b-2 border-purple-500 text-purple-600" : "text-gray-500 hover:text-gray-700"}`}
+                className={`flex-1 pb-2 sm:pb-3 text-xs sm:text-sm font-medium transition-all ${loginTab === "admin" ? "border-b-2 border-amber-500 text-amber-700" : "text-gray-500 hover:text-gray-700"}`}
               >
                 <i className="fas fa-crown mr-1 sm:mr-2" />主管登入
               </button>
@@ -1305,9 +1305,9 @@ export default function Home() {
                       <div
                         key={member.id}
                         onClick={() => handleMemberLogin(member.id)}
-                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-purple-50 transition-colors cursor-pointer border border-transparent hover:border-purple-200"
+                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-amber-50 transition-colors cursor-pointer border border-transparent hover:border-amber-200"
                       >
-                        <div className={`w-10 h-10 rounded-full ${COLOR_MAP[member.color] || "bg-blue-500"} flex items-center justify-center text-white font-bold text-sm`}>
+                        <div className={`w-10 h-10 rounded-full ${COLOR_MAP[member.color] || "bg-amber-500"} flex items-center justify-center text-white font-bold text-sm`}>
                           {member.name.charAt(0)}
                         </div>
                         <div className="flex-1">
@@ -1321,7 +1321,7 @@ export default function Home() {
                 </div>
                 <button
                   onClick={() => { setShowLoginModal(false); setShowRegisterModal(true); }}
-                  className="w-full py-2.5 border-2 border-dashed border-purple-300 text-purple-600 rounded-xl hover:bg-purple-50 transition-all text-sm font-medium"
+                  className="w-full py-2.5 border-2 border-dashed border-amber-300 text-amber-700 rounded-xl hover:bg-amber-50 transition-all text-sm font-medium"
                 >
                   <i className="fas fa-user-plus mr-2" />新成員註冊
                 </button>
@@ -1335,7 +1335,7 @@ export default function Home() {
                     required
                     value={adminLoginPassword}
                     onChange={(e) => setAdminLoginPassword(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-400 outline-none text-sm"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-sm"
                     placeholder="輸入主管密碼"
                   />
                 </div>
@@ -1372,7 +1372,7 @@ export default function Home() {
                   required
                   value={regName}
                   onChange={(e) => setRegName(e.target.value)}
-                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-purple-400 outline-none text-xs sm:text-sm"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-xs sm:text-sm"
                   placeholder="輸入名稱"
                 />
               </div>
@@ -1382,7 +1382,7 @@ export default function Home() {
                   type="text"
                   value={regInstrument}
                   onChange={(e) => setRegInstrument(e.target.value)}
-                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-purple-400 outline-none text-xs sm:text-sm"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-xs sm:text-sm"
                   placeholder="例如：結他手、鼓手"
                 />
               </div>
@@ -1394,7 +1394,7 @@ export default function Home() {
                       key={color}
                       type="button"
                       onClick={() => setSelectedRegColor(color)}
-                      className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full ${COLOR_MAP[color]} transition-all ${selectedRegColor === color ? "ring-2 ring-offset-2 ring-purple-400" : ""}`}
+                      className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full ${COLOR_MAP[color]} transition-all ${selectedRegColor === color ? "ring-2 ring-offset-2 ring-amber-400" : ""}`}
                     />
                   ))}
                 </div>
@@ -1406,7 +1406,7 @@ export default function Home() {
                   required
                   value={regPassword}
                   onChange={(e) => setRegPassword(e.target.value)}
-                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-purple-400 outline-none text-xs sm:text-sm"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-xs sm:text-sm"
                   placeholder="最少4個字元"
                   minLength={4}
                 />
@@ -1418,7 +1418,7 @@ export default function Home() {
                   required
                   value={regConfirm}
                   onChange={(e) => setRegConfirm(e.target.value)}
-                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-purple-400 outline-none text-xs sm:text-sm"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-xs sm:text-sm"
                   placeholder="再次輸入密碼"
                 />
               </div>
@@ -1445,7 +1445,7 @@ export default function Home() {
                 {eventModalMode === "view" && currentUser?.role === "admin" && selectedEvent && !isEventEnded(selectedEvent) && (
                   <button
                     onClick={() => selectedEvent && openEventEditModal(selectedEvent.id)}
-                    className="text-xs bg-purple-50 text-purple-600 hover:bg-purple-100 px-2.5 py-1.5 rounded-lg transition-all font-medium flex items-center gap-1"
+                    className="text-xs bg-amber-50 text-amber-700 hover:bg-amber-100 px-2.5 py-1.5 rounded-lg transition-all font-medium flex items-center gap-1"
                   >
                     <i className="fas fa-edit text-xs" />編輯
                   </button>
@@ -1490,7 +1490,7 @@ export default function Home() {
                     required
                     value={eventTitle}
                     onChange={(e) => setEventTitle(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-400 outline-none text-sm"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-sm"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -1501,7 +1501,7 @@ export default function Home() {
                       required
                       value={eventDate}
                       onChange={(e) => { setEventDate(e.target.value); checkDateHolidayFor(e.target.value); }}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-400 outline-none text-sm"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-sm"
                     />
                     {dateHolidayWarning && (
                       <p className="text-xs text-amber-600 mt-1">
@@ -1514,7 +1514,7 @@ export default function Home() {
                     <select
                       value={eventType}
                       onChange={(e) => setEventType(e.target.value as BandEvent["type"])}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-400 outline-none text-sm"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-sm"
                     >
                       <option value="rehearsal">🎸 排練</option>
                       <option value="performance">🎤 演出</option>
@@ -1542,7 +1542,7 @@ export default function Home() {
                       </div>
                       <div className="flex flex-col items-center flex-shrink-0">
                         <label className="text-xs text-gray-500 mb-0.5">時段</label>
-                        <select value={startAmpm} onChange={(e) => setStartAmpm(e.target.value)} className="time-select w-14 sm:w-16 bg-purple-50 font-medium text-xs sm:text-sm">
+                        <select value={startAmpm} onChange={(e) => setStartAmpm(e.target.value)} className="time-select w-14 sm:w-16 bg-amber-50 font-medium text-xs sm:text-sm">
                           <option value="AM">上午</option>
                           <option value="PM">下午</option>
                         </select>
@@ -1567,7 +1567,7 @@ export default function Home() {
                       </div>
                       <div className="flex flex-col items-center flex-shrink-0">
                         <label className="text-xs text-gray-500 mb-0.5">時段</label>
-                        <select value={endAmpm} onChange={(e) => setEndAmpm(e.target.value)} className="time-select w-14 sm:w-16 bg-purple-50 font-medium text-xs sm:text-sm">
+                        <select value={endAmpm} onChange={(e) => setEndAmpm(e.target.value)} className="time-select w-14 sm:w-16 bg-amber-50 font-medium text-xs sm:text-sm">
                           <option value="AM">上午</option>
                           <option value="PM">下午</option>
                         </select>
@@ -1582,7 +1582,7 @@ export default function Home() {
                     required
                     value={eventLocation}
                     onChange={(e) => setEventLocation(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-400 outline-none text-sm"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-sm"
                   />
                 </div>
                 <div>
@@ -1591,14 +1591,14 @@ export default function Home() {
                     rows={3}
                     value={eventNotes}
                     onChange={(e) => setEventNotes(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-400 outline-none text-sm resize-none"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-sm resize-none"
                   />
                 </div>
                 {eventModalMode === "add" && (
-                  <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 sm:p-4">
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 sm:p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <label className="text-sm font-medium text-purple-800">
-                        <i className="fas fa-redo mr-2 text-purple-500" />重複活動
+                      <label className="text-sm font-medium text-amber-800">
+                        <i className="fas fa-redo mr-2 text-amber-600" />重複活動
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <span className="text-xs text-gray-600">啟用重複</span>
@@ -1610,7 +1610,7 @@ export default function Home() {
                             }
                           }}
                           className={`w-10 h-5 rounded-full transition-colors cursor-pointer relative ${
-                            repeatEnabled ? "bg-purple-500" : "bg-gray-300"
+                            repeatEnabled ? "bg-amber-500" : "bg-gray-300"
                           }`}
                         >
                           <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
@@ -1621,7 +1621,7 @@ export default function Home() {
                     </div>
                     {repeatEnabled && (
                       <div className="space-y-2">
-                        <p className="text-xs text-purple-600 mb-2">
+                        <p className="text-xs text-amber-700 mb-2">
                           <i className="fas fa-info-circle mr-1" />
                           除上方日期外，選擇其他重複活動的日期
                         </p>
@@ -1635,7 +1635,7 @@ export default function Home() {
                                 updated[idx] = e.target.value;
                                 setExtraRepeatDates(updated);
                               }}
-                              className="flex-1 px-3 py-1.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-400 outline-none text-sm bg-white"
+                              className="flex-1 px-3 py-1.5 border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none text-sm bg-white"
                             />
                             <button
                               type="button"
@@ -1652,7 +1652,7 @@ export default function Home() {
                         <button
                           type="button"
                           onClick={() => setExtraRepeatDates([...extraRepeatDates, ""])}
-                          className="w-full py-1.5 border border-dashed border-purple-300 text-purple-600 rounded-lg text-xs hover:bg-purple-100 transition-colors"
+                          className="w-full py-1.5 border border-dashed border-amber-300 text-amber-700 rounded-lg text-xs hover:bg-amber-100 transition-colors"
                         >
                           <i className="fas fa-plus mr-1" />新增日期
                         </button>
@@ -1737,11 +1737,11 @@ export default function Home() {
 
                     {currentUser?.role === "member" && !selectedEventEnded && (
                       <div className="mb-5">
-                        <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 mb-3">
-                          <p className="text-purple-800 font-medium text-sm mb-0.5">
+                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-3">
+                          <p className="text-amber-800 font-medium text-sm mb-0.5">
                             你好，{(membersQuery.data || []).find(m => m.id === currentUser.id)?.name}！
                           </p>
-                          <p className="text-purple-600 text-xs">請選擇你的出席狀態：</p>
+                          <p className="text-amber-700 text-xs">請選擇你的出席狀態：</p>
                         </div>
                         <div className="flex gap-3 flex-wrap">
                           <button
@@ -1840,7 +1840,7 @@ export default function Home() {
                           return (
                             <div key={member.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                               <div className="flex items-center gap-2 flex-1">
-                                <div className={`w-8 h-8 rounded-full ${COLOR_MAP[member.color] || "bg-blue-500"} flex items-center justify-center text-white font-bold text-xs`}>
+                                <div className={`w-8 h-8 rounded-full ${COLOR_MAP[member.color] || "bg-amber-500"} flex items-center justify-center text-white font-bold text-xs`}>
                                   {member.name.charAt(0)}
                                 </div>
                                 <div className="flex-1">
@@ -1972,7 +1972,7 @@ export default function Home() {
               </div>
 
               {/* How-to hint */}
-              <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-xs text-blue-700 flex items-start gap-2">
+              <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-700 flex items-start gap-2">
                 <i className="fas fa-info-circle mt-0.5 flex-shrink-0" />
                 <span>點擊「開啟 WhatsApp」後，WhatsApp 會自動打開並預填好信息。你只需在 WhatsApp 裡選擇要發送的人或群組，按發送即可。手機 App、桌面版、網頁版均支持。</span>
               </div>
@@ -2019,9 +2019,9 @@ export default function Home() {
             </div>
 
             <div className="space-y-4 text-sm sm:text-base">
-              <div className="bg-blue-50 border-l-4 border-blue-400 p-3 rounded">
-                <h4 className="font-bold text-blue-900 mb-2">📱 功能概述</h4>
-                <p className="text-blue-800">WhatsApp 通知功能只有主管可以使用。主管可以在活動詳情中發送通知給所有成員，無需企業帳號。</p>
+              <div className="bg-amber-50 border-l-4 border-amber-400 p-3 rounded">
+                <h4 className="font-bold text-amber-900 mb-2">📱 功能概述</h4>
+                <p className="text-amber-800">WhatsApp 通知功能只有主管可以使用。主管可以在活動詳情中發送通知給所有成員，無需企業帳號。</p>
               </div>
 
               <div className="space-y-3">
@@ -2114,9 +2114,9 @@ export default function Home() {
           {/* Stats */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4 mt-3 sm:mt-4 md:mt-5 pt-3 sm:pt-4 md:pt-5 border-t border-gray-100">
             {[
-              { label: "本月活動", value: (eventsQuery.data || []).filter(e => { const d = new Date(e.date); return d.getMonth() === calendarMonth && d.getFullYear() === calendarYear; }).length, icon: "fa-calendar-check", color: "text-purple-600" },
+              { label: "本月活動", value: (eventsQuery.data || []).filter(e => { const d = new Date(e.date); return d.getMonth() === calendarMonth && d.getFullYear() === calendarYear; }).length, icon: "fa-calendar-check", color: "text-amber-700" },
               { label: "本月假期", value: hkHolidays.filter(h => { const d = new Date(h.date); return d.getMonth() === calendarMonth && d.getFullYear() === calendarYear; }).length, icon: "fa-umbrella-beach", color: "text-amber-600" },
-              { label: "成員人數", value: (membersQuery.data || []).length, icon: "fa-users", color: "text-blue-600" },
+              { label: "成員人數", value: (membersQuery.data || []).length, icon: "fa-users", color: "text-amber-700" },
             ].map((stat, i) => (
               <div key={i} className="text-center">
                 <div className={`text-base sm:text-lg md:text-2xl font-bold ${stat.color}`}>{stat.value}</div>
@@ -2157,7 +2157,7 @@ export default function Home() {
               <div className="flex items-center gap-1 sm:gap-2 md:gap-3 flex-wrap w-full sm:w-auto">
                 <button
                   onClick={() => setCurrentDate(new Date(calendarYear, calendarMonth - 1, 1))}
-                  className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg sm:rounded-xl bg-gray-100 hover:bg-purple-100 hover:text-purple-600 transition-all text-gray-600 text-xs sm:text-sm flex-shrink-0"
+                  className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg sm:rounded-xl bg-gray-100 hover:bg-amber-100 hover:text-amber-700 transition-all text-gray-600 text-xs sm:text-sm flex-shrink-0"
                 >
                   <i className="fas fa-chevron-left" />
                 </button>
@@ -2181,13 +2181,13 @@ export default function Home() {
                 </div>
                 <button
                   onClick={() => setCurrentDate(new Date(calendarYear, calendarMonth + 1, 1))}
-                  className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg sm:rounded-xl bg-gray-100 hover:bg-purple-100 hover:text-purple-600 transition-all text-gray-600 text-xs sm:text-sm flex-shrink-0"
+                  className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg sm:rounded-xl bg-gray-100 hover:bg-amber-100 hover:text-amber-700 transition-all text-gray-600 text-xs sm:text-sm flex-shrink-0"
                 >
                   <i className="fas fa-chevron-right" />
                 </button>
                 <button
                   onClick={() => setCurrentDate(new Date())}
-                  className="text-xs sm:text-sm text-purple-600 hover:text-purple-800 bg-purple-50 hover:bg-purple-100 px-2 sm:px-3 py-1.5 rounded-lg transition-all font-medium whitespace-nowrap"
+                  className="text-xs sm:text-sm text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 px-2 sm:px-3 py-1.5 rounded-lg transition-all font-medium whitespace-nowrap"
                 >
                   今天
                 </button>
@@ -2249,19 +2249,19 @@ export default function Home() {
                 placeholder="搜尋活動..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="px-3 sm:px-4 py-2 border border-gray-300 rounded-lg sm:rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-purple-400 flex-1 min-w-0 w-full sm:w-auto"
+                className="px-3 sm:px-4 py-2 border border-gray-300 rounded-lg sm:rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-amber-400 flex-1 min-w-0 w-full sm:w-auto"
               />
               <select
                 value={listYear}
                 onChange={(e) => setListYear(parseInt(e.target.value))}
-                className="px-2 sm:px-3 py-2 border border-gray-300 rounded-lg sm:rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-purple-400"
+                className="px-2 sm:px-3 py-2 border border-gray-300 rounded-lg sm:rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-amber-400"
               >
                 {yearOptions.map(y => <option key={y} value={y}>{y}年</option>)}
               </select>
               <select
                 value={listMonth}
                 onChange={(e) => setListMonth(e.target.value)}
-                className="px-2 sm:px-3 py-2 border border-gray-300 rounded-lg sm:rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-purple-400"
+                className="px-2 sm:px-3 py-2 border border-gray-300 rounded-lg sm:rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-amber-400"
               >
                 <option value="all">全月</option>
                 {[0,1,2,3,4,5,6,7,8,9,10,11].map(m => (
@@ -2308,8 +2308,8 @@ export default function Home() {
 
             {/* Batch Operations Toolbar */}
             {selectedEventIds.size > 0 && currentUser?.role === "admin" && (
-              <div className="bg-purple-50 border-2 border-purple-200 rounded-lg p-3 mb-4 flex items-center justify-between gap-3">
-                <span className="text-sm font-medium text-purple-700">
+              <div className="bg-amber-50 border-2 border-amber-200 rounded-lg p-3 mb-4 flex items-center justify-between gap-3">
+                <span className="text-sm font-medium text-amber-700">
                   已選 {selectedEventIds.size} / {displayEvents.length} 個活動
                 </span>
                 <div className="flex gap-2 flex-wrap">
@@ -2318,7 +2318,7 @@ export default function Home() {
                       const allIds = new Set(displayEvents.map(e => e.id));
                       setSelectedEventIds(allIds);
                     }}
-                    className="text-xs bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg border border-blue-300 hover:bg-blue-100 transition-all font-medium"
+                    className="text-xs bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg border border-amber-300 hover:bg-amber-100 transition-all font-medium"
                   >
                     全選
                   </button>
@@ -2353,7 +2353,7 @@ export default function Home() {
                   <i className="fas fa-calendar-times text-4xl mb-3 text-gray-300 block" />
                   <p>{searchQuery.trim() ? `搜尋「${searchQuery}」無結果` : `暫無活動`}</p>
                   {currentListTab === "incomplete" && currentUser?.role === "admin" && !searchQuery.trim() && (
-                    <button onClick={() => openAddEventModal()} className="mt-3 text-purple-600 hover:underline text-sm">
+                    <button onClick={() => openAddEventModal()} className="mt-3 text-amber-700 hover:underline text-sm">
                       新增活動
                     </button>
                   )}
@@ -2398,7 +2398,7 @@ export default function Home() {
                     <div
                       key={event.id}
                       onClick={handleCardClick}
-                      className={`event-card bg-white rounded-xl p-4 shadow-sm cursor-pointer ${typeConf.border} ${isOngoing ? "ongoing-card" : ""} ${isEnded ? "completed-card" : ""} ${isSelected ? "ring-2 ring-purple-500 bg-purple-50" : ""}`}
+                      className={`event-card bg-white rounded-xl p-4 shadow-sm cursor-pointer ${typeConf.border} ${isOngoing ? "ongoing-card" : ""} ${isEnded ? "completed-card" : ""} ${isSelected ? "ring-2 ring-amber-500 bg-amber-50" : ""}`}
                     >
                       <div className="flex justify-between items-start gap-4">
                         {currentUser?.role === "admin" && (
@@ -2407,7 +2407,7 @@ export default function Home() {
                               type="checkbox"
                               checked={isSelected}
                               onChange={(e: any) => toggleEventSelection(e)}
-                              className="w-5 h-5 text-purple-600 rounded cursor-pointer"
+                              className="w-5 h-5 text-amber-700 rounded cursor-pointer"
                             />
                           </div>
                         )}
@@ -2492,7 +2492,7 @@ export default function Home() {
                           {currentUser?.role === "member" && (
                             <div className="mt-2 pt-2 border-t border-gray-200 w-full">
                               <div className="text-xs text-gray-600 mb-1">您的出席狀態：</div>
-                              <div className="text-xs px-3 py-1 rounded inline-block bg-blue-50 text-blue-700 font-medium">
+                              <div className="text-xs px-3 py-1 rounded inline-block bg-amber-50 text-amber-700 font-medium">
                                 {myStatus === "going" ? "✓ 已確認出席" : myStatus === "not-going" ? "✗ 已確認不出席" : "? 待確認"}
                               </div>
                             </div>
@@ -2531,8 +2531,8 @@ export default function Home() {
 
               </div>
             </div>
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-5">
-              <p className="text-blue-800 text-sm">
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-5">
+              <p className="text-amber-800 text-sm">
                 <i className="fas fa-info-circle mr-2" />香港公眾假期已自動載入（2026年起）。
               </p>
             </div>
@@ -2548,10 +2548,10 @@ export default function Home() {
                   const notAttendingCount = (eventsQuery.data || []).filter(e => e.attendance[member.id] === "not-going").length;
                   const pendingCount = (eventsQuery.data || []).filter(e => !e.attendance[member.id]).length;
                   return (
-                    <div key={member.id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:border-purple-200 transition-all">
+                    <div key={member.id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:border-amber-200 transition-all">
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
-                          <div className={`w-12 h-12 rounded-xl ${COLOR_MAP[member.color] || "bg-blue-500"} flex items-center justify-center text-white font-bold text-lg shadow-sm`}>
+                          <div className={`w-12 h-12 rounded-xl ${COLOR_MAP[member.color] || "bg-amber-500"} flex items-center justify-center text-white font-bold text-lg shadow-sm`}>
                             {member.name.charAt(0)}
                           </div>
                           <div>
@@ -2562,7 +2562,7 @@ export default function Home() {
                         <div className="flex gap-1.5">
                           <button
                             onClick={() => handleResetMemberPassword(member.id)}
-                            className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 flex items-center justify-center transition-colors"
+                            className="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100 flex items-center justify-center transition-colors"
                             title="重設密碼"
                           >
                             <i className="fas fa-key text-xs" />
@@ -2623,7 +2623,7 @@ export default function Home() {
         }
 
         .band-gradient {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #F4D03F 0%, #D4A017 100%);
         }
 
         .modal-enter {
@@ -2759,9 +2759,9 @@ export default function Home() {
         }
 
         .nav-tab.active {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-          box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);
+          background: linear-gradient(135deg, #F4D03F 0%, #D4A017 100%);
+          color: #5D3A00;
+          box-shadow: 0 4px 6px rgba(212, 160, 23, 0.3);
         }
 
         .nav-tab:hover:not(.active) {
@@ -2772,8 +2772,8 @@ export default function Home() {
         .list-tab-btn {
           padding: 0.75rem 1rem;
           border-radius: 0.75rem;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
+          background: linear-gradient(135deg, #F4D03F 0%, #D4A017 100%);
+          color: #5D3A00;
           font-weight: 500;
           border: none;
           cursor: pointer;
@@ -2855,7 +2855,8 @@ export default function Home() {
         }
 
         .toast-info {
-          background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+          background: linear-gradient(135deg, #F4D03F 0%, #D4A017 100%);
+          color: #5D3A00;
         }
 
         @keyframes fadeIn {
