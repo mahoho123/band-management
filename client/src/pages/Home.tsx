@@ -957,23 +957,28 @@ export default function Home() {
         const [y, m] = e.date.split("-").map(Number);
         return y === year && m === month + 1;
       })
-      .sort((a, b) => a.date.localeCompare(b.date));
+      .sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime));
     
     const monthLabel = `${year}年${month + 1}月`;
-    let msg = `【${monthLabel}活動通知】\n\n`;
+    let msg = `🎵 【${monthLabel}活動通知】\n\n`;
     
     if (monthEvents.length === 0) {
       msg += `本月暫無活動安排。`;
     } else {
-      monthEvents.forEach(e => {
+      monthEvents.forEach((e, idx) => {
         const typeLabel = TYPE_CONFIG[e.type]?.text || e.type;
         const startTime = formatTime12Full(e.startTime);
+        const endTime = formatTime12Full(e.endTime);
         const [, , day] = e.date.split("-").map(Number);
         const weekDay = ["日", "一", "二", "三", "四", "五", "六"][new Date(e.date).getDay()];
-        msg += `📅 ${month + 1}月${day}日（${weekDay}）${startTime} ${typeLabel}：${e.title}\n`;
+        msg += `${idx + 1}. 📅 ${month + 1}月${day}日（${weekDay}）\n`;
+        msg += `   🏷️ ${typeLabel}${e.title ? `：${e.title}` : ""}\n`;
+        msg += `   ⏰ ${startTime} - ${endTime}\n`;
         if (e.location) msg += `   📍 ${e.location}\n`;
+        if (e.notes) msg += `   📝 ${e.notes}\n`;
+        msg += `\n`;
       });
-      msg += `\n請登入以下連結確認每個活動的出席狀態，謝謝！\n🔗 https://bandmanage-nisjjqwq.manus.space`;
+      msg += `請登入以下連結確認每個活動的出席狀態，謝謝！\n🔗 https://bandmanage-nisjjqwq.manus.space`;
     }
     return msg;
   };
@@ -1095,6 +1100,13 @@ export default function Home() {
                 <div className="text-xs sm:text-xs text-gray-600 px-1 sm:px-1.5">
                   {evt.startTime} - {evt.endTime}
                 </div>
+
+                {evt.location && (
+                  <div className="text-xs text-gray-500 px-1 sm:px-1.5 flex items-start gap-0.5">
+                    <i className="fas fa-map-marker-alt text-gray-400 mt-0.5 flex-shrink-0" style={{ fontSize: '0.6rem' }} />
+                    <span className="break-words">{evt.location}</span>
+                  </div>
+                )}
 
                 {evt.notes && (
                   <div className="text-xs text-gray-500 px-1.5 italic whitespace-pre-wrap break-words">
