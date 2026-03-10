@@ -720,6 +720,7 @@ export default function Home() {
         onSuccess: () => {
           showToast("活動已更新", "success");
           setShowEventModal(false);
+          setCurrentView("calendar");
           utils.band.getEvents.invalidate();
         },
       });
@@ -762,6 +763,7 @@ export default function Home() {
                 showToast("活動已新增", "success");
               }
               setShowEventModal(false);
+              setCurrentView("calendar");
               utils.band.getEvents.invalidate();
             }
           },
