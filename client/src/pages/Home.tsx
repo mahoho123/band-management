@@ -1980,7 +1980,7 @@ export default function Home() {
         <div className="glass-panel rounded-lg sm:rounded-xl md:rounded-2xl p-3 sm:p-4 md:p-5 shadow-lg mb-3 sm:mb-4 md:mb-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0 w-full sm:w-auto">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 flex-shrink-0">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 flex-shrink-0">
                 <img
                   src="https://private-us-east-1.manuscdn.com/user_upload_by_module/session_file/310519663399040844/QmYyBhyPJzCGHoAu.png?Expires=1804689314&Signature=ftBwhRzQe-cE2UCnQ~BLlYAekuEr4cPp0p2Ny4JJEEu2exJk4IhaE6mk~Cf~Tl47NM0LqJyErZG5LYyG0zke1c887aQ3ndJc-bZA7-R1QtIOH5UMWJjB1Tqb~ko~cnUmadYmqEgID9l82Yxh-2QunFZ95knlqQ4dHzEPg~UsuE~41CwHWwrxMfmYNXi4swaKHFCanD0LtV3hbyKEJC8OQJMsGTY8qJ9Pyxk7jMdhtnV70t3pxFUJRdu46aGzDmvk7dtt~Niqu3vT9wlbKgd4ExkFxe8wRHwGp5RM4ia1CQtqwWqMIzn5LvSXHkr54Fr~z1y9SLrVejx3DugBolBYrQ__&Key-Pair-Id=K2HSFNDJXOU9YS"
                   alt="慢半拍"
