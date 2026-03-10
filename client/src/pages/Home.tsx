@@ -329,7 +329,11 @@ export default function Home() {
   const updateMemberMutation = trpc.band.updateMember.useMutation();
   const deleteMemberMutation = trpc.band.deleteMember.useMutation();
   const addEventMutation = trpc.band.addEvent.useMutation();
-  const updateEventMutation = trpc.band.updateEvent.useMutation();
+  const updateEventMutation = trpc.band.updateEvent.useMutation({
+    onSuccess: () => {
+      setCurrentView("calendar");
+    },
+  });
   const deleteEventMutation = trpc.band.deleteEvent.useMutation();
   const setAttendanceMutation = trpc.band.setAttendance.useMutation();
   const addHolidayMutation = trpc.band.addHoliday.useMutation();
@@ -389,9 +393,9 @@ export default function Home() {
   const [endAmpm, setEndAmpm] = useState("PM");
   const [dateHolidayWarning, setDateHolidayWarning] = useState("");
   const [eventModalMode, setEventModalMode] = useState<"add" | "edit" | "view">("view");
-  // Repeat event states
-  const [repeatType, setRepeatType] = useState<"none" | "weekly" | "monthly">("none");
-  const [repeatCount, setRepeatCount] = useState(4);
+  // Repeat event states - custom date selection
+  const [extraRepeatDates, setExtraRepeatDates] = useState<string[]>([]); // additional dates beyond the main date
+  const [repeatEnabled, setRepeatEnabled] = useState(false);
 
   // List view
   const [listYear, setListYear] = useState(new Date().getFullYear());
@@ -648,8 +652,8 @@ export default function Home() {
     setDateHolidayWarning("");
     setSelectedEventId(null);
     setEventModalMode("add");
-    setRepeatType("none");
-    setRepeatCount(4);
+    setRepeatEnabled(false);
+    setExtraRepeatDates([]);
     checkDateHolidayFor(dateStr || formatDateStr(new Date()));
     setShowEventModal(true);
   };
@@ -725,19 +729,14 @@ export default function Home() {
         },
       });
     } else {
-      // Generate dates for repeat
+      // Generate dates: main date + any extra repeat dates
       const datesToCreate: string[] = [eventDate];
-      if (repeatType !== "none" && repeatCount > 1) {
-        const [y, m, d] = eventDate.split("-").map(Number);
-        for (let i = 1; i < repeatCount; i++) {
-          const base = new Date(y, m - 1, d);
-          if (repeatType === "weekly") {
-            base.setDate(base.getDate() + 7 * i);
-          } else {
-            base.setMonth(base.getMonth() + i);
+      if (repeatEnabled && extraRepeatDates.length > 0) {
+        extraRepeatDates.forEach(d => {
+          if (d && d !== eventDate && !datesToCreate.includes(d)) {
+            datesToCreate.push(d);
           }
-          datesToCreate.push(formatDateStr(base));
-        }
+        });
       }
 
       let completed = 0;
@@ -1602,42 +1601,67 @@ export default function Home() {
                 </div>
                 {eventModalMode === "add" && (
                   <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 sm:p-4">
-                    <label className="block text-sm font-medium text-purple-800 mb-2">
-                      <i className="fas fa-redo mr-2 text-purple-500" />重複活動
-                    </label>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs text-gray-600 mb-1">重複方式</label>
-                        <select
-                          value={repeatType}
-                          onChange={(e) => setRepeatType(e.target.value as "none" | "weekly" | "monthly")}
-                          className="w-full px-3 py-2 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-400 outline-none text-sm bg-white"
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-sm font-medium text-purple-800">
+                        <i className="fas fa-redo mr-2 text-purple-500" />重複活動
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <span className="text-xs text-gray-600">啟用重複</span>
+                        <div
+                          onClick={() => {
+                            setRepeatEnabled(!repeatEnabled);
+                            if (!repeatEnabled && extraRepeatDates.length === 0) {
+                              setExtraRepeatDates([""]);
+                            }
+                          }}
+                          className={`w-10 h-5 rounded-full transition-colors cursor-pointer relative ${
+                            repeatEnabled ? "bg-purple-500" : "bg-gray-300"
+                          }`}
                         >
-                          <option value="none">不重複</option>
-                          <option value="weekly">每週重複</option>
-                          <option value="monthly">每月重複</option>
-                        </select>
-                      </div>
-                      {repeatType !== "none" && (
-                        <div>
-                          <label className="block text-xs text-gray-600 mb-1">重複次數（包含首次）</label>
-                          <select
-                            value={repeatCount}
-                            onChange={(e) => setRepeatCount(Number(e.target.value))}
-                            className="w-full px-3 py-2 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-400 outline-none text-sm bg-white"
-                          >
-                            {[2,3,4,5,6,7,8,9,10,12,16,20,24,26,52].map(n => (
-                              <option key={n} value={n}>{n} 次{repeatType === "weekly" ? `（約 ${Math.round(n/4.3)} 個月）` : `（${n} 個月）`}</option>
-                            ))}
-                          </select>
+                          <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                            repeatEnabled ? "translate-x-5" : "translate-x-0.5"
+                          }`} />
                         </div>
-                      )}
+                      </label>
                     </div>
-                    {repeatType !== "none" && (
-                      <p className="text-xs text-purple-600 mt-2">
-                        <i className="fas fa-info-circle mr-1" />
-                        將從選定日期開始，{repeatType === "weekly" ? "每週" : "每月"}新增一個相同活動，共 {repeatCount} 個
-                      </p>
+                    {repeatEnabled && (
+                      <div className="space-y-2">
+                        <p className="text-xs text-purple-600 mb-2">
+                          <i className="fas fa-info-circle mr-1" />
+                          除上方日期外，選擇其他重複活動的日期
+                        </p>
+                        {extraRepeatDates.map((d, idx) => (
+                          <div key={idx} className="flex items-center gap-2">
+                            <input
+                              type="date"
+                              value={d}
+                              onChange={(e) => {
+                                const updated = [...extraRepeatDates];
+                                updated[idx] = e.target.value;
+                                setExtraRepeatDates(updated);
+                              }}
+                              className="flex-1 px-3 py-1.5 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-400 outline-none text-sm bg-white"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const updated = extraRepeatDates.filter((_, i) => i !== idx);
+                                setExtraRepeatDates(updated.length > 0 ? updated : [""]);
+                              }}
+                              className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            >
+                              <i className="fas fa-times" />
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => setExtraRepeatDates([...extraRepeatDates, ""])}
+                          className="w-full py-1.5 border border-dashed border-purple-300 text-purple-600 rounded-lg text-xs hover:bg-purple-100 transition-colors"
+                        >
+                          <i className="fas fa-plus mr-1" />新增日期
+                        </button>
+                      </div>
                     )}
                   </div>
                 )}
@@ -1647,8 +1671,8 @@ export default function Home() {
                     className="flex-1 band-gradient text-white py-2.5 rounded-xl hover:shadow-lg transition-all font-medium text-sm"
                   >
                     <i className="fas fa-save mr-2" />
-                    {eventModalMode === "add" && repeatType !== "none"
-                      ? `創建 ${repeatCount} 個活動`
+                    {eventModalMode === "add" && repeatEnabled && extraRepeatDates.filter(d => d && d !== eventDate).length > 0
+                      ? `創建 ${1 + extraRepeatDates.filter(d => d && d !== eventDate).length} 個活動`
                       : "儲存活動"}
                   </button>
                   {eventModalMode === "edit" && (
