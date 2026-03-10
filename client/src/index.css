@@ -1,7 +1,7 @@
 /*
- * Band隊管理系統 - 清新樂譜 (Sheet Music Minimalism)
- * Design Philosophy: White background clean as sheet music paper
- * Color: Purple-blue gradient brand color (#667eea → #764ba2)
+ * Band隤管理系統 - 慰半拍金黃設計 (Adagio Golden Theme)
+ * Design Philosophy: Warm golden background inspired by Logo
+ * Color: Golden yellow (#F4D03F) + Deep brown (#3E2723)
  * Typography: Noto Sans HK, different weights for hierarchy
  * Layout: Top nav + full-width content, floating card effects
  */
@@ -52,38 +52,38 @@
 
 :root {
   --radius: 0.75rem;
-  --background: oklch(0.99 0 0);
-  --foreground: oklch(0.2 0.015 265);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.2 0.015 265);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.2 0.015 265);
-  --primary: oklch(0.55 0.2 275);
+  --background: oklch(0.98 0.01 60);
+  --foreground: oklch(0.2 0.02 60);
+  --card: oklch(0.99 0.005 60);
+  --card-foreground: oklch(0.2 0.02 60);
+  --popover: oklch(0.99 0.005 60);
+  --popover-foreground: oklch(0.2 0.02 60);
+  --primary: oklch(0.65 0.2 60);
   --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.96 0.01 275);
-  --secondary-foreground: oklch(0.4 0.1 275);
-  --muted: oklch(0.96 0.005 265);
-  --muted-foreground: oklch(0.55 0.015 265);
-  --accent: oklch(0.94 0.02 275);
-  --accent-foreground: oklch(0.35 0.15 275);
+  --secondary: oklch(0.96 0.01 60);
+  --secondary-foreground: oklch(0.4 0.1 60);
+  --muted: oklch(0.96 0.005 60);
+  --muted-foreground: oklch(0.55 0.015 60);
+  --accent: oklch(0.94 0.02 60);
+  --accent-foreground: oklch(0.35 0.15 60);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.91 0.008 265);
-  --input: oklch(0.91 0.008 265);
-  --ring: oklch(0.55 0.2 275);
-  --chart-1: oklch(0.55 0.2 275);
+  --border: oklch(0.91 0.008 60);
+  --input: oklch(0.91 0.008 60);
+  --ring: oklch(0.65 0.2 60);
+  --chart-1: oklch(0.65 0.2 60);
   --chart-2: oklch(0.65 0.15 200);
   --chart-3: oklch(0.7 0.18 150);
   --chart-4: oklch(0.75 0.2 50);
   --chart-5: oklch(0.6 0.22 20);
-  --sidebar: oklch(0.98 0.005 275);
-  --sidebar-foreground: oklch(0.2 0.015 265);
-  --sidebar-primary: oklch(0.55 0.2 275);
+  --sidebar: oklch(0.98 0.005 60);
+  --sidebar-foreground: oklch(0.2 0.02 60);
+  --sidebar-primary: oklch(0.65 0.2 60);
   --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.94 0.02 275);
-  --sidebar-accent-foreground: oklch(0.35 0.15 275);
-  --sidebar-border: oklch(0.91 0.008 265);
-  --sidebar-ring: oklch(0.55 0.2 275);
+  --sidebar-accent: oklch(0.94 0.02 60);
+  --sidebar-accent-foreground: oklch(0.35 0.15 60);
+  --sidebar-border: oklch(0.91 0.008 60);
+  --sidebar-ring: oklch(0.65 0.2 60);
 }
 
 @layer base {
@@ -139,27 +139,27 @@
 
 /* Band System Custom Styles */
 .band-gradient {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #F4D03F 0%, #D4A017 100%);
 }
 
 .band-gradient-text {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #F4D03F 0%, #D4A017 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .glass-panel {
-  background: rgba(255, 255, 255, 0.97);
+  background: rgba(255, 251, 240, 0.98);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(244, 208, 63, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
 }
 
 .calendar-day {
   min-height: auto;
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: #fffef5;
+  border: 1px solid #f4d03f33;
   transition: all 0.2s ease;
   padding: 0.5rem;
 }

@@ -2389,8 +2389,8 @@ export default function Home() {
                     setSelectedEventIds(newSelected);
                   };
                   const handleCardClick = () => {
-                    if (selectedEventIds.size > 0) {
-                      // 已有勾選時，直接切換此卡片的勾選狀態，不彈出詳情
+                    if (currentUser?.role === "admin") {
+                      // 主管點擊卡片只切換勾選狀態，完全不彈出詳情模態框
                       const newSelected = new Set(selectedEventIds);
                       if (newSelected.has(event.id)) {
                         newSelected.delete(event.id);
@@ -2399,6 +2399,7 @@ export default function Home() {
                       }
                       setSelectedEventIds(newSelected);
                     } else {
+                      // 成員點擊卡片才彈出詳情
                       openEventModal(event.id);
                     }
                   };
