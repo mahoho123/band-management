@@ -374,4 +374,4 @@
 - [x] 成員版本活動詳情只保留查看功能，移除底部的「儲存」按鈕，只有頂部的關閉按鈕（交叉）
 
 ## 修復 (62) - WhatsApp 信息 emoji 顯示為方塊符號
-- [x] 修複 WhatsApp 信息中的 emoji 編碼問題（使用 URLSearchParams 正確編碼）
+- [x] 修複 WhatsApp 信息中的 emoji 編碼問題（改用複製剩貼板方式，保留所有 emoji）

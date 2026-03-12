@@ -1981,12 +1981,16 @@ export default function Home() {
               <div className="flex gap-3 pt-1">
                 <button
                   onClick={() => {
-                    // 使用 URLSearchParams 正確編碼 emoji
-                    const params = new URLSearchParams();
-                    params.set('text', whatsAppMessage);
-                    const encodedMessage = params.toString().substring(5); // 移除 'text=' 前綴
-                    window.open(`https://wa.me/?text=${encodedMessage}`, "_blank");
-                    showToast("已開啟 WhatsApp，請選擇收件人或群組發送", "success");
+                    handleCopyToClipboard(whatsAppMessage);
+                  }}
+                  className="flex-1 bg-blue-500 text-white py-3 rounded-xl hover:bg-blue-600 transition-all font-semibold text-sm flex items-center justify-center gap-2 shadow-sm"
+                >
+                  <i className="fas fa-copy text-base" />複製信息
+                </button>
+                <button
+                  onClick={() => {
+                    window.open(`https://wa.me/`, "_blank");
+                    showToast("已複製信息到剪貼板，請在 WhatsApp 中貼上", "success");
                   }}
                   className="flex-1 bg-green-500 text-white py-3 rounded-xl hover:bg-green-600 transition-all font-semibold text-sm flex items-center justify-center gap-2 shadow-sm"
                 >
