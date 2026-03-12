@@ -968,9 +968,9 @@ export default function Home() {
     const unknown = members.filter(m => attendance[m.id] === "unknown").map(m => m.name).join(", ");
     
     let summary = `【${event.title}】出席狀態\n\n`;
-    if (going) summary += `✓ 出席: ${going}\n`;
-    if (notGoing) summary += `✗ 不出席: ${notGoing}\n`;
-    if (unknown) summary += `? 未知道: ${unknown}\n`;
+    if (going) summary += `\u2713 出席: ${going}\n`;
+    if (notGoing) summary += `\u2717 不出席: ${notGoing}\n`;
+    if (unknown) summary += `❓ 未知道: ${unknown}\n`;
     return summary;
   };
 
@@ -980,11 +980,11 @@ export default function Home() {
     const endTime = formatTime12Full(event.endTime);
     const typeLabel = TYPE_CONFIG[event.type]?.text || event.type;
     let msg = `【${event.title}】${typeLabel}提醒\n\n`;
-    msg += `📅 日期：${dateStr}\n`;
-    msg += `⏰ 時間：${startTime} - ${endTime}\n`;
-    if (event.location) msg += `📍 地點：${event.location}\n`;
+    msg += `\uD83D\uDCC5 日期：${dateStr}\n`;
+    msg += `\u23F0 時間：${startTime} - ${endTime}\n`;
+    if (event.location) msg += `\uD83D\uDCCD 地點：${event.location}\n`;
     msg += `\n請確認出席，謝謝！`;
-    msg += `\n\n🔗 出席登記：https://bandmanage-nisjjqwq.manus.space`;
+    msg += `\n\n\uD83D\uDD17 出席登記：https://bandmanage-nisjjqwq.manus.space`;
     return msg;
   };
 
@@ -997,7 +997,7 @@ export default function Home() {
       .sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime));
     
     const monthLabel = `${year}年${month + 1}月`;
-    let msg = `🎵 【${monthLabel}活動通知】\n\n`;
+    let msg = `\uD83C\uDFB5 【${monthLabel}活動通知】\n\n`;
     
     if (monthEvents.length === 0) {
       msg += `本月暫無活動安排。`;
@@ -1008,14 +1008,14 @@ export default function Home() {
         const endTime = formatTime12Full(e.endTime);
         const [, , day] = e.date.split("-").map(Number);
         const weekDay = ["日", "一", "二", "三", "四", "五", "六"][new Date(e.date).getDay()];
-        msg += `${idx + 1}. 📅 ${month + 1}月${day}日（${weekDay}）\n`;
-        msg += `   🏷️ ${typeLabel}${e.title ? `：${e.title}` : ""}\n`;
-        msg += `   ⏰ ${startTime} - ${endTime}\n`;
-        if (e.location) msg += `   📍 ${e.location}\n`;
-        if (e.notes) msg += `   📝 ${e.notes}\n`;
+        msg += `${idx + 1}. \uD83D\uDCC5 ${month + 1}月${day}日（${weekDay}）\n`;
+        msg += `   \uD83C\uDFF7️ ${typeLabel}${e.title ? `：${e.title}` : ""}\n`;
+        msg += `   \u23F0 ${startTime} - ${endTime}\n`;
+        if (e.location) msg += `   \uD83D\uDCCD ${e.location}\n`;
+        if (e.notes) msg += `   \uD83D\uDCDD ${e.notes}\n`;
         msg += `\n`;
       });
-      msg += `請登入以下連結確認每個活動的出席狀態，謝謝！\n🔗 https://bandmanage-nisjjqwq.manus.space`;
+      msg += `請登入以下連結確認每個活動的出席狀態，謝謝！\n\uD83D\uDD17 https://bandmanage-nisjjqwq.manus.space`;
     }
     return msg;
   };
