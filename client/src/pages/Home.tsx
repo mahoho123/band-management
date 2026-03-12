@@ -1981,8 +1981,11 @@ export default function Home() {
               <div className="flex gap-3 pt-1">
                 <button
                   onClick={() => {
-                    const message = encodeURIComponent(whatsAppMessage);
-                    window.open(`https://wa.me/?text=${message}`, "_blank");
+                    // 使用 URLSearchParams 正確編碼 emoji
+                    const params = new URLSearchParams();
+                    params.set('text', whatsAppMessage);
+                    const encodedMessage = params.toString().substring(5); // 移除 'text=' 前綴
+                    window.open(`https://wa.me/?text=${encodedMessage}`, "_blank");
                     showToast("已開啟 WhatsApp，請選擇收件人或群組發送", "success");
                   }}
                   className="flex-1 bg-green-500 text-white py-3 rounded-xl hover:bg-green-600 transition-all font-semibold text-sm flex items-center justify-center gap-2 shadow-sm"
