@@ -1974,19 +1974,11 @@ export default function Home() {
               {/* How-to hint */}
               <div className="flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <i className="fas fa-info-circle mt-0.5 flex-shrink-0" />
-                <span>點擊「複製信息」，然例開啟 WhatsApp，在貼上框貼上信息。手機 App、桌面版、網頁版均支持。</span>
+                <span>點擊「開啟 WhatsApp」，信息會自動預填到 WhatsApp。手機 App、桌面版、網頁版均支持。</span>
               </div>
 
               {/* Action Buttons */}
               <div className="flex gap-3 pt-1">
-                <button
-                  onClick={() => {
-                    handleCopyToClipboard(whatsAppMessage);
-                  }}
-                  className="flex-1 bg-blue-500 text-white py-3 rounded-xl hover:bg-blue-600 transition-all font-semibold text-sm flex items-center justify-center gap-2 shadow-sm"
-                >
-                  <i className="fas fa-copy text-base" />複製信息
-                </button>
                 <button
                   onClick={() => {
                     const params = new URLSearchParams();
@@ -2001,7 +1993,7 @@ export default function Home() {
                 </button>
                 <button
                   onClick={() => setShowWhatsAppModal(false)}
-                  className="px-5 py-3 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition-all font-medium text-sm"
+                  className="flex-1 bg-gray-100 text-gray-600 py-3 rounded-xl hover:bg-gray-200 transition-all font-medium text-sm"
                 >
                   關閉
                 </button>

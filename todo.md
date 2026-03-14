@@ -375,3 +375,6 @@
 
 ## 修復 (62) - WhatsApp 信息 emoji 顯示為方塊符號
 - [x] 修複 WhatsApp 信息中的 emoji 編碼問題（改用 URLSearchParams 方式，保留所有 emoji）
+
+## 修復 (63) - 移除 WhatsApp 複製信息功能
+- [x] 移除複製信息按鈕，只保留「開啟 WhatsApp」按鈕
