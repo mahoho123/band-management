@@ -337,6 +337,8 @@ export default function Home() {
   const deleteEventMutation = trpc.band.deleteEvent.useMutation();
   const setAttendanceMutation = trpc.band.setAttendance.useMutation();
   const addHolidayMutation = trpc.band.addHoliday.useMutation();
+  const verifyAdminPasswordMutation = trpc.band.verifyAdminPassword.useMutation();
+  const verifyMemberPasswordMutation = trpc.band.verifyMemberPassword.useMutation();
   const utils = trpc.useUtils();
 
   // 從 localStorage 讀取已儲存的登入狀態
@@ -1981,9 +1983,7 @@ export default function Home() {
               <div className="flex gap-3 pt-1">
                 <button
                   onClick={() => {
-                    const params = new URLSearchParams();
-                    params.set("text", whatsAppMessage);
-                    const encodedText = params.toString().substring(5);
+                    const encodedText = encodeURIComponent(whatsAppMessage);
                     window.open(`https://wa.me/?text=${encodedText}`, "_blank");
                     showToast("已開啟 WhatsApp，信息已預填", "success");
                   }}

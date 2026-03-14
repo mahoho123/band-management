@@ -47,6 +47,37 @@ export const bandRouter = router({
       return result;
     }),
 
+  // Password Verification
+  verifyAdminPassword: publicProcedure
+    .input(z.object({ password: z.string() }))
+    .mutation(async ({ input }) => {
+      const systemData = await getBandSystemData();
+      if (!systemData) {
+        return { success: false, message: "系統未初始化" };
+      }
+      if (input.password === systemData.adminPassword) {
+        return { success: true, message: "主管密碼驗證成功" };
+      }
+      return { success: false, message: "主管密碼錯誤" };
+    }),
+
+  verifyMemberPassword: publicProcedure
+    .input(z.object({ memberId: z.number(), password: z.string() }))
+    .mutation(async ({ input }) => {
+      const members = await getBandMembers();
+      const member = members?.find((m) => m.id === input.memberId);
+      if (!member) {
+        return { success: false, message: "成員不存在" };
+      }
+      if (!member.password) {
+        return { success: false, message: "成員未設定密碼" };
+      }
+      if (input.password === member.password) {
+        return { success: true, message: "成員密碼驗證成功" };
+      }
+      return { success: false, message: "成員密碼錯誤" };
+    }),
+
   // Members
   getMembers: publicProcedure.query(async () => {
     return await getBandMembers();
