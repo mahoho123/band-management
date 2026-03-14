@@ -980,11 +980,11 @@ export default function Home() {
     const endTime = formatTime12Full(event.endTime);
     const typeLabel = TYPE_CONFIG[event.type]?.text || event.type;
     let msg = `【${event.title}】${typeLabel}提醒\n\n`;
-    msg += `\uD83D\uDCC5 日期：${dateStr}\n`;
-    msg += `\u23F0 時間：${startTime} - ${endTime}\n`;
-    if (event.location) msg += `\uD83D\uDCCD 地點：${event.location}\n`;
+    msg += `📅 日期：${dateStr}\n`;
+    msg += `⏰ 時間：${startTime} - ${endTime}\n`;
+    if (event.location) msg += `📍 地點：${event.location}\n`;
     msg += `\n請確認出席，謝謝！`;
-    msg += `\n\n\uD83D\uDD17 出席登記：https://bandmanage-nisjjqwq.manus.space`;
+    msg += `\n\n🔗 出席登記：https://bandmanage-nisjjqwq.manus.space`;
     return msg;
   };
 
@@ -1972,20 +1972,28 @@ export default function Home() {
               </div>
 
               {/* How-to hint */}
-              <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-700 flex items-start gap-2">
+              <div className="flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <i className="fas fa-info-circle mt-0.5 flex-shrink-0" />
-                <span>點擊「開啟 WhatsApp」後，WhatsApp 會自動打開並預填好信息。你只需在 WhatsApp 裡選擇要發送的人或群組，按發送即可。手機 App、桌面版、網頁版均支持。</span>
+                <span>點擊「複製信息」，然例開啟 WhatsApp，在貼上框貼上信息。手機 App、桌面版、網頁版均支持。</span>
               </div>
 
               {/* Action Buttons */}
               <div className="flex gap-3 pt-1">
                 <button
                   onClick={() => {
-                    // 使用 wa.me API 直接發送，不需要 URL 編碼
-                    const message = whatsAppMessage;
-                    const waUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-                    window.open(waUrl, "_blank");
-                    showToast("已開啟 WhatsApp，請選擇收件人或群組發送", "success");
+                    handleCopyToClipboard(whatsAppMessage);
+                  }}
+                  className="flex-1 bg-blue-500 text-white py-3 rounded-xl hover:bg-blue-600 transition-all font-semibold text-sm flex items-center justify-center gap-2 shadow-sm"
+                >
+                  <i className="fas fa-copy text-base" />複製信息
+                </button>
+                <button
+                  onClick={() => {
+                    const params = new URLSearchParams();
+                    params.set("text", whatsAppMessage);
+                    const encodedText = params.toString().substring(5);
+                    window.open(`https://wa.me/?text=${encodedText}`, "_blank");
+                    showToast("已開啟 WhatsApp，信息已預填", "success");
                   }}
                   className="flex-1 bg-green-500 text-white py-3 rounded-xl hover:bg-green-600 transition-all font-semibold text-sm flex items-center justify-center gap-2 shadow-sm"
                 >
