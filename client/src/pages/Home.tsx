@@ -1983,9 +1983,18 @@ export default function Home() {
               <div className="flex gap-3 pt-1">
                 <button
                   onClick={() => {
-                    const encodedText = encodeURIComponent(whatsAppMessage);
-                    window.open(`https://wa.me/?text=${encodedText}`, "_blank");
-                    showToast("已開啟 WhatsApp，信息已預填", "success");
+                    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                    if (isMobile) {
+                      // 手機版：直接發送
+                      const encodedText = encodeURIComponent(whatsAppMessage);
+                      window.open(`https://wa.me/?text=${encodedText}`, "_blank");
+                      showToast("已開啟 WhatsApp，信息已預填", "success");
+                    } else {
+                      // 電腦版：複製剩貼板
+                      navigator.clipboard.writeText(whatsAppMessage);
+                      window.open("https://wa.me/", "_blank");
+                      showToast("已複製信息到剩貼板，請手動貼到 WhatsApp", "success");
+                    }
                   }}
                   className="flex-1 bg-green-500 text-white py-3 rounded-xl hover:bg-green-600 transition-all font-semibold text-sm flex items-center justify-center gap-2 shadow-sm"
                 >
