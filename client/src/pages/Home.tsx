@@ -1984,15 +1984,33 @@ export default function Home() {
                 <button
                   onClick={() => {
                     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                    const params = new URLSearchParams();
+                    params.set('text', whatsAppMessage);
+                    const encodedText = params.toString().substring(5);
+                    
                     if (isMobile) {
                       // 手機版：直接開啟 APP
-                      const encodedText = encodeURIComponent(whatsAppMessage);
                       window.location.href = `whatsapp://send?text=${encodedText}`;
                       showToast("已開啟 WhatsApp APP", "success");
                     } else {
-                      // 電腦版：複製剩貼板
-                      navigator.clipboard.writeText(whatsAppMessage);
-                      showToast("已複製信息到剩貼板，請開啟 WhatsApp 並貼上", "success");
+                      // 電腦版：優先開啟 Desktop App，未安裝時降級到 Web 版
+                      const desktopUrl = `whatsapp://send?text=${encodedText}`;
+                      const webUrl = `https://wa.me/?text=${encodedText}`;
+                      
+                      // 設定超時：如果 2 秒內 Desktop App 沒有開啟，則降級到 Web
+                      const timeout = setTimeout(() => {
+                        window.open(webUrl, '_blank');
+                        showToast("已開啟 WhatsApp Web，請選擇接收人或群組", "info");
+                      }, 2000);
+                      
+                      // 嘗試開啟 Desktop App
+                      window.location.href = desktopUrl;
+                      
+                      // 如果成功開啟 Desktop App，則取消超時
+                      window.addEventListener('blur', () => {
+                        clearTimeout(timeout);
+                        showToast("已開啟 WhatsApp Desktop App", "success");
+                      }, { once: true });
                     }
                   }}
                   className="flex-1 bg-green-500 text-white py-3 rounded-xl hover:bg-green-600 transition-all font-semibold text-sm flex items-center justify-center gap-2 shadow-sm"

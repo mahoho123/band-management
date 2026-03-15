@@ -386,3 +386,6 @@
 
 ## 修復 (65) - 電腦版 WhatsApp emoji 亂碼
 - [x] 修複電腦版 WhatsApp 的 emoji 編碼問題（電腦版複製剩貼板，手機版直接開啟 APP）
+
+## 修復 (66) - WhatsApp Desktop App 優先級联
+- [x] 電腦版優先開啟 WhatsApp Desktop App，未安裝時降級到 Web 版
