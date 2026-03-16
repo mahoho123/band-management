@@ -407,9 +407,7 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEventIds, setSelectedEventIds] = useState<Set<number>>(new Set());
 
-  // Members view - month filter for attendance statistics
-  const [memberStatsYear, setMemberStatsYear] = useState(new Date().getFullYear());
-  const [memberStatsMonth, setMemberStatsMonth] = useState(new Date().getMonth() + 1);
+
 
   // WhatsApp notification states
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
@@ -2580,61 +2578,25 @@ export default function Home() {
             </div>
 
             {/* Month Filter for Attendance Statistics */}
-            <div className="bg-white rounded-xl p-4 mb-5 border border-gray-200 flex flex-col sm:flex-row items-start sm:items-center gap-3">
-              <span className="text-sm font-medium text-gray-700">出席統計月份：</span>
-              <div className="flex items-center gap-2 flex-wrap">
-                <button
-                  onClick={() => {
-                    let newMonth = memberStatsMonth - 1;
-                    let newYear = memberStatsYear;
-                    if (newMonth < 1) {
-                      newMonth = 12;
-                      newYear -= 1;
-                    }
-                    setMemberStatsMonth(newMonth);
-                    setMemberStatsYear(newYear);
-                  }}
-                  className="px-3 py-1.5 bg-amber-50 text-amber-700 rounded-lg hover:bg-amber-100 transition-all text-sm font-medium"
-                >
-                  <i className="fas fa-chevron-left" /> 上一月
-                </button>
-                <select
-                  value={`${memberStatsYear}-${String(memberStatsMonth).padStart(2, '0')}`}
-                  onChange={(e) => {
-                    const [year, month] = e.target.value.split('-');
-                    setMemberStatsYear(parseInt(year));
-                    setMemberStatsMonth(parseInt(month));
-                  }}
-                  className="px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none text-sm"
-                >
-                  {Array.from({ length: 24 }, (_, i) => {
-                    const date = new Date();
-                    date.setMonth(date.getMonth() - 11 + i);
-                    const year = date.getFullYear();
-                    const month = date.getMonth() + 1;
-                    return (
-                      <option key={`${year}-${month}`} value={`${year}-${String(month).padStart(2, '0')}`}>
-                        {year}年{month}月
-                      </option>
-                    );
-                  })}
-                </select>
-                <button
-                  onClick={() => {
-                    let newMonth = memberStatsMonth + 1;
-                    let newYear = memberStatsYear;
-                    if (newMonth > 12) {
-                      newMonth = 1;
-                      newYear += 1;
-                    }
-                    setMemberStatsMonth(newMonth);
-                    setMemberStatsYear(newYear);
-                  }}
-                  className="px-3 py-1.5 bg-amber-50 text-amber-700 rounded-lg hover:bg-amber-100 transition-all text-sm font-medium"
-                >
-                  下一月 <i className="fas fa-chevron-right" />
-                </button>
-              </div>
+            {/* Month Filter - Same as List View */}
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-3 sm:mb-5 flex-wrap items-start sm:items-center">
+              <select
+                value={listYear}
+                onChange={(e) => setListYear(parseInt(e.target.value))}
+                className="px-2 sm:px-3 py-2 border border-gray-300 rounded-lg sm:rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-amber-400"
+              >
+                {yearOptions.map(y => <option key={y} value={y}>{y}年</option>)}
+              </select>
+              <select
+                value={listMonth}
+                onChange={(e) => setListMonth(e.target.value)}
+                className="px-2 sm:px-3 py-2 border border-gray-300 rounded-lg sm:rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-amber-400"
+              >
+                <option value="all">全月</option>
+                {[0,1,2,3,4,5,6,7,8,9,10,11].map(m => (
+                  <option key={m} value={m}>{m + 1}月</option>
+                ))}
+              </select>
             </div>
 
             {(membersQuery.data || []).length === 0 ? (
@@ -2648,7 +2610,9 @@ export default function Home() {
                   // Filter events by selected month
                   const monthEvents = (eventsQuery.data || []).filter(e => {
                     const [year, month] = e.date.split('-');
-                    return parseInt(year) === memberStatsYear && parseInt(month) === memberStatsMonth;
+                    const yearMatch = parseInt(year) === listYear;
+                    const monthMatch = listMonth === "all" || parseInt(month) === parseInt(listMonth as string) + 1;
+                    return yearMatch && monthMatch;
                   });
                   const eventCount = monthEvents.filter(e => e.attendance[member.id] === "going").length;
                   const notAttendingCount = monthEvents.filter(e => e.attendance[member.id] === "not-going").length;
