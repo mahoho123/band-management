@@ -546,20 +546,23 @@ export default function Home() {
   // ============================================
   const handleAdminLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Admin Login Debug:");
-    console.log("Input password:", adminLoginPassword);
-    console.log("Stored password:", systemDataQuery.data?.adminPassword);
-    console.log("System data:", systemDataQuery.data);
-    if (adminLoginPassword === systemDataQuery.data?.adminPassword) {
-      const user = { id: "admin" as const, role: "admin" as const, name: "主管" };
-      setCurrentUser(user);
-      sessionStorage.setItem("bandCurrentUser", JSON.stringify(user));
-      setShowLoginModal(false);
-      setAdminLoginPassword("");
-      showToast("主管登入成功", "success");
-    } else {
-      showToast("主管密碼錯誤", "error");
-    }
+    verifyAdminPasswordMutation.mutate({ password: adminLoginPassword }, {
+      onSuccess: (result) => {
+        if (result.success) {
+          const user = { id: "admin" as const, role: "admin" as const, name: "主管" };
+          setCurrentUser(user);
+          sessionStorage.setItem("bandCurrentUser", JSON.stringify(user));
+          setShowLoginModal(false);
+          setAdminLoginPassword("");
+          showToast("主管登入成功", "success");
+        } else {
+          showToast(result.message || "主管密碼錯誤", "error");
+        }
+      },
+      onError: () => {
+        showToast("登入失敗，請稍後重試", "error");
+      },
+    });
   };
 
   const handleMemberLogin = (memberId: number) => {
@@ -585,15 +588,22 @@ export default function Home() {
     } else {
       const password = prompt(`請輸入 ${member.name} 的密碼：`);
       if (password === null) return;
-      if (password === member.password) {
-        const newUser2 = { id: memberId, role: "member" as const, name: member.name };
-        setCurrentUser(newUser2);
-        sessionStorage.setItem("bandCurrentUser", JSON.stringify(newUser2));
-        setShowLoginModal(false);
-        showToast(`歡迎回來，${member.name}！`, "success");
-      } else {
-        showToast("密碼錯誤", "error");
-      }
+      verifyMemberPasswordMutation.mutate({ memberId, password }, {
+        onSuccess: (result) => {
+          if (result.success) {
+            const newUser2 = { id: memberId, role: "member" as const, name: member.name };
+            setCurrentUser(newUser2);
+            sessionStorage.setItem("bandCurrentUser", JSON.stringify(newUser2));
+            setShowLoginModal(false);
+            showToast(`歡迎回來，${member.name}！`, "success");
+          } else {
+            showToast(result.message || "密碼錯誤", "error");
+          }
+        },
+        onError: () => {
+          showToast("登入失敗，請稍後重試", "error");
+        },
+      });
     }
   };
 
