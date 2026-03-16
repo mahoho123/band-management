@@ -407,6 +407,10 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEventIds, setSelectedEventIds] = useState<Set<number>>(new Set());
 
+  // Members view - month filter for attendance statistics
+  const [memberStatsYear, setMemberStatsYear] = useState(new Date().getFullYear());
+  const [memberStatsMonth, setMemberStatsMonth] = useState(new Date().getMonth() + 1);
+
   // WhatsApp notification states
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
   const [showWhatsAppGuide, setShowWhatsAppGuide] = useState(false);
@@ -2574,6 +2578,65 @@ export default function Home() {
                 <i className="fas fa-info-circle mr-2" />香港公眾假期已自動載入（2026年起）。
               </p>
             </div>
+
+            {/* Month Filter for Attendance Statistics */}
+            <div className="bg-white rounded-xl p-4 mb-5 border border-gray-200 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <span className="text-sm font-medium text-gray-700">出席統計月份：</span>
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  onClick={() => {
+                    let newMonth = memberStatsMonth - 1;
+                    let newYear = memberStatsYear;
+                    if (newMonth < 1) {
+                      newMonth = 12;
+                      newYear -= 1;
+                    }
+                    setMemberStatsMonth(newMonth);
+                    setMemberStatsYear(newYear);
+                  }}
+                  className="px-3 py-1.5 bg-amber-50 text-amber-700 rounded-lg hover:bg-amber-100 transition-all text-sm font-medium"
+                >
+                  <i className="fas fa-chevron-left" /> 上一月
+                </button>
+                <select
+                  value={`${memberStatsYear}-${String(memberStatsMonth).padStart(2, '0')}`}
+                  onChange={(e) => {
+                    const [year, month] = e.target.value.split('-');
+                    setMemberStatsYear(parseInt(year));
+                    setMemberStatsMonth(parseInt(month));
+                  }}
+                  className="px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none text-sm"
+                >
+                  {Array.from({ length: 24 }, (_, i) => {
+                    const date = new Date();
+                    date.setMonth(date.getMonth() - 11 + i);
+                    const year = date.getFullYear();
+                    const month = date.getMonth() + 1;
+                    return (
+                      <option key={`${year}-${month}`} value={`${year}-${String(month).padStart(2, '0')}`}>
+                        {year}年{month}月
+                      </option>
+                    );
+                  })}
+                </select>
+                <button
+                  onClick={() => {
+                    let newMonth = memberStatsMonth + 1;
+                    let newYear = memberStatsYear;
+                    if (newMonth > 12) {
+                      newMonth = 1;
+                      newYear += 1;
+                    }
+                    setMemberStatsMonth(newMonth);
+                    setMemberStatsYear(newYear);
+                  }}
+                  className="px-3 py-1.5 bg-amber-50 text-amber-700 rounded-lg hover:bg-amber-100 transition-all text-sm font-medium"
+                >
+                  下一月 <i className="fas fa-chevron-right" />
+                </button>
+              </div>
+            </div>
+
             {(membersQuery.data || []).length === 0 ? (
               <div className="text-center py-12 text-gray-500">
                 <i className="fas fa-users text-4xl mb-3 text-gray-300 block" />
@@ -2582,9 +2645,14 @@ export default function Home() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {(membersQuery.data || []).map((member) => {
-                  const eventCount = (eventsQuery.data || []).filter(e => e.attendance[member.id] === "going").length;
-                  const notAttendingCount = (eventsQuery.data || []).filter(e => e.attendance[member.id] === "not-going").length;
-                  const pendingCount = (eventsQuery.data || []).filter(e => !e.attendance[member.id]).length;
+                  // Filter events by selected month
+                  const monthEvents = (eventsQuery.data || []).filter(e => {
+                    const [year, month] = e.date.split('-');
+                    return parseInt(year) === memberStatsYear && parseInt(month) === memberStatsMonth;
+                  });
+                  const eventCount = monthEvents.filter(e => e.attendance[member.id] === "going").length;
+                  const notAttendingCount = monthEvents.filter(e => e.attendance[member.id] === "not-going").length;
+                  const pendingCount = monthEvents.filter(e => !e.attendance[member.id]).length;
                   return (
                     <div key={member.id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:border-amber-200 transition-all">
                       <div className="flex items-start justify-between">
