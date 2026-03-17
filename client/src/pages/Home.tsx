@@ -1738,7 +1738,7 @@ export default function Home() {
                         <span className="text-sm text-gray-500">
                           出席: {Object.values(selectedEvent.attendance).filter(v => v === "going").length} |
                           缺席: {Object.values(selectedEvent.attendance).filter(v => v === "not-going").length} |
-                          未知道: {Object.values(selectedEvent.attendance).filter(v => v === "unknown").length}
+                          待確認: {Object.values(selectedEvent.attendance).filter(v => v === "unknown").length}
                           {selectedEventEnded ? " (已完結)" : ""}
                         </span>
                       </div>
@@ -1774,7 +1774,7 @@ export default function Home() {
                             onClick={() => handleSetAttendance("unknown")}
                             className={`attendance-btn flex-1 min-w-24 ${selectedEvent.attendance[currentUser.id as number] === "unknown" ? "unknown" : "pending"}`}
                           >
-                            <i className="fas fa-question mr-2" />未知道
+                            <i className="fas fa-question mr-2" />待確認
                           </button>
                         </div>
                       </div>
@@ -1824,7 +1824,7 @@ export default function Home() {
                                 {/* Unknown */}
                                 <div className="bg-gray-100 border border-gray-300 rounded-lg p-3">
                                   <h5 className="font-semibold text-gray-700 text-sm mb-2 flex items-center gap-1">
-                                    <i className="fas fa-question" /> 未知道 ({Object.values(attendance).filter(v => v === "unknown").length})
+                                    <i className="fas fa-question" /> 待確認 ({Object.values(attendance).filter(v => v === "unknown").length})
                                   </h5>
                                   <div className="space-y-1">
                                     {(membersQuery.data || []).filter(m => attendance[m.id] === "unknown").length === 0 ? (
@@ -1862,7 +1862,7 @@ export default function Home() {
                                   <div className="text-xs mt-1">
                                     {status === "going" && <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">✓ 出席</span>}
                                     {status === "not-going" && <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded-full font-medium">✕ 不出席</span>}
-                                    {status === "unknown" && <span className="px-2 py-0.5 bg-gray-300 text-gray-700 rounded-full font-medium">? 未知道</span>}
+                                    {status === "unknown" && <span className="px-2 py-0.5 bg-gray-300 text-gray-700 rounded-full font-medium">? 待確認</span>}
                                   </div>
                                 </div>
                               </div>
@@ -1904,7 +1904,7 @@ export default function Home() {
                                   }`}
                                   title={!currentUser ? "請登入以修改出席狀態" : ""}
                                 >
-                                  <i className="fas fa-question mr-1" />未知道
+                                  <i className="fas fa-question mr-1" />待確認
                                 </button>
                               </div>
                             </div>
@@ -2495,7 +2495,7 @@ export default function Home() {
                                     {/* Unknown */}
                                     {(membersQuery.data || []).filter(m => attendance[m.id] === "unknown").length > 0 && (
                                       <div className="text-xs">
-                                        <span className="px-2 py-0.5 rounded bg-gray-200 text-gray-700 font-medium mr-1 inline-block">? 未知道</span>
+                                        <span className="px-2 py-0.5 rounded bg-gray-200 text-gray-700 font-medium mr-1 inline-block">? 待確認</span>
                                         <span className="text-gray-700">{(membersQuery.data || []).filter(m => attendance[m.id] === "unknown").map(m => m.name).join(", ")}</span>
                                       </div>
                                     )}
