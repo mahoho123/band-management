@@ -2285,23 +2285,21 @@ export default function Home() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="px-3 sm:px-4 py-2 border border-gray-300 rounded-lg sm:rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-amber-400 flex-1 min-w-0 w-full sm:w-auto"
               />
-              <select
-                value={listYear}
-                onChange={(e) => setListYear(parseInt(e.target.value))}
-                className="px-2 sm:px-3 py-2 border border-gray-300 rounded-lg sm:rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-amber-400"
-              >
-                {yearOptions.map(y => <option key={y} value={y}>{y}年</option>)}
-              </select>
-              <select
-                value={listMonth}
-                onChange={(e) => setListMonth(e.target.value)}
-                className="px-2 sm:px-3 py-2 border border-gray-300 rounded-lg sm:rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-amber-400"
-              >
-                <option value="all">全月</option>
-                {[0,1,2,3,4,5,6,7,8,9,10,11].map(m => (
-                  <option key={m} value={m}>{m + 1}月</option>
-                ))}
-              </select>
+              <DatePicker
+                year={listYear}
+                month={listMonth === "all" ? 0 : parseInt(listMonth as string)}
+                yearOptions={yearOptions}
+                onYearChange={(y) => setListYear(y)}
+                onMonthChange={(m) => setListMonth(m.toString())}
+              />
+              {listMonth !== "all" && (
+                <button
+                  onClick={() => setListMonth("all")}
+                  className="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-2 sm:px-3 py-1.5 rounded-lg whitespace-nowrap"
+                >
+                  清除月份
+                </button>
+              )}
               {selectedDates.size > 0 && (
                 <>
                   <span className="text-xs sm:text-sm text-gray-600 truncate">篩選: {Array.from(selectedDates).length}日</span>
@@ -2574,23 +2572,21 @@ export default function Home() {
             {/* Month Filter for Attendance Statistics */}
             {/* Month Filter - Same as List View */}
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-3 sm:mb-5 flex-wrap items-start sm:items-center">
-              <select
-                value={listYear}
-                onChange={(e) => setListYear(parseInt(e.target.value))}
-                className="px-2 sm:px-3 py-2 border border-gray-300 rounded-lg sm:rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-amber-400"
-              >
-                {yearOptions.map(y => <option key={y} value={y}>{y}年</option>)}
-              </select>
-              <select
-                value={listMonth}
-                onChange={(e) => setListMonth(e.target.value)}
-                className="px-2 sm:px-3 py-2 border border-gray-300 rounded-lg sm:rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-amber-400"
-              >
-                <option value="all">全月</option>
-                {[0,1,2,3,4,5,6,7,8,9,10,11].map(m => (
-                  <option key={m} value={m}>{m + 1}月</option>
-                ))}
-              </select>
+              <DatePicker
+                year={listYear}
+                month={listMonth === "all" ? 0 : parseInt(listMonth as string)}
+                yearOptions={yearOptions}
+                onYearChange={(y) => setListYear(y)}
+                onMonthChange={(m) => setListMonth(m.toString())}
+              />
+              {listMonth !== "all" && (
+                <button
+                  onClick={() => setListMonth("all")}
+                  className="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-2 sm:px-3 py-1.5 rounded-lg whitespace-nowrap"
+                >
+                  清除月份
+                </button>
+              )}
             </div>
 
             {(membersQuery.data || []).length === 0 ? (
