@@ -1149,7 +1149,7 @@ export default function Home() {
                   {TYPE_CONFIG[evt.type].emoji} {evt.title}
                 </div>
                 <div className="text-xs sm:text-xs text-gray-600 px-1 sm:px-1.5">
-                  ⏰ {evt.startTime} - {evt.endTime}
+                  ⛰ {formatTime12Full(evt.startTime)} - {formatTime12Full(evt.endTime)}
                 </div>
 
                 {evt.location && (
