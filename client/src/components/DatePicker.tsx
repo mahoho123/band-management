@@ -30,8 +30,8 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
 
       {/* Year Picker Dropdown - Expanded Size with Responsive Positioning */}
       {showYearPicker && (
-        <div className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-2xl p-3 sm:p-4 z-50 border border-gray-200 w-full max-w-xs sm:max-w-sm md:max-w-md">
-          <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 sm:gap-3 max-h-60 sm:max-h-72 overflow-y-auto">
+        <div className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-2xl p-2 sm:p-3 z-50 border border-gray-200 min-w-max sm:min-w-fit">
+          <div className="flex flex-col gap-1 max-h-60 sm:max-h-72 overflow-y-auto">
             {yearOptions.map(y => (
               <button
                 key={y}
@@ -39,7 +39,7 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
                   onYearChange(y);
                   setShowYearPicker(false);
                 }}
-                className={`px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-lg font-semibold text-sm sm:text-base md:text-lg transition-all ${
+                className={`w-full px-4 sm:px-5 py-2.5 sm:py-3 rounded-lg font-semibold text-base sm:text-lg md:text-xl transition-all whitespace-nowrap ${
                   y === year
                     ? 'bg-gradient-to-br from-[#F4D03F] to-[#D4A017] text-white shadow-md scale-105'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -66,8 +66,8 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
 
       {/* Month Picker Dropdown - Expanded Size with Responsive Positioning */}
       {showMonthPicker && (
-        <div className="absolute top-full left-0 sm:left-auto mt-1 bg-white rounded-lg shadow-2xl p-3 sm:p-4 z-50 border border-gray-200 w-full max-w-xs sm:max-w-sm md:max-w-md">
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-3">
+        <div className="absolute top-full left-0 sm:left-auto mt-1 bg-white rounded-lg shadow-2xl p-2 sm:p-3 z-50 border border-gray-200 min-w-max sm:min-w-fit">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 sm:gap-2">
             {MONTHS_CN.map((m, idx) => (
               <button
                 key={idx}
@@ -75,7 +75,7 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
                   onMonthChange(idx);
                   setShowMonthPicker(false);
                 }}
-                className={`px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-lg font-semibold text-sm sm:text-base md:text-lg transition-all ${
+                className={`px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg font-semibold text-base sm:text-lg md:text-lg transition-all whitespace-nowrap ${
                   idx === month
                     ? 'bg-gradient-to-br from-[#F4D03F] to-[#D4A017] text-white shadow-md scale-105'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
