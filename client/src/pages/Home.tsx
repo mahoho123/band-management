@@ -1248,47 +1248,47 @@ export default function Home() {
       {/* Setup Modal */}
       {showSetupModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 backdrop-blur-sm overflow-y-auto">
-          <div className="glass-panel rounded-xl sm:rounded-2xl w-full max-w-sm sm:max-w-md p-4 sm:p-6 modal-enter shadow-2xl my-4">
-            <div className="text-center mb-4 sm:mb-6">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-3 sm:mb-4">
+          <div className="glass-panel rounded-lg sm:rounded-xl md:rounded-2xl w-full max-w-xs sm:max-w-sm md:max-w-md p-3 sm:p-4 md:p-6 modal-enter shadow-2xl my-2 sm:my-4 mx-auto">
+            <div className="text-center mb-3 sm:mb-4 md:mb-6">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 mx-auto mb-2 sm:mb-3 md:mb-4">
                 <img
                   src="https://private-us-east-1.manuscdn.com/user_upload_by_module/session_file/310519663399040844/QmYyBhyPJzCGHoAu.png?Expires=1804689314&Signature=ftBwhRzQe-cE2UCnQ~BLlYAekuEr4cPp0p2Ny4JJEEu2exJk4IhaE6mk~Cf~Tl47NM0LqJyErZG5LYyG0zke1c887aQ3ndJc-bZA7-R1QtIOH5UMWJjB1Tqb~ko~cnUmadYmqEgID9l82Yxh-2QunFZ95knlqQ4dHzEPg~UsuE~41CwHWwrxMfmYNXi4swaKHFCanD0LtV3hbyKEJC8OQJMsGTY8qJ9Pyxk7jMdhtnV70t3pxFUJRdu46aGzDmvk7dtt~Niqu3vT9wlbKgd4ExkFxe8wRHwGp5RM4ia1CQtqwWqMIzn5LvSXHkr54Fr~z1y9SLrVejx3DugBolBYrQ__&Key-Pair-Id=K2HSFNDJXOU9YS"
                   alt="慢半拍"
                   className="w-full h-full object-contain"
                 />
               </div>
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-800">首次設定</h2>
-              <p className="text-gray-500 text-xs sm:text-sm mt-1">請設定主管密碼以開始使用系統</p>
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">首次設定</h2>
+              <p className="text-gray-500 text-xs sm:text-xs md:text-sm mt-1">請設定主管密碼以開始使用系統</p>
             </div>
-            <form onSubmit={handleSetup} className="space-y-3 sm:space-y-4">
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4">
-                <p className="text-amber-800 font-medium text-sm mb-1">主管密碼已設定</p>
+            <form onSubmit={handleSetup} className="space-y-2 sm:space-y-3 md:space-y-4">
+              <div className="bg-amber-50 border border-amber-200 rounded-lg sm:rounded-xl p-2 sm:p-3 mb-2 sm:mb-3 md:mb-4">
+                <p className="text-amber-800 font-medium text-xs sm:text-sm mb-0.5 sm:mb-1">主管密碼已設定</p>
                 <p className="text-amber-700 text-xs">默認主管密碼為：<strong>admin</strong></p>
               </div>
-              <div className="pt-3 border-t border-gray-200">
-                <label className="block text-sm font-medium text-gray-700 mb-2">新增第一位成員（可選）</label>
-                <div className="grid grid-cols-2 gap-3">
+              <div className="pt-2 sm:pt-3 border-t border-gray-200">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">新增第一位成員（可選）</label>
+                <div className="grid grid-cols-2 gap-2 sm:gap-3">
                   <input
                     type="text"
                     value={setupFirstName}
                     onChange={(e) => setSetupFirstName(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-sm"
+                    className="px-2.5 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-xs sm:text-sm"
                     placeholder="成員名稱"
                   />
                   <input
                     type="text"
                     value={setupFirstInstrument}
                     onChange={(e) => setSetupFirstInstrument(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-sm"
+                    className="px-2.5 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-xs sm:text-sm"
                     placeholder="職位/樂器"
                   />
                 </div>
               </div>
               <button
                 type="submit"
-                className="w-full mt-2 band-gradient text-white py-3 rounded-xl hover:shadow-lg transition-all font-medium text-sm"
+                className="w-full mt-1 sm:mt-2 band-gradient text-white py-2.5 sm:py-3 rounded-lg sm:rounded-xl hover:shadow-lg transition-all font-medium text-xs sm:text-sm"
               >
-                <i className="fas fa-rocket mr-2" />完成設定
+                <i className="fas fa-rocket mr-1 sm:mr-2" />完成設定
               </button>
             </form>
           </div>
@@ -1298,71 +1298,71 @@ export default function Home() {
       {/* Login Modal */}
       {showLoginModal && !currentUser && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 backdrop-blur-sm overflow-y-auto">
-          <div className="glass-panel rounded-xl sm:rounded-2xl w-full max-w-sm sm:max-w-md p-4 sm:p-6 modal-enter shadow-2xl my-4">
-            <div className="flex mb-3 sm:mb-5 border-b border-gray-200">
+          <div className="glass-panel rounded-lg sm:rounded-xl md:rounded-2xl w-full max-w-xs sm:max-w-sm md:max-w-md p-3 sm:p-4 md:p-6 modal-enter shadow-2xl my-2 sm:my-4 mx-auto">
+            <div className="flex mb-2 sm:mb-3 md:mb-5 border-b border-gray-200">
               <button
                 onClick={() => setLoginTab("member")}
-                className={`flex-1 pb-2 sm:pb-3 text-xs sm:text-sm font-medium transition-all ${loginTab === "member" ? "border-b-2 border-amber-500 text-amber-700" : "text-gray-500 hover:text-gray-700"}`}
+                className={`flex-1 pb-1.5 sm:pb-2 md:pb-3 text-xs sm:text-xs md:text-sm font-medium transition-all ${loginTab === "member" ? "border-b-2 border-amber-500 text-amber-700" : "text-gray-500 hover:text-gray-700"}`}
               >
-                <i className="fas fa-user mr-1 sm:mr-2" />成員登入
+                <i className="fas fa-user mr-0.5 sm:mr-1 md:mr-2" /><span className="hidden sm:inline">成員登入</span><span className="sm:hidden">成</span>
               </button>
               <button
                 onClick={() => setLoginTab("admin")}
-                className={`flex-1 pb-2 sm:pb-3 text-xs sm:text-sm font-medium transition-all ${loginTab === "admin" ? "border-b-2 border-amber-500 text-amber-700" : "text-gray-500 hover:text-gray-700"}`}
+                className={`flex-1 pb-1.5 sm:pb-2 md:pb-3 text-xs sm:text-xs md:text-sm font-medium transition-all ${loginTab === "admin" ? "border-b-2 border-amber-500 text-amber-700" : "text-gray-500 hover:text-gray-700"}`}
               >
-                <i className="fas fa-crown mr-1 sm:mr-2" />主管登入
+                <i className="fas fa-crown mr-0.5 sm:mr-1 md:mr-2" /><span className="hidden sm:inline">主管登入</span><span className="sm:hidden">主</span>
               </button>
             </div>
 
             {loginTab === "member" ? (
               <div>
-                <div className="space-y-2 max-h-64 overflow-y-auto mb-4">
+                <div className="space-y-1.5 sm:space-y-2 max-h-48 sm:max-h-64 overflow-y-auto mb-2 sm:mb-4">
                   {(membersQuery.data || []).length === 0 ? (
-                    <p className="text-center text-gray-500 py-6 text-sm">暫無成員，請先註冊</p>
+                    <p className="text-center text-gray-500 py-4 sm:py-6 text-xs sm:text-sm">暫無成員，請先註冊</p>
                   ) : (
                     (membersQuery.data || []).map((member) => (
                       <div
                         key={member.id}
                         onClick={() => handleMemberLogin(member.id)}
-                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-amber-50 transition-colors cursor-pointer border border-transparent hover:border-amber-200"
+                        className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-gray-50 rounded-lg sm:rounded-xl hover:bg-amber-50 transition-colors cursor-pointer border border-transparent hover:border-amber-200"
                       >
-                        <div className={`w-10 h-10 rounded-full ${COLOR_MAP[member.color] || "bg-amber-500"} flex items-center justify-center text-white font-bold text-sm`}>
+                        <div className={`w-8 sm:w-10 h-8 sm:h-10 rounded-full ${COLOR_MAP[member.color] || "bg-amber-500"} flex items-center justify-center text-white font-bold text-xs sm:text-sm flex-shrink-0`}>
                           {member.name.charAt(0)}
                         </div>
-                        <div className="flex-1">
-                          <div className="font-medium text-gray-800 text-sm">{member.name}</div>
-                          {member.instrument && <div className="text-xs text-gray-500">{member.instrument}</div>}
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-gray-800 text-xs sm:text-sm truncate">{member.name}</div>
+                          {member.instrument && <div className="text-xs text-gray-500 truncate">{member.instrument}</div>}
                         </div>
-                        <i className="fas fa-chevron-right text-gray-400 text-xs" />
+                        <i className="fas fa-chevron-right text-gray-400 text-xs flex-shrink-0" />
                       </div>
                     ))
                   )}
                 </div>
                 <button
                   onClick={() => { setShowLoginModal(false); setShowRegisterModal(true); }}
-                  className="w-full py-2.5 border-2 border-dashed border-amber-300 text-amber-700 rounded-xl hover:bg-amber-50 transition-all text-sm font-medium"
+                  className="w-full py-2 sm:py-2.5 border-2 border-dashed border-amber-300 text-amber-700 rounded-lg sm:rounded-xl hover:bg-amber-50 transition-all text-xs sm:text-sm font-medium"
                 >
-                  <i className="fas fa-user-plus mr-2" />新成員註冊
+                  <i className="fas fa-user-plus mr-1 sm:mr-2" />新成員註冊
                 </button>
               </div>
             ) : (
-              <form onSubmit={handleAdminLogin} className="space-y-4">
+              <form onSubmit={handleAdminLogin} className="space-y-2 sm:space-y-3 md:space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">主管密碼</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">主管密碼</label>
                   <input
                     type="password"
                     required
                     value={adminLoginPassword}
                     onChange={(e) => setAdminLoginPassword(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-sm"
+                    className="w-full px-2.5 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-xs sm:text-sm"
                     placeholder="輸入主管密碼"
                   />
                 </div>
                 <button
                   type="submit"
-                  className="w-full band-gradient text-white py-3 rounded-xl hover:shadow-lg transition-all font-medium text-sm"
+                  className="w-full band-gradient text-white py-2.5 sm:py-3 rounded-lg sm:rounded-xl hover:shadow-lg transition-all font-medium text-xs sm:text-sm"
                 >
-                  <i className="fas fa-sign-in-alt mr-2" />登入
+                  <i className="fas fa-sign-in-alt mr-1 sm:mr-2" />登入
                 </button>
               </form>
             )}
@@ -1373,79 +1373,79 @@ export default function Home() {
       {/* Register Modal */}
       {showRegisterModal && !currentUser && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 backdrop-blur-sm overflow-y-auto">
-          <div className="glass-panel rounded-xl sm:rounded-2xl w-full max-w-sm sm:max-w-md p-4 sm:p-6 modal-enter shadow-2xl my-4">
-            <div className="flex items-center justify-between mb-3 sm:mb-5">
-              <h3 className="text-lg sm:text-xl font-bold text-gray-800">新成員註冊</h3>
+          <div className="glass-panel rounded-lg sm:rounded-xl md:rounded-2xl w-full max-w-xs sm:max-w-sm md:max-w-md p-3 sm:p-4 md:p-6 modal-enter shadow-2xl my-2 sm:my-4 mx-auto max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-2 sm:mb-3 md:mb-5 sticky top-0 bg-white/90 backdrop-blur-sm -mx-3 sm:-mx-4 md:-mx-6 px-3 sm:px-4 md:px-6 py-2 sm:py-3">
+              <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-800">新成員註冊</h3>
               <button
                 onClick={() => { setShowRegisterModal(false); setShowLoginModal(true); }}
-                className="text-gray-400 hover:text-gray-600 text-lg sm:text-xl"
+                className="text-gray-400 hover:text-gray-600 text-base sm:text-lg md:text-xl flex-shrink-0"
               >
-                ✕
+                ✗
               </button>
             </div>
-            <form onSubmit={handleRegister} className="space-y-3 sm:space-y-4">
+            <form onSubmit={handleRegister} className="space-y-2 sm:space-y-3 md:space-y-4 px-0.5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">名稱 <span className="text-red-500">*</span></label>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">名稱 <span className="text-red-500">*</span></label>
                 <input
                   type="text"
                   required
                   value={regName}
                   onChange={(e) => setRegName(e.target.value)}
-                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-xs sm:text-sm"
+                  className="w-full px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-2.5 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-xs sm:text-xs md:text-sm"
                   placeholder="輸入名稱"
                 />
               </div>
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">職位/樂器</label>
+                <label className="block text-xs sm:text-xs md:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">職位/樂器</label>
                 <input
                   type="text"
                   value={regInstrument}
                   onChange={(e) => setRegInstrument(e.target.value)}
-                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-xs sm:text-sm"
+                  className="w-full px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-2.5 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-xs sm:text-xs md:text-sm"
                   placeholder="例如：結他手、鼓手"
                 />
               </div>
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">選擇頭像顏色</label>
-                <div className="flex gap-1.5 sm:gap-2 flex-wrap">
+                <label className="block text-xs sm:text-xs md:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">選擇頭像顏色</label>
+                <div className="flex gap-1 sm:gap-1.5 md:gap-2 flex-wrap">
                   {MEMBER_COLORS.map((color) => (
                     <button
                       key={color}
                       type="button"
                       onClick={() => setSelectedRegColor(color)}
-                      className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full ${COLOR_MAP[color]} transition-all ${selectedRegColor === color ? "ring-2 ring-offset-2 ring-amber-400" : ""}`}
+                      className={`w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full ${COLOR_MAP[color]} transition-all ${selectedRegColor === color ? "ring-2 ring-offset-1 sm:ring-offset-2 ring-amber-400" : ""}`}
                     />
                   ))}
                 </div>
               </div>
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">密碼 <span className="text-red-500">*</span></label>
+                <label className="block text-xs sm:text-xs md:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">密碼 <span className="text-red-500">*</span></label>
                 <input
                   type="password"
                   required
                   value={regPassword}
                   onChange={(e) => setRegPassword(e.target.value)}
-                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-xs sm:text-sm"
+                  className="w-full px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-2.5 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-xs sm:text-xs md:text-sm"
                   placeholder="最少4個字元"
                   minLength={4}
                 />
               </div>
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">確認密碼 <span className="text-red-500">*</span></label>
+                <label className="block text-xs sm:text-xs md:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">確認密碼 <span className="text-red-500">*</span></label>
                 <input
                   type="password"
                   required
                   value={regConfirm}
                   onChange={(e) => setRegConfirm(e.target.value)}
-                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-xs sm:text-sm"
-                  placeholder="再次輸入密碼"
+                  className="w-full px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-2.5 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-xs sm:text-xs md:text-sm"
+                  placeholder="冊次輸入密碼"
                 />
               </div>
               <button
                 type="submit"
-                className="w-full band-gradient text-white py-2.5 sm:py-3 rounded-lg sm:rounded-xl hover:shadow-lg transition-all font-medium text-xs sm:text-sm"
+                className="w-full band-gradient text-white py-2 sm:py-2.5 md:py-3 rounded-lg sm:rounded-xl hover:shadow-lg transition-all font-medium text-xs sm:text-xs md:text-sm mt-1 sm:mt-2 md:mt-3"
               >
-                <i className="fas fa-user-plus mr-2" />完成註冊
+                <i className="fas fa-user-plus mr-1 sm:mr-2" />完成註冊
               </button>
             </form>
           </div>
