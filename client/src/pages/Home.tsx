@@ -7,6 +7,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { DatePicker } from "@/components/DatePicker";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 import { trpc } from "@/lib/trpc";
 
@@ -355,6 +356,10 @@ export default function Home() {
   const [currentListTab, setCurrentListTab] = useState<"incomplete" | "completed">("incomplete");
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
   const [selectedRegColor, setSelectedRegColor] = useState("blue");
+  
+  // 月份/年份選擇器狀態
+  const [showMonthPicker, setShowMonthPicker] = useState(false);
+  const [showYearPicker, setShowYearPicker] = useState(false);
   
   // 本地出席狀態緩存 - 用於零延遲更新
   const [localAttendance, setLocalAttendance] = useState<Record<number, Record<number, string>>>({});
@@ -2201,24 +2206,13 @@ export default function Home() {
                 >
                   <i className="fas fa-chevron-left" />
                 </button>
-                <div className="flex items-center gap-1 sm:gap-2 min-w-0">
-                  <select
-                    value={calendarYear}
-                    onChange={(e) => setCurrentDate(new Date(parseInt(e.target.value), calendarMonth, 1))}
-                    className="text-sm sm:text-base md:text-lg font-bold text-gray-800 bg-transparent border-none outline-none cursor-pointer"
-                  >
-                    {yearOptions.map(y => <option key={y} value={y}>{y}年</option>)}
-                  </select>
-                  <select
-                    value={calendarMonth}
-                    onChange={(e) => setCurrentDate(new Date(calendarYear, parseInt(e.target.value), 1))}
-                    className="text-sm sm:text-base md:text-lg font-bold text-gray-800 bg-transparent border-none outline-none cursor-pointer"
-                  >
-                    {[0,1,2,3,4,5,6,7,8,9,10,11].map(m => (
-                      <option key={m} value={m}>{m + 1}月</option>
-                    ))}
-                  </select>
-                </div>
+                <DatePicker
+                  year={calendarYear}
+                  month={calendarMonth}
+                  yearOptions={yearOptions}
+                  onYearChange={(y) => setCurrentDate(new Date(y, calendarMonth, 1))}
+                  onMonthChange={(m) => setCurrentDate(new Date(calendarYear, m, 1))}
+                />
                 <button
                   onClick={() => setCurrentDate(new Date(calendarYear, calendarMonth + 1, 1))}
                   className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg sm:rounded-xl bg-gray-100 hover:bg-amber-100 hover:text-amber-700 transition-all text-gray-600 text-xs sm:text-sm flex-shrink-0"
