@@ -499,3 +499,11 @@
 - [x] 添加上下三角形按鐐切換年份頁面
 - [x] 計算正確的年份分頁範團
 - [x] 在手機上驗證分頁效果
+
+
+## 新需求 (80) - 添加 click outside to dismiss 功能
+- [x] 為 DatePicker 月份/年份選擇器添加 click outside 功能
+- [x] 為月曆日期卡片的詳情彈窗添加 click outside 功能
+- [x] 為其他彈出画面添加 click outside 功能
+- [x] 確保新則活動和登入模態框不受影響（保持手動關閉）
+- [x] 在所有設備上驗證 click outside 效果

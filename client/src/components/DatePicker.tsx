@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 
 interface DatePickerProps {
@@ -15,6 +15,7 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [showYearPicker, setShowYearPicker] = useState(false);
   const [yearPageIndex, setYearPageIndex] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // 計算年份分頁（每頁 16 個年份，4x4 網格）
   const yearPages = useMemo(() => {
@@ -27,6 +28,23 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
 
   const currentYearPage = yearPages[yearPageIndex] || [];
   const totalYearPages = yearPages.length;
+
+  // Click outside to dismiss
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setShowMonthPicker(false);
+        setShowYearPicker(false);
+      }
+    };
+
+    if (showMonthPicker || showYearPicker) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [showMonthPicker, showYearPicker]);
 
   const handlePrevYearPage = () => {
     if (yearPageIndex > 0) {
@@ -41,7 +59,7 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
   };
 
   return (
-    <div className="flex items-center gap-2 sm:gap-3 min-w-0 relative">
+    <div className="flex items-center gap-2 sm:gap-3 min-w-0 relative" ref={containerRef}>
       {/* Year Button */}
       <button
         onClick={() => {
