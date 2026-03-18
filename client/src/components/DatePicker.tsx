@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { ChevronUp, ChevronDown } from 'lucide-react';
 
 interface DatePickerProps {
   year: number;
@@ -13,6 +14,31 @@ const MONTHS_CN = ['一月', '二月', '三月', '四月', '五月', '六月', '
 export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChange }: DatePickerProps) {
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [showYearPicker, setShowYearPicker] = useState(false);
+  const [yearPageIndex, setYearPageIndex] = useState(0);
+
+  // 計算年份分頁（每頁 16 個年份，4x4 網格）
+  const yearPages = useMemo(() => {
+    const pages: number[][] = [];
+    for (let i = 0; i < yearOptions.length; i += 16) {
+      pages.push(yearOptions.slice(i, i + 16));
+    }
+    return pages;
+  }, [yearOptions]);
+
+  const currentYearPage = yearPages[yearPageIndex] || [];
+  const totalYearPages = yearPages.length;
+
+  const handlePrevYearPage = () => {
+    if (yearPageIndex > 0) {
+      setYearPageIndex(yearPageIndex - 1);
+    }
+  };
+
+  const handleNextYearPage = () => {
+    if (yearPageIndex < totalYearPages - 1) {
+      setYearPageIndex(yearPageIndex + 1);
+    }
+  };
 
   return (
     <div className="flex items-center gap-2 sm:gap-3 min-w-0 relative">
@@ -38,11 +64,33 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
         {MONTHS_CN[month]}
       </button>
 
-      {/* Year Picker Grid */}
+      {/* Year Picker Grid with Pagination */}
       {showYearPicker && (
         <div className="absolute top-full left-0 mt-2 bg-white rounded-lg shadow-2xl p-4 sm:p-5 z-50 border border-gray-200 min-w-max">
+          {/* Year Page Navigation */}
+          <div className="flex items-center justify-between mb-4 gap-2">
+            <button
+              onClick={handlePrevYearPage}
+              disabled={yearPageIndex === 0}
+              className="p-1 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronUp size={20} className="text-gray-600" />
+            </button>
+            <span className="text-xs sm:text-sm text-gray-600 font-medium">
+              {currentYearPage[0]}-{currentYearPage[currentYearPage.length - 1]}
+            </span>
+            <button
+              onClick={handleNextYearPage}
+              disabled={yearPageIndex === totalYearPages - 1}
+              className="p-1 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronDown size={20} className="text-gray-600" />
+            </button>
+          </div>
+
+          {/* Year Grid 4x4 */}
           <div className="grid grid-cols-4 gap-2 sm:gap-3">
-            {yearOptions.map(y => (
+            {currentYearPage.map(y => (
               <button
                 key={y}
                 onClick={() => {
