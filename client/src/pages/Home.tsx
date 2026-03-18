@@ -1101,7 +1101,7 @@ export default function Home() {
       cells.push(
         <div
           key={dateStr}
-          className={`calendar-day rounded-xl border p-1.5 sm:p-2 md:p-2 lg:p-2 cursor-pointer flex flex-col ${
+          className={`calendar-day rounded-xl border p-2 sm:p-3 md:p-4 cursor-pointer flex flex-col ${
             dayCompleted
               ? "completed-day bg-gray-50 border-gray-200"
               : isToday
@@ -1120,9 +1120,9 @@ export default function Home() {
         >
           <div className="flex items-center justify-between mb-0.5 sm:mb-1">
             <span
-              className={`text-xs sm:text-sm font-semibold w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded-full ${
+              className={`text-sm sm:text-base md:text-lg font-semibold w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 flex items-center justify-center rounded-full ${
                 isToday
-                  ? "band-gradient text-white text-xs"
+                  ? "band-gradient text-white text-sm sm:text-base"
                   : dayCompleted
                   ? "text-gray-400"
                   : "text-gray-700"
@@ -1132,7 +1132,7 @@ export default function Home() {
             </span>
           </div>
             {holidays.length > 0 && (
-              <div className="text-xs sm:text-sm text-amber-600 font-semibold px-1 sm:px-1.5 py-0.5 mb-0.5 truncate line-clamp-1">
+              <div className="text-xs sm:text-sm md:text-base text-amber-600 font-semibold px-1.5 sm:px-2 py-1 mb-1 truncate line-clamp-1">
                 {holidays[0].name}
               </div>
             )}
@@ -1143,28 +1143,28 @@ export default function Home() {
             const unknownCount = Object.values(attendance).filter(v => v === "unknown").length;
             const myStatus = currentUser?.role === "member" ? attendance[currentUser.id as number] : null;
             return (
-              <div key={i} className="text-xs sm:text-xs space-y-0.5 mb-0.5 sm:mb-1 border-l-2 border-amber-300 pl-1"
+              <div key={i} className="text-xs sm:text-sm md:text-base space-y-1 mb-1 sm:mb-2 border-l-2 border-amber-300 pl-1.5 sm:pl-2"
               onClick={(e) => { e.stopPropagation(); openEventModal(evt.id); }}
               style={{ cursor: 'pointer' }}
             >
                 <div
-                  className={`px-1 sm:px-1.5 py-0.5 rounded font-semibold text-xs sm:text-sm ${TYPE_CONFIG[evt.type].color} hover:opacity-80`}
+                  className={`px-1.5 sm:px-2 py-1 rounded font-semibold text-sm sm:text-base md:text-lg ${TYPE_CONFIG[evt.type].color} hover:opacity-80`}
                   title={`點擊查看詳情: ${evt.title}`}
                 >
                   {TYPE_CONFIG[evt.type].emoji} {evt.title}
                 </div>
-                <div className="text-xs sm:text-xs text-gray-600 px-1 sm:px-1.5">
-                  ⛰ {formatTime12Full(evt.startTime)} - {formatTime12Full(evt.endTime)}
+                <div className="text-xs sm:text-sm md:text-base text-gray-600 px-1.5 sm:px-2">
+                  ⏰ {formatTime12Full(evt.startTime)} - {formatTime12Full(evt.endTime)}
                 </div>
 
                 {evt.location && (
-                  <div className="text-xs text-gray-500 px-1 sm:px-1.5 break-words">
+                  <div className="text-xs sm:text-sm md:text-base text-gray-500 px-1.5 sm:px-2 break-words">
                     📍 {evt.location}
                   </div>
                 )}
 
                 {evt.notes && (
-                  <div className="text-xs text-gray-500 px-1 sm:px-1.5 italic whitespace-pre-wrap break-words">
+                  <div className="text-xs sm:text-sm md:text-base text-gray-500 px-1.5 sm:px-2 italic whitespace-pre-wrap break-words">
                     📝 {evt.notes}
                   </div>
                 )}
@@ -1302,13 +1302,13 @@ export default function Home() {
             <div className="flex mb-2 sm:mb-3 md:mb-5 border-b border-gray-200">
               <button
                 onClick={() => setLoginTab("member")}
-                className={`flex-1 pb-1.5 sm:pb-2 md:pb-3 text-xs sm:text-xs md:text-sm font-medium transition-all ${loginTab === "member" ? "border-b-2 border-amber-500 text-amber-700" : "text-gray-500 hover:text-gray-700"}`}
+                className={`flex-1 pb-1.5 sm:pb-2 md:pb-3 text-sm sm:text-base md:text-lg font-medium transition-all ${loginTab === "member" ? "border-b-2 border-amber-500 text-amber-700" : "text-gray-500 hover:text-gray-700"}`}
               >
                 <i className="fas fa-user mr-0.5 sm:mr-1 md:mr-2" /><span className="hidden sm:inline">成員登入</span><span className="sm:hidden">成</span>
               </button>
               <button
                 onClick={() => setLoginTab("admin")}
-                className={`flex-1 pb-1.5 sm:pb-2 md:pb-3 text-xs sm:text-xs md:text-sm font-medium transition-all ${loginTab === "admin" ? "border-b-2 border-amber-500 text-amber-700" : "text-gray-500 hover:text-gray-700"}`}
+                className={`flex-1 pb-1.5 sm:pb-2 md:pb-3 text-sm sm:text-base md:text-lg font-medium transition-all ${loginTab === "admin" ? "border-b-2 border-amber-500 text-amber-700" : "text-gray-500 hover:text-gray-700"}`}
               >
                 <i className="fas fa-crown mr-0.5 sm:mr-1 md:mr-2" /><span className="hidden sm:inline">主管登入</span><span className="sm:hidden">主</span>
               </button>
@@ -1318,7 +1318,7 @@ export default function Home() {
               <div>
                 <div className="space-y-1.5 sm:space-y-2 max-h-48 sm:max-h-64 overflow-y-auto mb-2 sm:mb-4">
                   {(membersQuery.data || []).length === 0 ? (
-                    <p className="text-center text-gray-500 py-4 sm:py-6 text-xs sm:text-sm">暫無成員，請先註冊</p>
+                    <p className="text-center text-gray-500 py-4 sm:py-6 text-sm sm:text-base md:text-lg">暫無成員，請先註冊</p>
                   ) : (
                     (membersQuery.data || []).map((member) => (
                       <div
@@ -1326,12 +1326,12 @@ export default function Home() {
                         onClick={() => handleMemberLogin(member.id)}
                         className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-gray-50 rounded-lg sm:rounded-xl hover:bg-amber-50 transition-colors cursor-pointer border border-transparent hover:border-amber-200"
                       >
-                        <div className={`w-8 sm:w-10 h-8 sm:h-10 rounded-full ${COLOR_MAP[member.color] || "bg-amber-500"} flex items-center justify-center text-white font-bold text-xs sm:text-sm flex-shrink-0`}>
+                        <div className={`w-10 sm:w-12 h-10 sm:h-12 rounded-full ${COLOR_MAP[member.color] || "bg-amber-500"} flex items-center justify-center text-white font-bold text-sm sm:text-base flex-shrink-0`}>
                           {member.name.charAt(0)}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-gray-800 text-xs sm:text-sm truncate">{member.name}</div>
-                          {member.instrument && <div className="text-xs text-gray-500 truncate">{member.instrument}</div>}
+                          <div className="font-medium text-gray-800 text-sm sm:text-base md:text-lg truncate">{member.name}</div>
+                          {member.instrument && <div className="text-xs sm:text-sm md:text-base text-gray-500 truncate">{member.instrument}</div>}
                         </div>
                         <i className="fas fa-chevron-right text-gray-400 text-xs flex-shrink-0" />
                       </div>
@@ -1340,7 +1340,7 @@ export default function Home() {
                 </div>
                 <button
                   onClick={() => { setShowLoginModal(false); setShowRegisterModal(true); }}
-                  className="w-full py-2 sm:py-2.5 border-2 border-dashed border-amber-300 text-amber-700 rounded-lg sm:rounded-xl hover:bg-amber-50 transition-all text-xs sm:text-sm font-medium"
+                  className="w-full py-2.5 sm:py-3 border-2 border-dashed border-amber-300 text-amber-700 rounded-lg sm:rounded-xl hover:bg-amber-50 transition-all text-sm sm:text-base md:text-lg font-medium"
                 >
                   <i className="fas fa-user-plus mr-1 sm:mr-2" />新成員註冊
                 </button>
@@ -1348,19 +1348,19 @@ export default function Home() {
             ) : (
               <form onSubmit={handleAdminLogin} className="space-y-2 sm:space-y-3 md:space-y-4">
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">主管密碼</label>
+                  <label className="block text-sm sm:text-base md:text-lg font-medium text-gray-700 mb-1.5 sm:mb-2">主管密碼</label>
                   <input
                     type="password"
                     required
                     value={adminLoginPassword}
                     onChange={(e) => setAdminLoginPassword(e.target.value)}
-                    className="w-full px-2.5 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-xs sm:text-sm"
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-sm sm:text-base md:text-lg"
                     placeholder="輸入主管密碼"
                   />
                 </div>
                 <button
                   type="submit"
-                  className="w-full band-gradient text-white py-2.5 sm:py-3 rounded-lg sm:rounded-xl hover:shadow-lg transition-all font-medium text-xs sm:text-sm"
+                  className="w-full band-gradient text-white py-2.5 sm:py-3 md:py-4 rounded-lg sm:rounded-xl hover:shadow-lg transition-all font-medium text-sm sm:text-base md:text-lg"
                 >
                   <i className="fas fa-sign-in-alt mr-1 sm:mr-2" />登入
                 </button>
@@ -1375,7 +1375,7 @@ export default function Home() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 backdrop-blur-sm overflow-y-auto">
           <div className="glass-panel rounded-lg sm:rounded-xl md:rounded-2xl w-full max-w-xs sm:max-w-sm md:max-w-md p-3 sm:p-4 md:p-6 modal-enter shadow-2xl my-2 sm:my-4 mx-auto max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-2 sm:mb-3 md:mb-5 sticky top-0 bg-white/90 backdrop-blur-sm -mx-3 sm:-mx-4 md:-mx-6 px-3 sm:px-4 md:px-6 py-2 sm:py-3">
-              <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-800">新成員註冊</h3>
+              <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">新成員註冊</h3>
               <button
                 onClick={() => { setShowRegisterModal(false); setShowLoginModal(true); }}
                 className="text-gray-400 hover:text-gray-600 text-base sm:text-lg md:text-xl flex-shrink-0"
@@ -1385,28 +1385,28 @@ export default function Home() {
             </div>
             <form onSubmit={handleRegister} className="space-y-2 sm:space-y-3 md:space-y-4 px-0.5">
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">名稱 <span className="text-red-500">*</span></label>
+                <label className="block text-sm sm:text-base md:text-lg font-medium text-gray-700 mb-1.5 sm:mb-2">名稱 <span className="text-red-500">*</span></label>
                 <input
                   type="text"
                   required
                   value={regName}
                   onChange={(e) => setRegName(e.target.value)}
-                  className="w-full px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-2.5 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-xs sm:text-xs md:text-sm"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-sm sm:text-base md:text-lg"
                   placeholder="輸入名稱"
                 />
               </div>
               <div>
-                <label className="block text-xs sm:text-xs md:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">職位/樂器</label>
+                <label className="block text-sm sm:text-base md:text-lg font-medium text-gray-700 mb-1.5 sm:mb-2">職位/樂器</label>
                 <input
                   type="text"
                   value={regInstrument}
                   onChange={(e) => setRegInstrument(e.target.value)}
-                  className="w-full px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-2.5 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-xs sm:text-xs md:text-sm"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-sm sm:text-base md:text-lg"
                   placeholder="例如：結他手、鼓手"
                 />
               </div>
               <div>
-                <label className="block text-xs sm:text-xs md:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">選擇頭像顏色</label>
+                <label className="block text-sm sm:text-base md:text-lg font-medium text-gray-700 mb-1.5 sm:mb-2">選擇頭像顏色</label>
                 <div className="flex gap-1 sm:gap-1.5 md:gap-2 flex-wrap">
                   {MEMBER_COLORS.map((color) => (
                     <button
@@ -1419,31 +1419,31 @@ export default function Home() {
                 </div>
               </div>
               <div>
-                <label className="block text-xs sm:text-xs md:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">密碼 <span className="text-red-500">*</span></label>
+                <label className="block text-sm sm:text-base md:text-lg font-medium text-gray-700 mb-1.5 sm:mb-2">密碼 <span className="text-red-500">*</span></label>
                 <input
                   type="password"
                   required
                   value={regPassword}
                   onChange={(e) => setRegPassword(e.target.value)}
-                  className="w-full px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-2.5 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-xs sm:text-xs md:text-sm"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-sm sm:text-base md:text-lg"
                   placeholder="最少4個字元"
                   minLength={4}
                 />
               </div>
               <div>
-                <label className="block text-xs sm:text-xs md:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">確認密碼 <span className="text-red-500">*</span></label>
+                <label className="block text-sm sm:text-base md:text-lg font-medium text-gray-700 mb-1.5 sm:mb-2">確認密碼 <span className="text-red-500">*</span></label>
                 <input
                   type="password"
                   required
                   value={regConfirm}
                   onChange={(e) => setRegConfirm(e.target.value)}
-                  className="w-full px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-2.5 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-xs sm:text-xs md:text-sm"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-sm sm:text-base md:text-lg"
                   placeholder="冊次輸入密碼"
                 />
               </div>
               <button
                 type="submit"
-                className="w-full band-gradient text-white py-2 sm:py-2.5 md:py-3 rounded-lg sm:rounded-xl hover:shadow-lg transition-all font-medium text-xs sm:text-xs md:text-sm mt-1 sm:mt-2 md:mt-3"
+                className="w-full band-gradient text-white py-2.5 sm:py-3 md:py-4 rounded-lg sm:rounded-xl hover:shadow-lg transition-all font-medium text-sm sm:text-base md:text-lg mt-2 sm:mt-3 md:mt-4"
               >
                 <i className="fas fa-user-plus mr-1 sm:mr-2" />完成註冊
               </button>
@@ -1457,14 +1457,14 @@ export default function Home() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 overflow-y-auto">
           <div className="glass-panel rounded-xl sm:rounded-2xl w-full max-w-sm sm:max-w-2xl p-4 sm:p-6 modal-enter shadow-2xl my-4 sm:my-8">
             <div className="flex items-center justify-between mb-3 sm:mb-5">
-              <h3 className="text-lg sm:text-xl font-bold text-gray-800 truncate">
+              <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 truncate">
                 {eventModalMode === "add" ? "新增活動" : eventModalMode === "edit" ? "編輯活動" : "活動詳情"}
               </h3>
               <div className="flex items-center gap-2 ml-2 flex-shrink-0">
                 {eventModalMode === "view" && currentUser?.role === "admin" && selectedEvent && !isEventEnded(selectedEvent) && (
                   <button
                     onClick={() => selectedEvent && openEventEditModal(selectedEvent.id)}
-                    className="text-xs bg-amber-50 text-amber-700 hover:bg-amber-100 px-2.5 py-1.5 rounded-lg transition-all font-medium flex items-center gap-1"
+                    className="text-sm sm:text-base bg-amber-50 text-amber-700 hover:bg-amber-100 px-3 py-2 rounded-lg transition-all font-medium flex items-center gap-1"
                   >
                     <i className="fas fa-edit text-xs" />編輯
                   </button>
@@ -1480,19 +1480,19 @@ export default function Home() {
             
             {eventModalMode === "view" && currentUser?.role === "admin" && selectedEvent && (
               <div className="mb-4 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 bg-green-50 border-b border-green-200">
-                <p className="text-xs text-green-700 font-medium mb-2 flex items-center gap-1">
+                <p className="text-sm sm:text-base text-green-700 font-medium mb-2 flex items-center gap-1">
                   <i className="fab fa-whatsapp" />發送 WhatsApp 通知
                 </p>
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleOpenWhatsAppNotification("reminder")}
-                    className="flex-1 bg-green-500 text-white py-2.5 rounded-lg hover:bg-green-600 transition-all font-medium text-sm flex items-center justify-center gap-1.5"
+                    className="flex-1 bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition-all font-medium text-base flex items-center justify-center gap-1.5"
                   >
                     <i className="fas fa-bell text-xs" />活動前提醒
                   </button>
                   <button
                     onClick={() => handleOpenWhatsAppNotification("summary")}
-                    className="flex-1 bg-teal-500 text-white py-2.5 rounded-lg hover:bg-teal-600 transition-all font-medium text-sm flex items-center justify-center gap-1.5"
+                    className="flex-1 bg-teal-500 text-white py-3 rounded-lg hover:bg-teal-600 transition-all font-medium text-base flex items-center justify-center gap-1.5"
                   >
                     <i className="fas fa-list-check text-xs" />出席狀態摘要
                   </button>
@@ -1503,37 +1503,37 @@ export default function Home() {
             {eventModalMode !== "view" ? (
               <form onSubmit={handleSaveEvent} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">活動名稱 <span className="text-red-500">*</span></label>
+                  <label className="block text-base sm:text-lg font-medium text-gray-700 mb-2">活動名稱 <span className="text-red-500">*</span></label>
                   <input
                     type="text"
                     required
                     value={eventTitle}
                     onChange={(e) => setEventTitle(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-sm"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-base sm:text-lg"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">日期 <span className="text-red-500">*</span></label>
+                    <label className="block text-base sm:text-lg font-medium text-gray-700 mb-2">日期 <span className="text-red-500">*</span></label>
                     <input
                       type="date"
                       required
                       value={eventDate}
                       onChange={(e) => { setEventDate(e.target.value); checkDateHolidayFor(e.target.value); }}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-sm"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-base sm:text-lg"
                     />
                     {dateHolidayWarning && (
-                      <p className="text-xs text-amber-600 mt-1">
+                      <p className="text-sm sm:text-base text-amber-600 mt-1">
                         <i className="fas fa-exclamation-triangle mr-1" />此日期為香港公眾假期：{dateHolidayWarning}
                       </p>
                     )}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">類型</label>
+                    <label className="block text-base sm:text-lg font-medium text-gray-700 mb-2">類型</label>
                     <select
                       value={eventType}
                       onChange={(e) => setEventType(e.target.value as BandEvent["type"])}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-sm"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-base sm:text-lg"
                     >
                       <option value="rehearsal">🎸 排練</option>
                       <option value="performance">🎤 演出</option>
@@ -1544,24 +1544,24 @@ export default function Home() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">開始時間 <span className="text-red-500">*</span></label>
+                    <label className="block text-sm sm:text-base md:text-lg font-medium text-gray-700 mb-2 sm:mb-3">開始時間 <span className="text-red-500">*</span></label>
                     <div className="flex items-center gap-1 sm:gap-1.5 bg-gray-50 p-1.5 sm:p-2 rounded-lg sm:rounded-xl border border-gray-200 overflow-x-auto">
                       <div className="flex flex-col items-center flex-shrink-0">
                         <label className="text-xs text-gray-500 mb-0.5">時</label>
-                        <select value={startHour} onChange={(e) => setStartHour(e.target.value)} className="time-select w-12 sm:w-14 text-xs sm:text-sm">
+                        <select value={startHour} onChange={(e) => setStartHour(e.target.value)} className="time-select w-14 sm:w-16 text-sm sm:text-base">
                           {[1,2,3,4,5,6,7,8,9,10,11,12].map(h => <option key={h} value={h}>{String(h).padStart(2, '0')}</option>)}
                         </select>
                       </div>
-                      <span className="text-gray-400 pt-3 sm:pt-5 text-xs sm:text-base flex-shrink-0">:</span>
+                      <span className="text-gray-400 pt-3 sm:pt-5 text-sm sm:text-lg flex-shrink-0">:</span>
                       <div className="flex flex-col items-center flex-shrink-0">
-                        <label className="text-xs text-gray-500 mb-0.5">分</label>
-                        <select value={startMinute} onChange={(e) => setStartMinute(e.target.value)} className="time-select w-12 sm:w-14 text-xs sm:text-sm">
+                        <label className="text-xs sm:text-sm text-gray-500 mb-0.5">分</label>
+                        <select value={startMinute} onChange={(e) => setStartMinute(e.target.value)} className="time-select w-14 sm:w-16 text-sm sm:text-base">
                           {minuteOptions.map(m => <option key={m} value={m}>{m}</option>)}
                         </select>
                       </div>
                       <div className="flex flex-col items-center flex-shrink-0">
-                        <label className="text-xs text-gray-500 mb-0.5">時段</label>
-                        <select value={startAmpm} onChange={(e) => setStartAmpm(e.target.value)} className="time-select w-14 sm:w-16 bg-amber-50 font-medium text-xs sm:text-sm">
+                        <label className="text-xs sm:text-sm text-gray-500 mb-0.5">時段</label>
+                        <select value={startAmpm} onChange={(e) => setStartAmpm(e.target.value)} className="time-select w-16 sm:w-20 bg-amber-50 font-medium text-sm sm:text-base">
                           <option value="AM">上午</option>
                           <option value="PM">下午</option>
                         </select>
@@ -1569,24 +1569,24 @@ export default function Home() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">結束時間 <span className="text-red-500">*</span></label>
+                    <label className="block text-sm sm:text-base md:text-lg font-medium text-gray-700 mb-2 sm:mb-3">結束時間 <span className="text-red-500">*</span></label>
                     <div className="flex items-center gap-1 sm:gap-1.5 bg-gray-50 p-1.5 sm:p-2 rounded-lg sm:rounded-xl border border-gray-200 overflow-x-auto">
                       <div className="flex flex-col items-center flex-shrink-0">
                         <label className="text-xs text-gray-500 mb-0.5">時</label>
-                        <select value={endHour} onChange={(e) => setEndHour(e.target.value)} className="time-select w-12 sm:w-14 text-xs sm:text-sm">
+                        <select value={endHour} onChange={(e) => setEndHour(e.target.value)} className="time-select w-14 sm:w-16 text-sm sm:text-base">
                           {[1,2,3,4,5,6,7,8,9,10,11,12].map(h => <option key={h} value={h}>{String(h).padStart(2, '0')}</option>)}
                         </select>
                       </div>
-                      <span className="text-gray-400 pt-3 sm:pt-5 text-xs sm:text-base flex-shrink-0">:</span>
+                      <span className="text-gray-400 pt-3 sm:pt-5 text-sm sm:text-lg flex-shrink-0">:</span>
                       <div className="flex flex-col items-center flex-shrink-0">
-                        <label className="text-xs text-gray-500 mb-0.5">分</label>
-                        <select value={endMinute} onChange={(e) => setEndMinute(e.target.value)} className="time-select w-12 sm:w-14 text-xs sm:text-sm">
+                        <label className="text-xs sm:text-sm text-gray-500 mb-0.5">分</label>
+                        <select value={endMinute} onChange={(e) => setEndMinute(e.target.value)} className="time-select w-14 sm:w-16 text-sm sm:text-base">
                           {minuteOptions.map(m => <option key={m} value={m}>{m}</option>)}
                         </select>
                       </div>
                       <div className="flex flex-col items-center flex-shrink-0">
-                        <label className="text-xs text-gray-500 mb-0.5">時段</label>
-                        <select value={endAmpm} onChange={(e) => setEndAmpm(e.target.value)} className="time-select w-14 sm:w-16 bg-amber-50 font-medium text-xs sm:text-sm">
+                        <label className="text-xs sm:text-sm text-gray-500 mb-0.5">時段</label>
+                        <select value={endAmpm} onChange={(e) => setEndAmpm(e.target.value)} className="time-select w-16 sm:w-20 bg-amber-50 font-medium text-sm sm:text-base">
                           <option value="AM">上午</option>
                           <option value="PM">下午</option>
                         </select>
@@ -1595,32 +1595,32 @@ export default function Home() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">地點 <span className="text-red-500">*</span></label>
+                  <label className="block text-base sm:text-lg font-medium text-gray-700 mb-2">地點 <span className="text-red-500">*</span></label>
                   <input
                     type="text"
                     required
                     value={eventLocation}
                     onChange={(e) => setEventLocation(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-sm"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-base sm:text-lg"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">備註</label>
+                  <label className="block text-base sm:text-lg font-medium text-gray-700 mb-2">備註</label>
                   <textarea
                     rows={3}
                     value={eventNotes}
                     onChange={(e) => setEventNotes(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-sm resize-none"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-base sm:text-lg resize-none"
                   />
                 </div>
                 {eventModalMode === "add" && (
                   <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 sm:p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <label className="text-sm font-medium text-amber-800">
+                      <label className="text-base sm:text-lg font-medium text-amber-800">
                         <i className="fas fa-redo mr-2 text-amber-600" />重複活動
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
-                        <span className="text-xs text-gray-600">啟用重複</span>
+                        <span className="text-sm sm:text-base text-gray-600">啟用重複</span>
                         <div
                           onClick={() => {
                             setRepeatEnabled(!repeatEnabled);
@@ -1640,7 +1640,7 @@ export default function Home() {
                     </div>
                     {repeatEnabled && (
                       <div className="space-y-2">
-                        <p className="text-xs text-amber-700 mb-2">
+                        <p className="text-sm sm:text-base text-amber-700 mb-2">
                           <i className="fas fa-info-circle mr-1" />
                           除上方日期外，選擇其他重複活動的日期
                         </p>
@@ -2255,7 +2255,7 @@ export default function Home() {
             </div>
 
             {/* Calendar grid */}
-            <div className="grid grid-cols-7 gap-0.5 sm:gap-1 md:gap-1.5 w-full">
+            <div className="grid grid-cols-7 gap-1 sm:gap-2 md:gap-3 w-full">
               {renderCalendar()}
             </div>
           </div>
