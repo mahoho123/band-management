@@ -107,7 +107,7 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
           </div>
 
           {/* Year Grid 4x4 */}
-          <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
+          <div className="grid grid-cols-4 gap-1 sm:gap-1.5">
             {currentYearPage.map(y => (
               <button
                 key={y}
@@ -115,7 +115,7 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
                   onYearChange(y);
                   setShowYearPicker(false);
                 }}
-                className={`w-10 sm:w-12 md:w-14 h-10 sm:h-12 md:h-14 rounded-full font-semibold text-xs sm:text-xs md:text-sm transition-all flex items-center justify-center ${
+                className={`w-8 sm:w-10 md:w-12 h-8 sm:h-10 md:h-12 rounded-full font-semibold text-xs transition-all flex items-center justify-center ${
                   y === year
                     ? 'bg-blue-500 text-white shadow-md scale-105'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -131,7 +131,7 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
       {/* Month Picker Grid */}
       {showMonthPicker && (
         <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white rounded-lg shadow-2xl p-2 sm:p-3 z-50 border border-gray-200">
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 sm:gap-2">
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-1 sm:gap-1.5">
             {MONTHS_CN.map((m, idx) => (
               <button
                 key={idx}
@@ -139,7 +139,7 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
                   onMonthChange(idx);
                   setShowMonthPicker(false);
                 }}
-                className={`w-10 sm:w-12 md:w-14 h-10 sm:h-12 md:h-14 rounded-full font-semibold text-xs sm:text-xs md:text-sm transition-all flex items-center justify-center ${
+                className={`w-8 sm:w-10 md:w-12 h-8 sm:h-10 md:h-12 rounded-full font-semibold text-xs transition-all flex items-center justify-center ${
                   idx === month
                     ? 'bg-blue-500 text-white shadow-md scale-105'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
