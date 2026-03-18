@@ -59,14 +59,14 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
   };
 
   return (
-    <div className="flex items-center gap-2 sm:gap-3 min-w-0 relative" ref={containerRef}>
+    <div className="flex items-center gap-1 sm:gap-2 min-w-0 relative" ref={containerRef}>
       {/* Year Button */}
       <button
         onClick={() => {
           setShowYearPicker(!showYearPicker);
           setShowMonthPicker(false);
         }}
-        className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-800 bg-transparent border-none outline-none cursor-pointer hover:text-amber-700 transition-colors px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg hover:bg-amber-50 whitespace-nowrap"
+        className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-800 bg-transparent border-none outline-none cursor-pointer hover:text-amber-700 transition-colors px-1.5 sm:px-2 py-1 sm:py-1.5 rounded-lg hover:bg-amber-50 whitespace-nowrap"
       >
         {year}年
       </button>
@@ -77,14 +77,14 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
           setShowMonthPicker(!showMonthPicker);
           setShowYearPicker(false);
         }}
-        className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-800 bg-transparent border-none outline-none cursor-pointer hover:text-amber-700 transition-colors px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg hover:bg-amber-50 whitespace-nowrap"
+        className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-800 bg-transparent border-none outline-none cursor-pointer hover:text-amber-700 transition-colors px-1.5 sm:px-2 py-1 sm:py-1.5 rounded-lg hover:bg-amber-50 whitespace-nowrap"
       >
         {MONTHS_CN[month]}
       </button>
 
       {/* Year Picker Grid with Pagination */}
       {showYearPicker && (
-        <div className="absolute top-full left-0 mt-2 bg-white rounded-lg shadow-2xl p-4 sm:p-5 z-50 border border-gray-200 min-w-max">
+        <div className="absolute top-full left-0 mt-2 bg-white rounded-lg shadow-2xl p-3 sm:p-4 z-50 border border-gray-200 min-w-max">
           {/* Year Page Navigation */}
           <div className="flex items-center justify-between mb-4 gap-2">
             <button
@@ -107,7 +107,7 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
           </div>
 
           {/* Year Grid 4x4 */}
-          <div className="grid grid-cols-4 gap-2 sm:gap-3">
+          <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
             {currentYearPage.map(y => (
               <button
                 key={y}
@@ -130,8 +130,8 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
 
       {/* Month Picker Grid */}
       {showMonthPicker && (
-        <div className="absolute top-full left-0 sm:left-auto mt-2 bg-white rounded-lg shadow-2xl p-4 sm:p-5 z-50 border border-gray-200 min-w-max">
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-3">
+        <div className="absolute top-full left-0 sm:left-auto mt-2 bg-white rounded-lg shadow-2xl p-3 sm:p-4 z-50 border border-gray-200 min-w-max">
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 sm:gap-2">
             {MONTHS_CN.map((m, idx) => (
               <button
                 key={idx}
