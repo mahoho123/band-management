@@ -84,7 +84,7 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
 
       {/* Year Picker Grid with Pagination */}
       {showYearPicker && (
-        <div className="absolute top-full left-0 mt-2 bg-white rounded-lg shadow-2xl p-3 sm:p-4 z-50 border border-gray-200 min-w-max">
+        <div className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-2xl p-3 sm:p-4 z-50 border border-gray-200 min-w-max">
           {/* Year Page Navigation */}
           <div className="flex items-center justify-between mb-4 gap-2">
             <button
@@ -130,7 +130,7 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
 
       {/* Month Picker Grid */}
       {showMonthPicker && (
-        <div className="absolute top-full left-0 sm:left-auto mt-2 bg-white rounded-lg shadow-2xl p-3 sm:p-4 z-50 border border-gray-200 min-w-max">
+        <div className="absolute top-full left-0 sm:left-auto mt-1 bg-white rounded-lg shadow-2xl p-3 sm:p-4 z-50 border border-gray-200 min-w-max">
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 sm:gap-2">
             {MONTHS_CN.map((m, idx) => (
               <button
