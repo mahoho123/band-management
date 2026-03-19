@@ -529,7 +529,7 @@
 /* 年份字體 - 手機 16px, 平板 20px, 桌面 28px */
 .year-picker-text {
   font-size: clamp(16px, 2.5vw, 28px);
-  font-weight: 600;
+  font-weight: 400;
   letter-spacing: 0.3px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -540,7 +540,7 @@
 /* 月份字體 - 手機 16px, 平板 20px, 桌面 28px，加粗 */
 .month-picker-text {
   font-size: clamp(16px, 2.5vw, 28px);
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: 0.3px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
