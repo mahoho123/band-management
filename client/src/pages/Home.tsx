@@ -2604,9 +2604,18 @@ export default function Home() {
                     const monthMatch = listMonth === "all" || parseInt(month) === parseInt(listMonth as string) + 1;
                     return yearMatch && monthMatch;
                   });
-                  const eventCount = monthEvents.filter(e => e.attendance[member.id] === "going").length;
-                  const notAttendingCount = monthEvents.filter(e => e.attendance[member.id] === "not-going").length;
-                  const pendingCount = monthEvents.filter(e => e.attendance[member.id] === "unknown" || !e.attendance[member.id]).length;
+                  const eventCount = monthEvents.filter(e => {
+                    const att = localAttendance[e.id] || e.attendance;
+                    return att[member.id] === "going";
+                  }).length;
+                  const notAttendingCount = monthEvents.filter(e => {
+                    const att = localAttendance[e.id] || e.attendance;
+                    return att[member.id] === "not-going";
+                  }).length;
+                  const pendingCount = monthEvents.filter(e => {
+                    const att = localAttendance[e.id] || e.attendance;
+                    return att[member.id] === "unknown" || !att[member.id];
+                  }).length;
                   return (
                     <div key={member.id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:border-amber-200 transition-all">
                       <div className="flex items-start justify-between">
