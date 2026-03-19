@@ -84,17 +84,20 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
 
       {/* Year Picker Grid with Pagination */}
       {showYearPicker && (
-        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-0 bg-white rounded-lg shadow-2xl p-1 sm:p-2 z-50 border border-gray-200 w-80 sm:w-96">
+        <div
+          className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-2xl z-50 border border-gray-200"
+          style={{ width: 'max-content', minWidth: '100%' }}
+        >
           {/* Year Page Navigation */}
-          <div className="flex items-center justify-between mb-4 gap-2">
+          <div className="flex items-center justify-between px-2 py-1.5 gap-2">
             <button
               onClick={handlePrevYearPage}
               disabled={yearPageIndex === 0}
               className="p-1 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              <ChevronUp size={20} className="text-gray-600" />
+              <ChevronUp size={16} className="text-gray-600" />
             </button>
-            <span className="text-xs sm:text-sm text-gray-600 font-medium">
+            <span className="text-xs text-gray-600 font-medium">
               {currentYearPage[0]}-{currentYearPage[currentYearPage.length - 1]}
             </span>
             <button
@@ -102,12 +105,12 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
               disabled={yearPageIndex === totalYearPages - 1}
               className="p-1 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              <ChevronDown size={20} className="text-gray-600" />
+              <ChevronDown size={16} className="text-gray-600" />
             </button>
           </div>
 
           {/* Year Grid 4x4 */}
-          <div className="grid grid-cols-4 gap-1 sm:gap-1.5">
+          <div className="grid grid-cols-4 gap-1 px-2 pb-2">
             {currentYearPage.map(y => (
               <button
                 key={y}
@@ -115,7 +118,7 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
                   onYearChange(y);
                   setShowYearPicker(false);
                 }}
-                className={`w-10 sm:w-12 md:w-14 h-11 sm:h-12 md:h-14 rounded-full transition-all flex items-center justify-center year-picker-text text-base sm:text-lg md:text-2xl ${
+                className={`h-9 px-2 rounded-full transition-all flex items-center justify-center whitespace-nowrap text-sm font-normal ${
                   y === year
                     ? 'bg-blue-500 text-white shadow-md scale-105'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -130,8 +133,11 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
 
       {/* Month Picker Grid */}
       {showMonthPicker && (
-        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-0 bg-white rounded-lg shadow-2xl p-1 sm:p-2 z-50 border border-gray-200 w-80 sm:w-96">
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-1 sm:gap-1.5">
+        <div
+          className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-2xl z-50 border border-gray-200 p-2"
+          style={{ width: 'max-content', minWidth: '100%' }}
+        >
+          <div className="grid grid-cols-4 gap-1">
             {MONTHS_CN.map((m, idx) => (
               <button
                 key={idx}
@@ -139,7 +145,7 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
                   onMonthChange(idx);
                   setShowMonthPicker(false);
                 }}
-                className={`w-10 sm:w-12 md:w-14 h-11 sm:h-12 md:h-14 rounded-full transition-all flex items-center justify-center month-picker-text text-base sm:text-lg md:text-2xl ${
+                className={`h-9 px-2 rounded-full transition-all flex items-center justify-center whitespace-nowrap text-sm font-medium ${
                   idx === month
                     ? 'bg-blue-500 text-white shadow-md scale-105'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
