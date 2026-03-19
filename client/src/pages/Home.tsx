@@ -1764,19 +1764,19 @@ export default function Home() {
                         </div>
                         <div className="flex gap-3 flex-wrap">
                           <button
-                            onClick={() => handleSetAttendance("going")}
+                            onPointerDown={(e) => { e.preventDefault(); handleSetAttendance("going"); }}
                             className={`attendance-btn flex-1 min-w-24 ${selectedEvent.attendance[currentUser.id as number] === "going" ? "going" : "pending"}`}
                           >
                             <i className="fas fa-check mr-2" />出席
                           </button>
                           <button
-                            onClick={() => handleSetAttendance("not-going")}
+                            onPointerDown={(e) => { e.preventDefault(); handleSetAttendance("not-going"); }}
                             className={`attendance-btn flex-1 min-w-24 ${selectedEvent.attendance[currentUser.id as number] === "not-going" ? "not-going" : "pending"}`}
                           >
                             <i className="fas fa-times mr-2" />不出席
                           </button>
                           <button
-                            onClick={() => handleSetAttendance("unknown")}
+                            onPointerDown={(e) => { e.preventDefault(); handleSetAttendance("unknown"); }}
                             className={`attendance-btn flex-1 min-w-24 ${selectedEvent.attendance[currentUser.id as number] === "unknown" ? "unknown" : "pending"}`}
                           >
                             <i className="fas fa-question mr-2" />待確認
@@ -1873,7 +1873,7 @@ export default function Home() {
                               </div>
                               <div className="flex gap-2 flex-wrap">
                                 <button
-                                  onClick={() => handleAttendanceChangeForMember(selectedEvent.id, member.id, "going")}
+                                  onPointerDown={(e) => { e.preventDefault(); handleAttendanceChangeForMember(selectedEvent.id, member.id, "going"); }}
                                   disabled={!currentUser}
                                   className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-75 active:scale-95 touch-manipulation ${
                                     !currentUser ? "opacity-50 cursor-not-allowed bg-gray-100 text-gray-400" :
@@ -1886,7 +1886,7 @@ export default function Home() {
                                   <i className="fas fa-check mr-1" />出席
                                 </button>
                                 <button
-                                  onClick={() => handleAttendanceChangeForMember(selectedEvent.id, member.id, "not-going")}
+                                  onPointerDown={(e) => { e.preventDefault(); handleAttendanceChangeForMember(selectedEvent.id, member.id, "not-going"); }}
                                   disabled={!currentUser}
                                   className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-75 active:scale-95 touch-manipulation ${
                                     !currentUser ? "opacity-50 cursor-not-allowed bg-gray-100 text-gray-400" :
@@ -1899,7 +1899,7 @@ export default function Home() {
                                   <i className="fas fa-times mr-1" />不出席
                                 </button>
                                 <button
-                                  onClick={() => handleAttendanceChangeForMember(selectedEvent.id, member.id, "unknown")}
+                                  onPointerDown={(e) => { e.preventDefault(); handleAttendanceChangeForMember(selectedEvent.id, member.id, "unknown"); }}
                                   disabled={!currentUser}
                                   className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-75 active:scale-95 touch-manipulation ${
                                     !currentUser ? "opacity-50 cursor-not-allowed bg-gray-100 text-gray-400" :
