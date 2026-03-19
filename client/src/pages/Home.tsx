@@ -1762,26 +1762,33 @@ export default function Home() {
                           </p>
                           <p className="text-amber-700 text-xs">請選擇你的出席狀態：</p>
                         </div>
-                        <div className="flex gap-3 flex-wrap">
-                          <button
-                            onPointerDown={(e) => { e.preventDefault(); handleSetAttendance("going"); }}
-                            className={`attendance-btn flex-1 min-w-24 ${selectedEvent.attendance[currentUser.id as number] === "going" ? "going" : "pending"}`}
-                          >
-                            <i className="fas fa-check mr-2" />出席
-                          </button>
-                          <button
-                            onPointerDown={(e) => { e.preventDefault(); handleSetAttendance("not-going"); }}
-                            className={`attendance-btn flex-1 min-w-24 ${selectedEvent.attendance[currentUser.id as number] === "not-going" ? "not-going" : "pending"}`}
-                          >
-                            <i className="fas fa-times mr-2" />不出席
-                          </button>
-                          <button
-                            onPointerDown={(e) => { e.preventDefault(); handleSetAttendance("unknown"); }}
-                            className={`attendance-btn flex-1 min-w-24 ${selectedEvent.attendance[currentUser.id as number] === "unknown" ? "unknown" : "pending"}`}
-                          >
-                            <i className="fas fa-question mr-2" />待確認
-                          </button>
-                        </div>
+                        {(() => {
+                          // 使用 localAttendance 即時狀態，消除視覺延遲
+                          const myStatus = (localAttendance[selectedEvent.id]?.[currentUser.id as number]) 
+                            ?? selectedEvent.attendance[currentUser.id as number];
+                          return (
+                            <div className="flex gap-3 flex-wrap">
+                              <button
+                                onPointerDown={(e) => { e.preventDefault(); handleSetAttendance("going"); }}
+                                className={`attendance-btn flex-1 min-w-24 ${myStatus === "going" ? "going" : "pending"}`}
+                              >
+                                <i className="fas fa-check mr-2" />出席
+                              </button>
+                              <button
+                                onPointerDown={(e) => { e.preventDefault(); handleSetAttendance("not-going"); }}
+                                className={`attendance-btn flex-1 min-w-24 ${myStatus === "not-going" ? "not-going" : "pending"}`}
+                              >
+                                <i className="fas fa-times mr-2" />不出席
+                              </button>
+                              <button
+                                onPointerDown={(e) => { e.preventDefault(); handleSetAttendance("unknown"); }}
+                                className={`attendance-btn flex-1 min-w-24 ${myStatus === "unknown" ? "unknown" : "pending"}`}
+                              >
+                                <i className="fas fa-question mr-2" />待確認
+                              </button>
+                            </div>
+                          );
+                        })()}
                       </div>
                     )}
 
