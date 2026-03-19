@@ -381,6 +381,27 @@ export default function Home() {
 
   const [adminLoginPassword, setAdminLoginPassword] = useState("");
 
+  // 成員登入密碼輸入（取代 window.prompt）
+  const [memberLoginState, setMemberLoginState] = useState<{
+    memberId: number;
+    memberName: string;
+    mode: 'enter' | 'set'; // 'enter' = 輸入已有密碼, 'set' = 首次設定密碼
+    password: string;
+    newPassword: string;
+    confirmPassword: string;
+  } | null>(null);
+
+  // 重設密碼 modal（主管用）
+  const [resetPasswordState, setResetPasswordState] = useState<{
+    type: 'member' | 'admin';
+    memberId?: number;
+    memberName?: string;
+    step: 'current' | 'new'; // admin 重設時需要先驗證現有密碼
+    currentPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+  } | null>(null);
+
   const [regName, setRegName] = useState("");
   const [regInstrument, setRegInstrument] = useState("");
   const [regPassword, setRegPassword] = useState("");
@@ -576,40 +597,62 @@ export default function Home() {
     const member = membersQuery.data?.find((m) => m.id === memberId);
     if (!member) return;
     if (!member.password) {
-      // First login - set password
-      const newPassword = prompt(`首次登入，請為 ${member.name} 設定密碼（最少4個字元）：`);
-      if (!newPassword || newPassword.length < 4) return showToast("密碼太短或取消設定", "error");
-      const confirmPassword = prompt("請再次輸入密碼確認：");
-      if (newPassword !== confirmPassword) return showToast("兩次輸入的密碼不一致", "error");
-      
-      updateMemberMutation.mutate({ id: memberId, password: newPassword }, {
-        onSuccess: () => {
-          const newUser1 = { id: memberId, role: "member" as const, name: member.name };
-          setCurrentUser(newUser1);
-          sessionStorage.setItem("bandCurrentUser", JSON.stringify(newUser1));
-          setShowLoginModal(false);
-          showToast(`歡迎，${member.name}！密碼已設定`, "success");
-          membersQuery.refetch();
-        },
+      // First login - show inline set password UI
+      setMemberLoginState({
+        memberId,
+        memberName: member.name,
+        mode: 'set',
+        password: '',
+        newPassword: '',
+        confirmPassword: '',
       });
     } else {
-      const password = prompt(`請輸入 ${member.name} 的密碼：`);
-      if (password === null) return;
+      // Show inline password entry UI
+      setMemberLoginState({
+        memberId,
+        memberName: member.name,
+        mode: 'enter',
+        password: '',
+        newPassword: '',
+        confirmPassword: '',
+      });
+    }
+  };
+
+  const handleMemberLoginSubmit = () => {
+    if (!memberLoginState) return;
+    const { memberId, memberName, mode, password, newPassword, confirmPassword } = memberLoginState;
+    if (mode === 'set') {
+      if (newPassword.length < 4) return showToast("密碼最少需要4個字元", "error");
+      if (newPassword !== confirmPassword) return showToast("兩次輸入的密碼不一致", "error");
+      updateMemberMutation.mutate({ id: memberId, password: newPassword }, {
+        onSuccess: () => {
+          const newUser = { id: memberId, role: "member" as const, name: memberName };
+          setCurrentUser(newUser);
+          sessionStorage.setItem("bandCurrentUser", JSON.stringify(newUser));
+          setShowLoginModal(false);
+          setMemberLoginState(null);
+          showToast(`歡迎，${memberName}！密碼已設定`, "success");
+          membersQuery.refetch();
+        },
+        onError: () => showToast("設定密碼失敗，請稍後重試", "error"),
+      });
+    } else {
+      if (!password) return showToast("請輸入密碼", "error");
       verifyMemberPasswordMutation.mutate({ memberId, password }, {
         onSuccess: (result) => {
           if (result.success) {
-            const newUser2 = { id: memberId, role: "member" as const, name: member.name };
-            setCurrentUser(newUser2);
-            sessionStorage.setItem("bandCurrentUser", JSON.stringify(newUser2));
+            const newUser = { id: memberId, role: "member" as const, name: memberName };
+            setCurrentUser(newUser);
+            sessionStorage.setItem("bandCurrentUser", JSON.stringify(newUser));
             setShowLoginModal(false);
-            showToast(`歡迎回來，${member.name}！`, "success");
+            setMemberLoginState(null);
+            showToast(`歡迎回來，${memberName}！`, "success");
           } else {
             showToast(result.message || "密碼錯誤", "error");
           }
         },
-        onError: () => {
-          showToast("登入失敗，請稍後重試", "error");
-        },
+        onError: () => showToast("登入失敗，請稍後重試", "error"),
       });
     }
   };
@@ -928,36 +971,68 @@ export default function Home() {
   const handleResetMemberPassword = (memberId: number) => {
     const member = membersQuery.data?.find((m) => m.id === memberId);
     if (!member) return;
-    const newPassword = prompt(`為 ${member.name} 設定新密碼（最少4個字元）：`);
-    if (!newPassword) return;
-    if (newPassword.length < 4) return showToast("密碼太短", "error");
-    
-    updateMemberMutation.mutate({ id: memberId, password: newPassword }, {
-      onSuccess: async () => {
-        showToast(`${member.name} 的密碼已重設`, "success");
-        // Wait a moment for the server to process, then refetch
-        await new Promise(resolve => setTimeout(resolve, 500));
-        await membersQuery.refetch();
-      },
+    setResetPasswordState({
+      type: 'member',
+      memberId,
+      memberName: member.name,
+      step: 'new',
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
     });
   };
 
   const handleResetAdminPassword = () => {
-    const currentPassword = prompt("請輸入現有主管密碼：");
-    if (currentPassword !== systemDataQuery.data?.adminPassword) return showToast("密碼錯誤", "error");
-    const newPassword = prompt("請輸入新主管密碼（最少4個字元）：");
-    if (!newPassword || newPassword.length < 4) return showToast("密碼太短", "error");
-    const confirmPassword = prompt("請再次輸入新密碼確認：");
-    if (newPassword !== confirmPassword) return showToast("兩次輸入不一致", "error");
-    
-    updatePasswordMutation.mutate({ adminPassword: newPassword }, {
-      onSuccess: async () => {
-        showToast("主管密碼已重設", "success");
-        // Wait a moment for the server to process, then refetch
-        await new Promise(resolve => setTimeout(resolve, 500));
-        await systemDataQuery.refetch();
-      },
+    setResetPasswordState({
+      type: 'admin',
+      step: 'current',
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
     });
+  };
+
+  const handleResetPasswordSubmit = () => {
+    if (!resetPasswordState) return;
+    const { type, memberId, memberName, step, currentPassword, newPassword, confirmPassword } = resetPasswordState;
+    if (type === 'admin') {
+      if (step === 'current') {
+        // 驗證現有密碼
+        verifyAdminPasswordMutation.mutate({ password: currentPassword }, {
+          onSuccess: (result) => {
+            if (result.success) {
+              setResetPasswordState(prev => prev ? { ...prev, step: 'new' } : null);
+            } else {
+              showToast("現有密碼錯誤", "error");
+            }
+          },
+          onError: () => showToast("驗證失敗，請稍後重試", "error"),
+        });
+        return;
+      }
+      if (newPassword.length < 4) return showToast("密碼最少需要4個字元", "error");
+      if (newPassword !== confirmPassword) return showToast("兩次輸入不一致", "error");
+      updatePasswordMutation.mutate({ adminPassword: newPassword }, {
+        onSuccess: async () => {
+          showToast("主管密碼已重設", "success");
+          setResetPasswordState(null);
+          await new Promise(resolve => setTimeout(resolve, 500));
+          await systemDataQuery.refetch();
+        },
+        onError: () => showToast("重設密碼失敗，請稍後重試", "error"),
+      });
+    } else {
+      if (newPassword.length < 4) return showToast("密碼最少需要4個字元", "error");
+      updateMemberMutation.mutate({ id: memberId!, password: newPassword }, {
+        onSuccess: async () => {
+          showToast(`${memberName} 的密碼已重設`, "success");
+          setResetPasswordState(null);
+          await new Promise(resolve => setTimeout(resolve, 500));
+          await membersQuery.refetch();
+        },
+        onError: () => showToast("重設密碼失敗，請稍後重試", "error"),
+      });
+    }
   };
 
   const handleDeleteMember = (memberId: number) => {
@@ -1316,34 +1391,108 @@ export default function Home() {
 
             {loginTab === "member" ? (
               <div>
-                <div className="space-y-1.5 sm:space-y-2 max-h-48 sm:max-h-64 overflow-y-auto mb-2 sm:mb-4">
-                  {(membersQuery.data || []).length === 0 ? (
-                    <p className="text-center text-gray-500 py-4 sm:py-6 text-sm sm:text-base md:text-lg">暫無成員，請先註冊</p>
-                  ) : (
-                    (membersQuery.data || []).map((member) => (
-                      <div
-                        key={member.id}
-                        onClick={() => handleMemberLogin(member.id)}
-                        className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-gray-50 rounded-lg sm:rounded-xl hover:bg-amber-50 transition-colors cursor-pointer border border-transparent hover:border-amber-200"
+                {/* 內嵌密碼輸入 UI */}
+                {memberLoginState ? (
+                  <div className="space-y-3 sm:space-y-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <button
+                        onClick={() => setMemberLoginState(null)}
+                        className="text-gray-400 hover:text-gray-600 text-sm"
                       >
-                        <div className={`w-10 sm:w-12 h-10 sm:h-12 rounded-full ${COLOR_MAP[member.color] || "bg-amber-500"} flex items-center justify-center text-white font-bold text-sm sm:text-base flex-shrink-0`}>
-                          {member.name.charAt(0)}
+                        <i className="fas fa-arrow-left" />
+                      </button>
+                      <span className="font-medium text-gray-800 text-sm sm:text-base">
+                        {memberLoginState.mode === 'set' ? `首次登入 - 設定密碼` : `登入`}
+                      </span>
+                      <span className="text-amber-600 font-bold text-sm sm:text-base">({memberLoginState.memberName})</span>
+                    </div>
+                    {memberLoginState.mode === 'enter' ? (
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">密碼</label>
+                          <input
+                            type="password"
+                            autoFocus
+                            value={memberLoginState.password}
+                            onChange={(e) => setMemberLoginState(prev => prev ? {...prev, password: e.target.value} : null)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleMemberLoginSubmit()}
+                            className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-sm sm:text-base"
+                            placeholder="輸入密碼"
+                          />
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-gray-800 text-sm sm:text-base md:text-lg truncate">{member.name}</div>
-                          {member.instrument && <div className="text-xs sm:text-sm md:text-base text-gray-500 truncate">{member.instrument}</div>}
+                        <button
+                          onClick={handleMemberLoginSubmit}
+                          className="w-full band-gradient text-white py-2.5 sm:py-3 rounded-xl hover:shadow-lg transition-all font-medium text-sm sm:text-base"
+                        >
+                          <i className="fas fa-sign-in-alt mr-2" />登入
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-xs text-amber-700 bg-amber-50 rounded-lg p-2">首次登入，請設定密碼（最少4個字元）</p>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">新密碼</label>
+                          <input
+                            type="password"
+                            autoFocus
+                            value={memberLoginState.newPassword}
+                            onChange={(e) => setMemberLoginState(prev => prev ? {...prev, newPassword: e.target.value} : null)}
+                            className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-sm sm:text-base"
+                            placeholder="設定新密碼"
+                          />
                         </div>
-                        <i className="fas fa-chevron-right text-gray-400 text-xs flex-shrink-0" />
-                      </div>
-                    ))
-                  )}
-                </div>
-                <button
-                  onClick={() => { setShowLoginModal(false); setShowRegisterModal(true); }}
-                  className="w-full py-2.5 sm:py-3 border-2 border-dashed border-amber-300 text-amber-700 rounded-lg sm:rounded-xl hover:bg-amber-50 transition-all text-sm sm:text-base md:text-lg font-medium"
-                >
-                  <i className="fas fa-user-plus mr-1 sm:mr-2" />新成員註冊
-                </button>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">確認密碼</label>
+                          <input
+                            type="password"
+                            value={memberLoginState.confirmPassword}
+                            onChange={(e) => setMemberLoginState(prev => prev ? {...prev, confirmPassword: e.target.value} : null)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleMemberLoginSubmit()}
+                            className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-sm sm:text-base"
+                            placeholder="再次輸入密碼"
+                          />
+                        </div>
+                        <button
+                          onClick={handleMemberLoginSubmit}
+                          className="w-full band-gradient text-white py-2.5 sm:py-3 rounded-xl hover:shadow-lg transition-all font-medium text-sm sm:text-base"
+                        >
+                          <i className="fas fa-check mr-2" />設定密碼並登入
+                        </button>
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <div className="space-y-1.5 sm:space-y-2 max-h-48 sm:max-h-64 overflow-y-auto mb-2 sm:mb-4">
+                      {(membersQuery.data || []).length === 0 ? (
+                        <p className="text-center text-gray-500 py-4 sm:py-6 text-sm sm:text-base md:text-lg">暫無成員，請先註冊</p>
+                      ) : (
+                        (membersQuery.data || []).map((member) => (
+                          <div
+                            key={member.id}
+                            onClick={() => handleMemberLogin(member.id)}
+                            className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-gray-50 rounded-lg sm:rounded-xl hover:bg-amber-50 transition-colors cursor-pointer border border-transparent hover:border-amber-200"
+                          >
+                            <div className={`w-10 sm:w-12 h-10 sm:h-12 rounded-full ${COLOR_MAP[member.color] || "bg-amber-500"} flex items-center justify-center text-white font-bold text-sm sm:text-base flex-shrink-0`}>
+                              {member.name.charAt(0)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-gray-800 text-sm sm:text-base md:text-lg truncate">{member.name}</div>
+                              {member.instrument && <div className="text-xs sm:text-sm md:text-base text-gray-500 truncate">{member.instrument}</div>}
+                            </div>
+                            <i className="fas fa-chevron-right text-gray-400 text-xs flex-shrink-0" />
+                          </div>
+                        ))
+                      )}
+                    </div>
+                    <button
+                      onClick={() => { setShowLoginModal(false); setShowRegisterModal(true); }}
+                      className="w-full py-2.5 sm:py-3 border-2 border-dashed border-amber-300 text-amber-700 rounded-lg sm:rounded-xl hover:bg-amber-50 transition-all text-sm sm:text-base md:text-lg font-medium"
+                    >
+                      <i className="fas fa-user-plus mr-1 sm:mr-2" />新成員註冊
+                    </button>
+                  </>
+                )}
               </div>
             ) : (
               <form onSubmit={handleAdminLogin} className="space-y-2 sm:space-y-3 md:space-y-4">
@@ -2694,6 +2843,78 @@ export default function Home() {
           {toast.type === "error" && <i className="fas fa-exclamation-circle text-lg flex-shrink-0" />}
           {toast.type === "info" && <i className="fas fa-info-circle text-lg flex-shrink-0" />}
           <span>{toast.message}</span>
+        </div>
+      )}
+
+      {/* Reset Password Modal */}
+      {resetPasswordState && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="glass-panel rounded-2xl w-full max-w-sm p-6 modal-enter shadow-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-800">
+                {resetPasswordState.type === 'admin' ? '重設主管密碼' : `重設 ${resetPasswordState.memberName} 的密碼`}
+              </h3>
+              <button
+                onClick={() => setResetPasswordState(null)}
+                className="text-gray-400 hover:text-gray-600 text-xl"
+              >✗</button>
+            </div>
+            <div className="space-y-3">
+              {resetPasswordState.type === 'admin' && resetPasswordState.step === 'current' ? (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">現有主管密碼</label>
+                    <input
+                      type="password"
+                      autoFocus
+                      value={resetPasswordState.currentPassword}
+                      onChange={(e) => setResetPasswordState(prev => prev ? {...prev, currentPassword: e.target.value} : null)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleResetPasswordSubmit()}
+                      className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-sm"
+                      placeholder="輸入現有密碼"
+                    />
+                  </div>
+                  <button
+                    onClick={handleResetPasswordSubmit}
+                    className="w-full band-gradient text-white py-2.5 rounded-xl hover:shadow-lg transition-all font-medium text-sm"
+                  >
+                    <i className="fas fa-arrow-right mr-2" />下一步
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">新密碼（最少4個字元）</label>
+                    <input
+                      type="password"
+                      autoFocus
+                      value={resetPasswordState.newPassword}
+                      onChange={(e) => setResetPasswordState(prev => prev ? {...prev, newPassword: e.target.value} : null)}
+                      className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-sm"
+                      placeholder="設定新密碼"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">確認新密碼</label>
+                    <input
+                      type="password"
+                      value={resetPasswordState.confirmPassword}
+                      onChange={(e) => setResetPasswordState(prev => prev ? {...prev, confirmPassword: e.target.value} : null)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleResetPasswordSubmit()}
+                      className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-sm"
+                      placeholder="再次輸入新密碼"
+                    />
+                  </div>
+                  <button
+                    onClick={handleResetPasswordSubmit}
+                    className="w-full band-gradient text-white py-2.5 rounded-xl hover:shadow-lg transition-all font-medium text-sm"
+                  >
+                    <i className="fas fa-check mr-2" />確認重設
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
