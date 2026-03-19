@@ -29,6 +29,31 @@ function getDropdownPos(btnEl: HTMLButtonElement, dropW: number): DropdownPos {
   return { top, left };
 }
 
+// LOGO 色彩系統（慢半拍：金黃三角警告牌）
+const logoColors = {
+  // 下拉容器
+  dropBg: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
+  dropBorder: '1.5px solid #fcd34d',
+  dropShadow: '0 10px 40px rgba(0,0,0,0.15)',
+  // 普通按鈕
+  btnBg: '#fef9c3',
+  btnColor: '#78350f',
+  btnBorder: '1px solid #fde68a',
+  // hover 狀態
+  btnHoverBg: '#fde68a',
+  btnHoverBorder: '#fcd34d',
+  // 選中按鈕
+  selectedBg: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+  selectedColor: '#fff',
+  selectedBorder: '1.5px solid #b45309',
+  selectedShadow: '0 2px 6px rgba(217,119,6,0.4)',
+  // 分頁導航
+  navColor: '#92400e',
+  navHoverBg: '#fde68a',
+  rangeColor: '#92400e',
+  dividerColor: '#fde68a',
+};
+
 export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChange }: DatePickerProps) {
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [showYearPicker, setShowYearPicker] = useState(false);
@@ -41,9 +66,7 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
   const yearDropRef = useRef<HTMLDivElement>(null);
   const monthDropRef = useRef<HTMLDivElement>(null);
 
-  // 每個按鈕寬度約 56px，4列 + gap + padding = 約 260px
   const YEAR_W = 264;
-  // 月份最長「十一月」約 44px，4列 + gap + padding = 約 240px
   const MONTH_W = 248;
 
   const yearPages = useMemo(() => {
@@ -57,7 +80,6 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
   const currentYearPage = yearPages[yearPageIndex] || [];
   const totalYearPages = yearPages.length;
 
-  // Close on outside click
   useEffect(() => {
     if (!showYearPicker && !showMonthPicker) return;
     const handler = (e: MouseEvent) => {
@@ -91,7 +113,10 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
       <button
         ref={yearBtnRef}
         onClick={openYear}
-        className="text-sm sm:text-base font-bold text-gray-800 bg-transparent border-none outline-none cursor-pointer hover:text-amber-700 transition-colors px-1.5 py-1 rounded-lg hover:bg-amber-50 whitespace-nowrap"
+        className="text-sm sm:text-base font-bold border-none outline-none cursor-pointer px-1.5 py-1 rounded-lg whitespace-nowrap"
+        style={{ color: '#92400e', background: 'transparent', transition: 'background 0.05s' }}
+        onMouseEnter={e => (e.currentTarget.style.background = '#fef3c7')}
+        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
       >
         {year}年
       </button>
@@ -100,12 +125,15 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
       <button
         ref={monthBtnRef}
         onClick={openMonth}
-        className="text-sm sm:text-base font-bold text-gray-800 bg-transparent border-none outline-none cursor-pointer hover:text-amber-700 transition-colors px-1.5 py-1 rounded-lg hover:bg-amber-50 whitespace-nowrap"
+        className="text-sm sm:text-base font-bold border-none outline-none cursor-pointer px-1.5 py-1 rounded-lg whitespace-nowrap"
+        style={{ color: '#92400e', background: 'transparent', transition: 'background 0.05s' }}
+        onMouseEnter={e => (e.currentTarget.style.background = '#fef3c7')}
+        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
       >
         {MONTHS_CN[month]}
       </button>
 
-      {/* Year Picker — rendered via Portal to body */}
+      {/* Year Picker Portal */}
       {showYearPicker && createPortal(
         <div
           ref={yearDropRef}
@@ -115,38 +143,65 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
             left: yearPos.left,
             width: YEAR_W,
             zIndex: 99999,
+            background: logoColors.dropBg,
+            border: logoColors.dropBorder,
+            borderRadius: '12px',
+            boxShadow: logoColors.dropShadow,
           }}
-          className="bg-white rounded-xl shadow-2xl border border-gray-200"
         >
-          <div className="flex items-center justify-between px-3 py-2">
+          {/* Header */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderBottom: `1px solid ${logoColors.dividerColor}` }}>
             <button
               onClick={() => yearPageIndex > 0 && setYearPageIndex(yearPageIndex - 1)}
               disabled={yearPageIndex === 0}
-              className="p-1 hover:bg-gray-100 rounded disabled:opacity-40 transition-colors"
+              style={{ padding: '4px', borderRadius: '6px', border: 'none', background: 'transparent', cursor: 'pointer', color: logoColors.navColor, opacity: yearPageIndex === 0 ? 0.4 : 1 }}
+              onMouseEnter={e => (e.currentTarget.style.background = logoColors.navHoverBg)}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
             >
-              <ChevronUp size={16} className="text-gray-600" />
+              <ChevronUp size={16} />
             </button>
-            <span className="text-xs text-gray-500 font-medium">
+            <span style={{ fontSize: '12px', fontWeight: 600, color: logoColors.rangeColor }}>
               {currentYearPage[0]}–{currentYearPage[currentYearPage.length - 1]}
             </span>
             <button
               onClick={() => yearPageIndex < totalYearPages - 1 && setYearPageIndex(yearPageIndex + 1)}
               disabled={yearPageIndex === totalYearPages - 1}
-              className="p-1 hover:bg-gray-100 rounded disabled:opacity-40 transition-colors"
+              style={{ padding: '4px', borderRadius: '6px', border: 'none', background: 'transparent', cursor: 'pointer', color: logoColors.navColor, opacity: yearPageIndex === totalYearPages - 1 ? 0.4 : 1 }}
+              onMouseEnter={e => (e.currentTarget.style.background = logoColors.navHoverBg)}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
             >
-              <ChevronDown size={16} className="text-gray-600" />
+              <ChevronDown size={16} />
             </button>
           </div>
-          <div className="grid grid-cols-4 gap-1.5 px-3 pb-3">
+          {/* Year Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', padding: '8px 12px 12px' }}>
             {currentYearPage.map(y => (
               <button
                 key={y}
                 onClick={() => { onYearChange(y); setShowYearPicker(false); }}
-                className={`h-9 rounded-lg text-sm font-normal whitespace-nowrap transition-all ${
-                  y === year
-                    ? 'bg-blue-500 text-white shadow-sm'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                style={y === year ? {
+                  height: '36px', borderRadius: '8px', fontSize: '13px', fontWeight: 700,
+                  whiteSpace: 'nowrap', cursor: 'pointer', border: logoColors.selectedBorder,
+                  background: logoColors.selectedBg, color: logoColors.selectedColor,
+                  boxShadow: logoColors.selectedShadow, transition: 'all 0.05s',
+                } : {
+                  height: '36px', borderRadius: '8px', fontSize: '13px', fontWeight: 400,
+                  whiteSpace: 'nowrap', cursor: 'pointer', border: logoColors.btnBorder,
+                  background: logoColors.btnBg, color: logoColors.btnColor,
+                  transition: 'all 0.05s',
+                }}
+                onMouseEnter={e => {
+                  if (y !== year) {
+                    e.currentTarget.style.background = logoColors.btnHoverBg;
+                    e.currentTarget.style.borderColor = logoColors.btnHoverBorder;
+                  }
+                }}
+                onMouseLeave={e => {
+                  if (y !== year) {
+                    e.currentTarget.style.background = logoColors.btnBg;
+                    e.currentTarget.style.borderColor = '#fde68a';
+                  }
+                }}
               >
                 {y}
               </button>
@@ -156,7 +211,7 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
         document.body
       )}
 
-      {/* Month Picker — rendered via Portal to body */}
+      {/* Month Picker Portal */}
       {showMonthPicker && createPortal(
         <div
           ref={monthDropRef}
@@ -166,19 +221,41 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
             left: monthPos.left,
             width: MONTH_W,
             zIndex: 99999,
+            background: logoColors.dropBg,
+            border: logoColors.dropBorder,
+            borderRadius: '12px',
+            padding: '12px',
+            boxShadow: logoColors.dropShadow,
           }}
-          className="bg-white rounded-xl shadow-2xl border border-gray-200 p-3"
         >
-          <div className="grid grid-cols-4 gap-1.5">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
             {MONTHS_CN.map((m, idx) => (
               <button
                 key={idx}
                 onClick={() => { onMonthChange(idx); setShowMonthPicker(false); }}
-                className={`h-9 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
-                  idx === month
-                    ? 'bg-blue-500 text-white shadow-sm'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                style={idx === month ? {
+                  height: '36px', borderRadius: '8px', fontSize: '13px', fontWeight: 700,
+                  whiteSpace: 'nowrap', cursor: 'pointer', border: logoColors.selectedBorder,
+                  background: logoColors.selectedBg, color: logoColors.selectedColor,
+                  boxShadow: logoColors.selectedShadow, transition: 'all 0.05s',
+                } : {
+                  height: '36px', borderRadius: '8px', fontSize: '13px', fontWeight: 500,
+                  whiteSpace: 'nowrap', cursor: 'pointer', border: logoColors.btnBorder,
+                  background: logoColors.btnBg, color: logoColors.btnColor,
+                  transition: 'all 0.05s',
+                }}
+                onMouseEnter={e => {
+                  if (idx !== month) {
+                    e.currentTarget.style.background = logoColors.btnHoverBg;
+                    e.currentTarget.style.borderColor = logoColors.btnHoverBorder;
+                  }
+                }}
+                onMouseLeave={e => {
+                  if (idx !== month) {
+                    e.currentTarget.style.background = logoColors.btnBg;
+                    e.currentTarget.style.borderColor = '#fde68a';
+                  }
+                }}
               >
                 {m}
               </button>
