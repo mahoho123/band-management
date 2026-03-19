@@ -1862,7 +1862,9 @@ export default function Home() {
                         <p className="text-center text-gray-500 py-4 text-sm">暫無成員</p>
                       ) : (
                         (membersQuery.data || []).map((member) => {
-                          const status = selectedEvent.attendance[member.id];
+                          // 優先讀取 localAttendance 即時狀態，消除視覺延遲
+                          const status = (localAttendance[selectedEvent.id]?.[member.id]) 
+                            ?? selectedEvent.attendance[member.id];
                           return (
                             <div key={member.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                               <div className="flex items-center gap-2 flex-1">
