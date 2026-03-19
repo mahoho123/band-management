@@ -84,7 +84,7 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
 
       {/* Year Picker Grid with Pagination */}
       {showYearPicker && (
-        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white rounded-lg shadow-2xl p-2 sm:p-3 z-50 border border-gray-200">
+        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-0 bg-white rounded-lg shadow-2xl p-1 sm:p-2 z-50 border border-gray-200 w-80 sm:w-96">
           {/* Year Page Navigation */}
           <div className="flex items-center justify-between mb-4 gap-2">
             <button
@@ -115,7 +115,7 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
                   onYearChange(y);
                   setShowYearPicker(false);
                 }}
-                className={`w-8 sm:w-10 md:w-12 h-8 sm:h-10 md:h-12 rounded-full transition-all flex items-center justify-center year-picker-text ${
+                className={`w-10 sm:w-12 md:w-14 h-11 sm:h-12 md:h-14 rounded-full transition-all flex items-center justify-center year-picker-text text-base sm:text-lg md:text-2xl ${
                   y === year
                     ? 'bg-blue-500 text-white shadow-md scale-105'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -130,7 +130,7 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
 
       {/* Month Picker Grid */}
       {showMonthPicker && (
-        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white rounded-lg shadow-2xl p-2 sm:p-3 z-50 border border-gray-200">
+        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-0 bg-white rounded-lg shadow-2xl p-1 sm:p-2 z-50 border border-gray-200 w-80 sm:w-96">
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-1 sm:gap-1.5">
             {MONTHS_CN.map((m, idx) => (
               <button
@@ -139,7 +139,7 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
                   onMonthChange(idx);
                   setShowMonthPicker(false);
                 }}
-                className={`w-8 sm:w-10 md:w-12 h-8 sm:h-10 md:h-12 rounded-full transition-all flex items-center justify-center month-picker-text ${
+                className={`w-10 sm:w-12 md:w-14 h-11 sm:h-12 md:h-14 rounded-full transition-all flex items-center justify-center month-picker-text text-base sm:text-lg md:text-2xl ${
                   idx === month
                     ? 'bg-blue-500 text-white shadow-md scale-105'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
