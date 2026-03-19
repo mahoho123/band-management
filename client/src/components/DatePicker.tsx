@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 
 interface DatePickerProps {
@@ -11,38 +12,40 @@ interface DatePickerProps {
 
 const MONTHS_CN = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
 
-// 計算下拉菜單的 fixed 定位，確保不超出屏幕
-function calcDropdownStyle(triggerRef: React.RefObject<HTMLButtonElement | null>, dropdownWidth: number): React.CSSProperties {
-  if (!triggerRef.current) return { top: 0, left: 0 };
-  const rect = triggerRef.current.getBoundingClientRect();
-  const top = rect.bottom + 4;
+interface DropdownPos {
+  top: number;
+  left: number;
+}
+
+function getDropdownPos(btnEl: HTMLButtonElement, dropW: number): DropdownPos {
+  const r = btnEl.getBoundingClientRect();
   const vw = window.innerWidth;
-  let left = rect.left;
-  // 如果右邊超出屏幕，向左移動
-  if (left + dropdownWidth > vw - 8) {
-    left = vw - dropdownWidth - 8;
+  const top = r.bottom + window.scrollY + 4;
+  let left = r.left + window.scrollX;
+  if (left + dropW > vw - 8) {
+    left = vw - dropW - 8;
   }
   if (left < 8) left = 8;
-  return { position: 'fixed', top, left, zIndex: 9999 };
+  return { top, left };
 }
 
 export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChange }: DatePickerProps) {
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [showYearPicker, setShowYearPicker] = useState(false);
   const [yearPageIndex, setYearPageIndex] = useState(0);
-  const [yearDropdownStyle, setYearDropdownStyle] = useState<React.CSSProperties>({});
-  const [monthDropdownStyle, setMonthDropdownStyle] = useState<React.CSSProperties>({});
+  const [yearPos, setYearPos] = useState<DropdownPos>({ top: 0, left: 0 });
+  const [monthPos, setMonthPos] = useState<DropdownPos>({ top: 0, left: 0 });
 
-  const containerRef = useRef<HTMLDivElement>(null);
   const yearBtnRef = useRef<HTMLButtonElement>(null);
   const monthBtnRef = useRef<HTMLButtonElement>(null);
+  const yearDropRef = useRef<HTMLDivElement>(null);
+  const monthDropRef = useRef<HTMLDivElement>(null);
 
-  // 年份選擇器寬度：4列 × 約60px + padding
-  const YEAR_DROPDOWN_WIDTH = 256;
-  // 月份選擇器寬度：4列 × 約56px + padding
-  const MONTH_DROPDOWN_WIDTH = 240;
+  // 每個按鈕寬度約 56px，4列 + gap + padding = 約 260px
+  const YEAR_W = 264;
+  // 月份最長「十一月」約 44px，4列 + gap + padding = 約 240px
+  const MONTH_W = 248;
 
-  // 計算年份分頁（每頁 16 個年份，4x4 網格）
   const yearPages = useMemo(() => {
     const pages: number[][] = [];
     for (let i = 0; i < yearOptions.length; i += 16) {
@@ -54,50 +57,41 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
   const currentYearPage = yearPages[yearPageIndex] || [];
   const totalYearPages = yearPages.length;
 
-  // Click outside to dismiss
+  // Close on outside click
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setShowMonthPicker(false);
+    if (!showYearPicker && !showMonthPicker) return;
+    const handler = (e: MouseEvent) => {
+      const t = e.target as Node;
+      const inYear = yearBtnRef.current?.contains(t) || yearDropRef.current?.contains(t);
+      const inMonth = monthBtnRef.current?.contains(t) || monthDropRef.current?.contains(t);
+      if (!inYear && !inMonth) {
         setShowYearPicker(false);
+        setShowMonthPicker(false);
       }
     };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showYearPicker, showMonthPicker]);
 
-    if (showMonthPicker || showYearPicker) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
-    }
-  }, [showMonthPicker, showYearPicker]);
-
-  const handlePrevYearPage = () => {
-    if (yearPageIndex > 0) setYearPageIndex(yearPageIndex - 1);
-  };
-
-  const handleNextYearPage = () => {
-    if (yearPageIndex < totalYearPages - 1) setYearPageIndex(yearPageIndex + 1);
-  };
-
-  const openYearPicker = () => {
-    setYearDropdownStyle(calcDropdownStyle(yearBtnRef, YEAR_DROPDOWN_WIDTH));
-    setShowYearPicker(true);
+  const openYear = () => {
+    if (yearBtnRef.current) setYearPos(getDropdownPos(yearBtnRef.current, YEAR_W));
+    setShowYearPicker(v => !v);
     setShowMonthPicker(false);
   };
 
-  const openMonthPicker = () => {
-    setMonthDropdownStyle(calcDropdownStyle(monthBtnRef, MONTH_DROPDOWN_WIDTH));
-    setShowMonthPicker(true);
+  const openMonth = () => {
+    if (monthBtnRef.current) setMonthPos(getDropdownPos(monthBtnRef.current, MONTH_W));
+    setShowMonthPicker(v => !v);
     setShowYearPicker(false);
   };
 
   return (
-    <div className="flex items-center gap-1 sm:gap-2 min-w-0" ref={containerRef}>
+    <div className="flex items-center gap-1 sm:gap-2 min-w-0">
       {/* Year Button */}
       <button
         ref={yearBtnRef}
-        onClick={openYearPicker}
-        className="text-sm sm:text-base md:text-lg font-bold text-gray-800 bg-transparent border-none outline-none cursor-pointer hover:text-amber-700 transition-colors px-1.5 sm:px-2 py-1 sm:py-1.5 rounded-lg hover:bg-amber-50 whitespace-nowrap"
+        onClick={openYear}
+        className="text-sm sm:text-base font-bold text-gray-800 bg-transparent border-none outline-none cursor-pointer hover:text-amber-700 transition-colors px-1.5 py-1 rounded-lg hover:bg-amber-50 whitespace-nowrap"
       >
         {year}年
       </button>
@@ -105,51 +99,52 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
       {/* Month Button */}
       <button
         ref={monthBtnRef}
-        onClick={openMonthPicker}
-        className="text-sm sm:text-base md:text-lg font-bold text-gray-800 bg-transparent border-none outline-none cursor-pointer hover:text-amber-700 transition-colors px-1.5 sm:px-2 py-1 sm:py-1.5 rounded-lg hover:bg-amber-50 whitespace-nowrap"
+        onClick={openMonth}
+        className="text-sm sm:text-base font-bold text-gray-800 bg-transparent border-none outline-none cursor-pointer hover:text-amber-700 transition-colors px-1.5 py-1 rounded-lg hover:bg-amber-50 whitespace-nowrap"
       >
         {MONTHS_CN[month]}
       </button>
 
-      {/* Year Picker Grid with Pagination — fixed positioned */}
-      {showYearPicker && (
+      {/* Year Picker — rendered via Portal to body */}
+      {showYearPicker && createPortal(
         <div
-          className="bg-white rounded-lg shadow-2xl border border-gray-200"
-          style={{ ...yearDropdownStyle, width: YEAR_DROPDOWN_WIDTH }}
+          ref={yearDropRef}
+          style={{
+            position: 'absolute',
+            top: yearPos.top,
+            left: yearPos.left,
+            width: YEAR_W,
+            zIndex: 99999,
+          }}
+          className="bg-white rounded-xl shadow-2xl border border-gray-200"
         >
-          {/* Year Page Navigation */}
-          <div className="flex items-center justify-between px-2 py-1.5 gap-2">
+          <div className="flex items-center justify-between px-3 py-2">
             <button
-              onClick={handlePrevYearPage}
+              onClick={() => yearPageIndex > 0 && setYearPageIndex(yearPageIndex - 1)}
               disabled={yearPageIndex === 0}
-              className="p-1 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="p-1 hover:bg-gray-100 rounded disabled:opacity-40 transition-colors"
             >
               <ChevronUp size={16} className="text-gray-600" />
             </button>
-            <span className="text-xs text-gray-600 font-medium">
-              {currentYearPage[0]}-{currentYearPage[currentYearPage.length - 1]}
+            <span className="text-xs text-gray-500 font-medium">
+              {currentYearPage[0]}–{currentYearPage[currentYearPage.length - 1]}
             </span>
             <button
-              onClick={handleNextYearPage}
+              onClick={() => yearPageIndex < totalYearPages - 1 && setYearPageIndex(yearPageIndex + 1)}
               disabled={yearPageIndex === totalYearPages - 1}
-              className="p-1 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="p-1 hover:bg-gray-100 rounded disabled:opacity-40 transition-colors"
             >
               <ChevronDown size={16} className="text-gray-600" />
             </button>
           </div>
-
-          {/* Year Grid 4x4 */}
-          <div className="grid grid-cols-4 gap-1 px-2 pb-2">
+          <div className="grid grid-cols-4 gap-1.5 px-3 pb-3">
             {currentYearPage.map(y => (
               <button
                 key={y}
-                onClick={() => {
-                  onYearChange(y);
-                  setShowYearPicker(false);
-                }}
-                className={`h-9 rounded-full transition-all flex items-center justify-center whitespace-nowrap text-sm font-normal ${
+                onClick={() => { onYearChange(y); setShowYearPicker(false); }}
+                className={`h-9 rounded-lg text-sm font-normal whitespace-nowrap transition-all ${
                   y === year
-                    ? 'bg-blue-500 text-white shadow-md scale-105'
+                    ? 'bg-blue-500 text-white shadow-sm'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -157,26 +152,31 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
               </button>
             ))}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {/* Month Picker Grid — fixed positioned */}
-      {showMonthPicker && (
+      {/* Month Picker — rendered via Portal to body */}
+      {showMonthPicker && createPortal(
         <div
-          className="bg-white rounded-lg shadow-2xl border border-gray-200 p-2"
-          style={{ ...monthDropdownStyle, width: MONTH_DROPDOWN_WIDTH }}
+          ref={monthDropRef}
+          style={{
+            position: 'absolute',
+            top: monthPos.top,
+            left: monthPos.left,
+            width: MONTH_W,
+            zIndex: 99999,
+          }}
+          className="bg-white rounded-xl shadow-2xl border border-gray-200 p-3"
         >
-          <div className="grid grid-cols-4 gap-1">
+          <div className="grid grid-cols-4 gap-1.5">
             {MONTHS_CN.map((m, idx) => (
               <button
                 key={idx}
-                onClick={() => {
-                  onMonthChange(idx);
-                  setShowMonthPicker(false);
-                }}
-                className={`h-9 rounded-full transition-all flex items-center justify-center whitespace-nowrap text-sm font-medium ${
+                onClick={() => { onMonthChange(idx); setShowMonthPicker(false); }}
+                className={`h-9 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
                   idx === month
-                    ? 'bg-blue-500 text-white shadow-md scale-105'
+                    ? 'bg-blue-500 text-white shadow-sm'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -184,7 +184,8 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
               </button>
             ))}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
