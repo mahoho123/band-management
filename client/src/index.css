@@ -578,3 +578,76 @@
     font-size: 28px;
   }
 }
+
+/* ============================================
+ * 全局按鈕即時響應 - 消除點擊延遲，縮短動畫
+ * 支持 iOS、Android、Windows、Mac
+ * ============================================ */
+
+/* 消除 iOS/Android 的 300ms 點擊延遲 */
+* {
+  touch-action: manipulation;
+}
+
+/* 消除 iOS tap highlight 閃爍 */
+button,
+a,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+select,
+label {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* 全局按鈕 transition 縮短為 100ms，確保即時反應 */
+button,
+a,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
+  transition-duration: 100ms !important;
+  transition-timing-function: ease-out !important;
+  cursor: pointer;
+  /* 啟用 GPU 加速，確保動畫流暢 */
+  will-change: transform, opacity, background-color, border-color, box-shadow;
+  /* 防止文字選取導致的卡頓 */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* active 狀態即時縮小效果（手機觸控友好） */
+button:active,
+[role="button"]:active,
+input[type="button"]:active,
+input[type="submit"]:active {
+  transform: scale(0.97);
+  transition-duration: 60ms !important;
+}
+
+/* hover 狀態即時亮度提升 */
+button:hover:not(:disabled),
+[role="button"]:hover:not(:disabled),
+a:hover:not(:disabled) {
+  transition-duration: 80ms !important;
+}
+
+/* 禁用狀態不應有動畫 */
+button:disabled,
+[role="button"]:disabled,
+input:disabled {
+  transition: none !important;
+  will-change: auto;
+  cursor: not-allowed;
+}
+
+/* 確保 shadcn/ui 組件也受影響 */
+.btn,
+[data-slot="button"] {
+  transition-duration: 100ms !important;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
