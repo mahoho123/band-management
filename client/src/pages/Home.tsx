@@ -1875,7 +1875,7 @@ export default function Home() {
                                 <button
                                   onClick={() => handleAttendanceChangeForMember(selectedEvent.id, member.id, "going")}
                                   disabled={!currentUser}
-                                  className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+                                  className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-75 active:scale-95 touch-manipulation ${
                                     !currentUser ? "opacity-50 cursor-not-allowed bg-gray-100 text-gray-400" :
                                     status === "going" 
                                       ? "bg-green-100 text-green-700 border border-green-300" 
@@ -1888,7 +1888,7 @@ export default function Home() {
                                 <button
                                   onClick={() => handleAttendanceChangeForMember(selectedEvent.id, member.id, "not-going")}
                                   disabled={!currentUser}
-                                  className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+                                  className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-75 active:scale-95 touch-manipulation ${
                                     !currentUser ? "opacity-50 cursor-not-allowed bg-gray-100 text-gray-400" :
                                     status === "not-going" 
                                       ? "bg-red-100 text-red-700 border border-red-300" 
@@ -1901,7 +1901,7 @@ export default function Home() {
                                 <button
                                   onClick={() => handleAttendanceChangeForMember(selectedEvent.id, member.id, "unknown")}
                                   disabled={!currentUser}
-                                  className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+                                  className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-75 active:scale-95 touch-manipulation ${
                                     !currentUser ? "opacity-50 cursor-not-allowed bg-gray-100 text-gray-400" :
                                     status === "unknown" 
                                       ? "bg-gray-400 text-white border border-gray-500" 
@@ -2614,7 +2614,7 @@ export default function Home() {
                   }).length;
                   const pendingCount = monthEvents.filter(e => {
                     const att = localAttendance[e.id] || e.attendance;
-                    return att[member.id] === "unknown" || !att[member.id];
+                    return att[member.id] === "unknown"; // 只計真正按了「待確認」的，未回應的不計
                   }).length;
                   return (
                     <div key={member.id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:border-amber-200 transition-all">
@@ -2882,10 +2882,20 @@ export default function Home() {
           color: #6b7280;
           font-weight: 500;
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: all 0.08s ease-out !important;
           display: flex;
           align-items: center;
           justify-content: center;
+          touch-action: manipulation;
+          -webkit-tap-highlight-color: transparent;
+          user-select: none;
+          -webkit-user-select: none;
+          will-change: transform, background-color, border-color;
+        }
+
+        .attendance-btn:active {
+          transform: scale(0.94);
+          transition: all 0.05s ease-out !important;
         }
 
         .attendance-btn.going {
