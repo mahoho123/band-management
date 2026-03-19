@@ -115,7 +115,7 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
                   onYearChange(y);
                   setShowYearPicker(false);
                 }}
-                className={`w-8 sm:w-10 md:w-12 h-8 sm:h-10 md:h-12 rounded-full font-semibold text-xs transition-all flex items-center justify-center ${
+                className={`w-8 sm:w-10 md:w-12 h-8 sm:h-10 md:h-12 rounded-full transition-all flex items-center justify-center year-picker-text ${
                   y === year
                     ? 'bg-blue-500 text-white shadow-md scale-105'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -139,7 +139,7 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
                   onMonthChange(idx);
                   setShowMonthPicker(false);
                 }}
-                className={`w-8 sm:w-10 md:w-12 h-8 sm:h-10 md:h-12 rounded-full font-semibold text-xs transition-all flex items-center justify-center ${
+                className={`w-8 sm:w-10 md:w-12 h-8 sm:h-10 md:h-12 rounded-full transition-all flex items-center justify-center month-picker-text ${
                   idx === month
                     ? 'bg-blue-500 text-white shadow-md scale-105'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'

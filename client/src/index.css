@@ -521,3 +521,60 @@
   text-overflow: ellipsis;
   line-height: 1.3;
 }
+
+
+/* Responsive Font Sizing for Date Picker */
+/* 使用 rem + vw 混合方案，確保在所有平台上完整顯示 */
+
+/* 年份字體 - 手機 16px, 平板 20px, 桌面 28px */
+.year-picker-text {
+  font-size: clamp(16px, 2.5vw, 28px);
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-family: 'Noto Sans HK', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* 月份字體 - 手機 16px, 平板 20px, 桌面 28px，加粗 */
+.month-picker-text {
+  font-size: clamp(16px, 2.5vw, 28px);
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-family: 'Noto Sans HK', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* 確保在 iOS 上不會縮放 */
+@supports (-webkit-touch-callout: none) {
+  .year-picker-text,
+  .month-picker-text {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+}
+
+/* 確保在 Android 上完整顯示 */
+@media (max-width: 480px) {
+  .year-picker-text,
+  .month-picker-text {
+    font-size: 16px;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .year-picker-text,
+  .month-picker-text {
+    font-size: 20px;
+  }
+}
+
+@media (min-width: 769px) {
+  .year-picker-text,
+  .month-picker-text {
+    font-size: 28px;
+  }
+}
