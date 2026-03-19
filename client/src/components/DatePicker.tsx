@@ -11,11 +11,36 @@ interface DatePickerProps {
 
 const MONTHS_CN = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
 
+// 計算下拉菜單的 fixed 定位，確保不超出屏幕
+function calcDropdownStyle(triggerRef: React.RefObject<HTMLButtonElement | null>, dropdownWidth: number): React.CSSProperties {
+  if (!triggerRef.current) return { top: 0, left: 0 };
+  const rect = triggerRef.current.getBoundingClientRect();
+  const top = rect.bottom + 4;
+  const vw = window.innerWidth;
+  let left = rect.left;
+  // 如果右邊超出屏幕，向左移動
+  if (left + dropdownWidth > vw - 8) {
+    left = vw - dropdownWidth - 8;
+  }
+  if (left < 8) left = 8;
+  return { position: 'fixed', top, left, zIndex: 9999 };
+}
+
 export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChange }: DatePickerProps) {
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [showYearPicker, setShowYearPicker] = useState(false);
   const [yearPageIndex, setYearPageIndex] = useState(0);
+  const [yearDropdownStyle, setYearDropdownStyle] = useState<React.CSSProperties>({});
+  const [monthDropdownStyle, setMonthDropdownStyle] = useState<React.CSSProperties>({});
+
   const containerRef = useRef<HTMLDivElement>(null);
+  const yearBtnRef = useRef<HTMLButtonElement>(null);
+  const monthBtnRef = useRef<HTMLButtonElement>(null);
+
+  // 年份選擇器寬度：4列 × 約60px + padding
+  const YEAR_DROPDOWN_WIDTH = 256;
+  // 月份選擇器寬度：4列 × 約56px + padding
+  const MONTH_DROPDOWN_WIDTH = 240;
 
   // 計算年份分頁（每頁 16 個年份，4x4 網格）
   const yearPages = useMemo(() => {
@@ -47,46 +72,50 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
   }, [showMonthPicker, showYearPicker]);
 
   const handlePrevYearPage = () => {
-    if (yearPageIndex > 0) {
-      setYearPageIndex(yearPageIndex - 1);
-    }
+    if (yearPageIndex > 0) setYearPageIndex(yearPageIndex - 1);
   };
 
   const handleNextYearPage = () => {
-    if (yearPageIndex < totalYearPages - 1) {
-      setYearPageIndex(yearPageIndex + 1);
-    }
+    if (yearPageIndex < totalYearPages - 1) setYearPageIndex(yearPageIndex + 1);
+  };
+
+  const openYearPicker = () => {
+    setYearDropdownStyle(calcDropdownStyle(yearBtnRef, YEAR_DROPDOWN_WIDTH));
+    setShowYearPicker(true);
+    setShowMonthPicker(false);
+  };
+
+  const openMonthPicker = () => {
+    setMonthDropdownStyle(calcDropdownStyle(monthBtnRef, MONTH_DROPDOWN_WIDTH));
+    setShowMonthPicker(true);
+    setShowYearPicker(false);
   };
 
   return (
-    <div className="flex items-center gap-1 sm:gap-2 min-w-0 relative" ref={containerRef}>
+    <div className="flex items-center gap-1 sm:gap-2 min-w-0" ref={containerRef}>
       {/* Year Button */}
       <button
-        onClick={() => {
-          setShowYearPicker(!showYearPicker);
-          setShowMonthPicker(false);
-        }}
-        className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-800 bg-transparent border-none outline-none cursor-pointer hover:text-amber-700 transition-colors px-1.5 sm:px-2 py-1 sm:py-1.5 rounded-lg hover:bg-amber-50 whitespace-nowrap"
+        ref={yearBtnRef}
+        onClick={openYearPicker}
+        className="text-sm sm:text-base md:text-lg font-bold text-gray-800 bg-transparent border-none outline-none cursor-pointer hover:text-amber-700 transition-colors px-1.5 sm:px-2 py-1 sm:py-1.5 rounded-lg hover:bg-amber-50 whitespace-nowrap"
       >
         {year}年
       </button>
 
       {/* Month Button */}
       <button
-        onClick={() => {
-          setShowMonthPicker(!showMonthPicker);
-          setShowYearPicker(false);
-        }}
-        className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-800 bg-transparent border-none outline-none cursor-pointer hover:text-amber-700 transition-colors px-1.5 sm:px-2 py-1 sm:py-1.5 rounded-lg hover:bg-amber-50 whitespace-nowrap"
+        ref={monthBtnRef}
+        onClick={openMonthPicker}
+        className="text-sm sm:text-base md:text-lg font-bold text-gray-800 bg-transparent border-none outline-none cursor-pointer hover:text-amber-700 transition-colors px-1.5 sm:px-2 py-1 sm:py-1.5 rounded-lg hover:bg-amber-50 whitespace-nowrap"
       >
         {MONTHS_CN[month]}
       </button>
 
-      {/* Year Picker Grid with Pagination */}
+      {/* Year Picker Grid with Pagination — fixed positioned */}
       {showYearPicker && (
         <div
-          className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-2xl z-50 border border-gray-200"
-          style={{ width: 'max-content', minWidth: '100%' }}
+          className="bg-white rounded-lg shadow-2xl border border-gray-200"
+          style={{ ...yearDropdownStyle, width: YEAR_DROPDOWN_WIDTH }}
         >
           {/* Year Page Navigation */}
           <div className="flex items-center justify-between px-2 py-1.5 gap-2">
@@ -118,7 +147,7 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
                   onYearChange(y);
                   setShowYearPicker(false);
                 }}
-                className={`h-9 px-2 rounded-full transition-all flex items-center justify-center whitespace-nowrap text-sm font-normal ${
+                className={`h-9 rounded-full transition-all flex items-center justify-center whitespace-nowrap text-sm font-normal ${
                   y === year
                     ? 'bg-blue-500 text-white shadow-md scale-105'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -131,11 +160,11 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
         </div>
       )}
 
-      {/* Month Picker Grid */}
+      {/* Month Picker Grid — fixed positioned */}
       {showMonthPicker && (
         <div
-          className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-2xl z-50 border border-gray-200 p-2"
-          style={{ width: 'max-content', minWidth: '100%' }}
+          className="bg-white rounded-lg shadow-2xl border border-gray-200 p-2"
+          style={{ ...monthDropdownStyle, width: MONTH_DROPDOWN_WIDTH }}
         >
           <div className="grid grid-cols-4 gap-1">
             {MONTHS_CN.map((m, idx) => (
@@ -145,7 +174,7 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
                   onMonthChange(idx);
                   setShowMonthPicker(false);
                 }}
-                className={`h-9 px-2 rounded-full transition-all flex items-center justify-center whitespace-nowrap text-sm font-medium ${
+                className={`h-9 rounded-full transition-all flex items-center justify-center whitespace-nowrap text-sm font-medium ${
                   idx === month
                     ? 'bg-blue-500 text-white shadow-md scale-105'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
