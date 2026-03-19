@@ -1741,9 +1741,14 @@ export default function Home() {
                       <div className="flex justify-between items-center mb-4">
                         <h4 className="font-bold text-gray-800">出席狀態</h4>
                         <span className="text-sm text-gray-500">
-                          出席: {Object.values(selectedEvent.attendance).filter(v => v === "going").length} |
-                          缺席: {Object.values(selectedEvent.attendance).filter(v => v === "not-going").length} |
-                          待確認: {Object.values(selectedEvent.attendance).filter(v => v === "unknown").length}
+                          {(() => {
+                            const att = { ...selectedEvent.attendance, ...(localAttendance[selectedEvent.id] || {}) };
+                            return <>
+                              出席: {Object.values(att).filter(v => v === "going").length} |
+                              缺席: {Object.values(att).filter(v => v === "not-going").length} |
+                              待確認: {Object.values(att).filter(v => v === "unknown").length}
+                            </>;
+                          })()}
                           {selectedEventEnded ? " (已完結)" : ""}
                         </span>
                       </div>
