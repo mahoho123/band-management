@@ -2882,7 +2882,7 @@ export default function Home() {
           color: #6b7280;
           font-weight: 500;
           cursor: pointer;
-          transition: all 0.03s linear !important;
+          transition: all 0.001s linear !important;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -2895,7 +2895,7 @@ export default function Home() {
 
         .attendance-btn:active {
           transform: scale(0.93);
-          transition: all 0.02s linear !important;
+          transition: all 0.001s linear !important;
         }
 
         .attendance-btn.going {
