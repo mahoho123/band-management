@@ -602,37 +602,37 @@ label {
   -webkit-touch-callout: none;
 }
 
-/* 全局按鈕 transition 縮短為 100ms，確保即時反應 */
+/* 全局按鈕零延遲設定 */
 button,
 a,
 [role="button"],
 input[type="button"],
 input[type="submit"],
 input[type="reset"] {
-  transition-duration: 100ms !important;
-  transition-timing-function: ease-out !important;
+  transition-duration: 50ms !important;
+  transition-timing-function: linear !important;
   cursor: pointer;
-  /* 啟用 GPU 加速，確保動畫流暢 */
-  will-change: transform, opacity, background-color, border-color, box-shadow;
-  /* 防止文字選取導致的卡頓 */
+  will-change: transform, background-color, border-color;
   user-select: none;
   -webkit-user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* active 狀態即時縮小效果（手機觸控友好） */
+/* active 狀態即時縮小效果 */
 button:active,
 [role="button"]:active,
 input[type="button"]:active,
 input[type="submit"]:active {
-  transform: scale(0.97);
-  transition-duration: 60ms !important;
+  transform: scale(0.96);
+  transition-duration: 30ms !important;
 }
 
-/* hover 狀態即時亮度提升 */
+/* hover 狀態即時 */
 button:hover:not(:disabled),
 [role="button"]:hover:not(:disabled),
 a:hover:not(:disabled) {
-  transition-duration: 80ms !important;
+  transition-duration: 50ms !important;
 }
 
 /* 禁用狀態不應有動畫 */
@@ -647,7 +647,7 @@ input:disabled {
 /* 確保 shadcn/ui 組件也受影響 */
 .btn,
 [data-slot="button"] {
-  transition-duration: 100ms !important;
+  transition-duration: 50ms !important;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
