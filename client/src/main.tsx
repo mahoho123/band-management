@@ -35,7 +35,25 @@ if (typeof document !== 'undefined') {
   }, { passive: false });
 }
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // 服務器重啟時自動重試，最多 2 次，間隔 1 秒
+      retry: (failureCount, error) => {
+        if (error instanceof TRPCClientError) {
+          // HTML 回應（服務器重啟期間）則重試
+          if (error.message.includes('<!doctype') || error.message.includes('is not valid JSON')) {
+            return failureCount < 3;
+          }
+          // 未授權錯誤不重試
+          if (error.message === UNAUTHED_ERR_MSG) return false;
+        }
+        return failureCount < 1;
+      },
+      retryDelay: (failureCount) => Math.min(1000 * (failureCount + 1), 3000),
+    },
+  },
+});
 
 const redirectToLoginIfUnauthorized = (error: unknown) => {
   if (!(error instanceof TRPCClientError)) return;
@@ -52,6 +70,12 @@ queryClient.getQueryCache().subscribe(event => {
   if (event.type === "updated" && event.action.type === "error") {
     const error = event.query.state.error;
     redirectToLoginIfUnauthorized(error);
+    // 過濾服務器重啟期間的瞬間性 HTML 回應錯誤（不需要顯示給用戶）
+    if (error instanceof TRPCClientError &&
+        (error.message.includes('<!doctype') || error.message.includes('is not valid JSON'))) {
+      console.warn('[API] Server restarting, will retry...');
+      return;
+    }
     console.error("[API Query Error]", error);
   }
 });
@@ -60,6 +84,12 @@ queryClient.getMutationCache().subscribe(event => {
   if (event.type === "updated" && event.action.type === "error") {
     const error = event.mutation.state.error;
     redirectToLoginIfUnauthorized(error);
+    // 過濾服務器重啟期間的瞬間性 HTML 回應錯誤（不需要顯示給用戶）
+    if (error instanceof TRPCClientError &&
+        (error.message.includes('<!doctype') || error.message.includes('is not valid JSON'))) {
+      console.warn('[API] Server restarting, will retry...');
+      return;
+    }
     console.error("[API Mutation Error]", error);
   }
 });

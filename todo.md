@@ -534,3 +534,8 @@
 - [x] Socket.IO 廣播帶上具體數據（eventId/memberId/status）供前端直接更新
 - [x] 移除 onSuccess toast，讓按鈕視覺狀態變化本身作為反饵
 - [x] 確保失敗時能回滚狀態
+
+## Bug 修復 - tRPC 返回 HTML 錯誤
+- [x] 診斷根本原因：服務器重啟期間前端請求返回 HTML（Vite dev server 未完全啟動）
+- [x] 為 QueryClient 加入 retry 邏輯，HTML 錯誤自動重試最多 3 次
+- [x] 過濾 console.error 日誌，避免顯示瞬間性 HTML 錯誤
