@@ -526,4 +526,11 @@
 - [x] 實現首次登入設定密碼的內嵌表單
 - [x] 實現已有密碼的成員登入內嵌表單
 - [x] 實現重設密碼的內嵌 Modal（主管重設成員密碼、主管重設自己密碼）
-- [ ] 測試登入流程
+- [x] 測試登入流程
+
+## Bug 修復 - 出席狀態按鈕延遲
+- [x] 找出出席狀態按鈕延遲的根本原因（Socket.IO 廣播觸發 invalidateQueries 導致整個 refetch）
+- [x] 改用 setQueryData 直接更新 cache，避免 refetch 造成 UI 閃爍
+- [x] Socket.IO 廣播帶上具體數據（eventId/memberId/status）供前端直接更新
+- [x] 移除 onSuccess toast，讓按鈕視覺狀態變化本身作為反饵
+- [x] 確保失敗時能回滚狀態

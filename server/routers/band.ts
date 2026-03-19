@@ -217,7 +217,12 @@ export const bandRouter = router({
       const result = await setAttendance(input.eventId, input.memberId, input.status);
       const io = getIO();
       if (io) {
-        io.sockets.emit("attendance:changed");
+        // 帶上具體數據，讓前端可以直接更新 cache 而不需要 refetch
+        io.sockets.emit("attendance:changed", {
+          eventId: input.eventId,
+          memberId: input.memberId,
+          status: input.status,
+        });
       }
       return result;
     }),

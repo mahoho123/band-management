@@ -872,11 +872,8 @@ export default function Home() {
       memberId: currentUser.id as number,
       status,
     }, {
-      onSuccess: () => {
-        showToast(status === "going" ? "已確認出席" : status === "not-going" ? "已確認不出席" : "已標記未知道", "success");
-      },
       onError: () => {
-        // 失敗時回滾本地狀態
+        // 失敗時回滚本地狀態
         setLocalAttendance(prev => ({
           ...prev,
           [eventId]: {
@@ -910,11 +907,8 @@ export default function Home() {
       memberId,
       status,
     }, {
-      onSuccess: () => {
-        showToast("出席狀態已更新", "success");
-      },
       onError: () => {
-        // 失敗時回滾本地狀態
+        // 失敗時回滚本地狀態
         setLocalAttendance(prev => ({
           ...prev,
           [eventId]: {
@@ -948,11 +942,8 @@ export default function Home() {
       memberId: currentUser.id as number,
       status,
     }, {
-      onSuccess: () => {
-        showToast(status === "going" ? "已確認出席" : status === "not-going" ? "已確認不出席" : "已標記未知道", "success");
-      },
       onError: () => {
-        // 失敗時回滾本地狀態
+        // 失敗時回滚本地狀態
         setLocalAttendance(prev => ({
           ...prev,
           [selectedEventId]: {

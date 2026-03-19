@@ -69,9 +69,30 @@ export function useRealtimeSync() {
         console.log('[Realtime Sync] Member deleted, invalidating members query');
         queryClient.invalidateQueries({ queryKey: [['band', 'getMembers']] });
       },
-      'attendance:changed': () => {
-        console.log('[Realtime Sync] Attendance changed, invalidating events query');
-        queryClient.invalidateQueries({ queryKey: [['band', 'getEvents']] });
+      'attendance:changed': (data?: { eventId: number; memberId: number; status: string }) => {
+        console.log('[Realtime Sync] Attendance changed', data);
+        if (data?.eventId && data?.memberId && data?.status) {
+          // 直接更新 cache 中的 attendance，避免整個 refetch 造成 UI 閃爍
+          queryClient.setQueryData(
+            [['band', 'getEvents'], { type: 'query' }],
+            (oldData: any) => {
+              if (!Array.isArray(oldData)) return oldData;
+              return oldData.map((event: any) => {
+                if (event.id !== data.eventId) return event;
+                return {
+                  ...event,
+                  attendance: {
+                    ...event.attendance,
+                    [data.memberId]: data.status,
+                  },
+                };
+              });
+            }
+          );
+        } else {
+          // fallback: 完整 refetch（其他設備的更新）
+          queryClient.invalidateQueries({ queryKey: [['band', 'getEvents']] });
+        }
       },
       'holiday:added': () => {
         console.log('[Realtime Sync] Holiday added, invalidating holidays query');
