@@ -539,3 +539,8 @@
 - [x] 診斷根本原因：服務器重啟期間前端請求返回 HTML（Vite dev server 未完全啟動）
 - [x] 為 QueryClient 加入 retry 邏輯，HTML 錯誤自動重試最多 3 次
 - [x] 過濾 console.error 日誌，避免顯示瞬間性 HTML 錯誤
+
+## Bug 修復 - 移除月曆自動回到今日
+- [x] 移除每 60 秒自動更新 currentDate 的 useEffect
+- [x] 讓用戶可以自由瀏覽其他月份，不會被強制拉回今日
+- [x] 保留「回到今日」按鈕供用戶手動點擊

@@ -510,13 +510,8 @@ export default function Home() {
     }
   }, [eventsQuery.data]);
 
-  // Refresh every minute to check event completion
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentDate(new Date());
-    }, 60000);
-    return () => clearInterval(interval);
-  }, []);
+  // 注意：移除了自動回到今日的邏輯，讓用戶可以自由瀏覽其他月份
+  // 事件完成狀態由 eventsQuery 的 isCompleted 字段判斷，不需要定期更新 currentDate
 
   // Auto-refresh for real-time synchronization
   useEffect(() => {
