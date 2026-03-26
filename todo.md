@@ -544,3 +544,19 @@
 - [x] 移除每 60 秒自動更新 currentDate 的 useEffect
 - [x] 讓用戶可以自由瀏覽其他月份，不會被強制拉回今日
 - [x] 保留「回到今日」按鈕供用戶手動點擊
+
+## 測試 (80) - WhatsApp 跨平台支持測試
+- [ ] 測試中文訊息在 iOS WhatsApp 上的顯示
+- [ ] 測試中文訊息在 Android WhatsApp 上的顯示
+- [ ] 測試中文訊息在 Windows WhatsApp Desktop 上的顯示
+- [ ] 測試中文訊息在 WhatsApp Web 上的顯示
+- [ ] 測試數字和特殊字符的顯示
+- [ ] 測試 emoji 表情符號的顯示
+- [ ] 測試 emoji 在不同平台的兼容性
+
+## 功能 (82) - 成員出席狀態變更 WhatsApp 通知
+- [x] 在 SystemData 中添加主管 WhatsApp 號碼欄位（+85254029146）
+- [x] 在 setAttendance mutation 中實現 WhatsApp 通知邏輯
+- [x] 生成通知訊息：「🎵 [成員名稱] 已更新 [活動名稱] 的出席狀態為 [狀態]"
+- [ ] 支持批量出席狀態變更時的通知
+- [x] 測試通知功能

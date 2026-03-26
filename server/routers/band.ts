@@ -1,6 +1,9 @@
 import { z } from "zod";
 import { publicProcedure, router } from "../_core/trpc";
 import { getIO } from "../_core/index";
+import { getDb } from "../db";
+import { and, eq } from "drizzle-orm";
+import { bandMembers, bandEvents, bandSystemData } from "../../drizzle/schema";
 import {
   getBandMembers,
   addBandMember,
@@ -217,13 +220,35 @@ export const bandRouter = router({
       const result = await setAttendance(input.eventId, input.memberId, input.status);
       const io = getIO();
       if (io) {
-        // 帶上具體數據，讓前端可以直接更新 cache 而不需要 refetch
         io.sockets.emit("attendance:changed", {
           eventId: input.eventId,
           memberId: input.memberId,
           status: input.status,
         });
       }
+      
+      // Send WhatsApp notification to admin
+      try {
+        const db = await getDb();
+        if (!db) return result;
+        
+        const memberResult = await db.select().from(bandMembers).where(eq(bandMembers.id, input.memberId));
+        const member = memberResult.length > 0 ? memberResult[0] : null;
+        
+        const eventResult = await db.select().from(bandEvents).where(eq(bandEvents.id, input.eventId));
+        const event = eventResult.length > 0 ? eventResult[0] : null;
+        
+        if (member && event) {
+          const statusText = input.status === "going" ? "✓ 已確認出席" : input.status === "not-going" ? "✗ 無法出席" : "？待確認";
+          const message = `🎵 [${member.name}] 已更新 [${event.title}] 的出席狀態為 ${statusText}`;
+          const adminWhatsApp = "+85254029146";
+          const whatsappUrl = `https://wa.me/${adminWhatsApp.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
+          console.log(`[WhatsApp] ${message}`);
+        }
+      } catch (error) {
+        console.error("[WhatsApp Error]", error);
+      }
+      
       return result;
     }),
 

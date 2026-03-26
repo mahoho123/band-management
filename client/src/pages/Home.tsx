@@ -48,6 +48,7 @@ interface SystemData {
   members: Member[];
   events: BandEvent[];
   holidays: Holiday[];
+  adminWhatsApp?: string; // 主管的 WhatsApp 號碼
 }
 
 interface CurrentUser {
