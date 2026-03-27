@@ -9,6 +9,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { DatePicker } from "@/components/DatePicker";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
+import { NotificationBar } from "@/components/NotificationBar";
 import { trpc } from "@/lib/trpc";
 
 // ============================================
@@ -1333,6 +1334,8 @@ export default function Home() {
   // ============================================
   return (
     <div className="min-h-screen" style={{ background: "linear-gradient(135deg, #FFF8E1 0%, #FFF3CD 100%)" }}>
+      {/* Notification Bar */}
+      {currentUser?.role === "admin" && <NotificationBar />}
       {/* Setup Modal */}
       {showSetupModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 backdrop-blur-sm overflow-y-auto">

@@ -89,3 +89,18 @@ export const bandSystemData = mysqlTable("band_system_data", {
 
 export type BandSystemData = typeof bandSystemData.$inferSelect;
 export type InsertBandSystemData = typeof bandSystemData.$inferInsert;
+
+// Notifications table
+export const bandNotifications = mysqlTable("band_notifications", {
+  id: int("id").autoincrement().primaryKey(),
+  eventId: int("eventId").notNull(),
+  memberId: int("memberId").notNull(),
+  type: mysqlEnum("type", ["attendance-changed"]).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  message: text("message").notNull(),
+  isRead: int("isRead").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type BandNotification = typeof bandNotifications.$inferSelect;
+export type InsertBandNotification = typeof bandNotifications.$inferInsert;

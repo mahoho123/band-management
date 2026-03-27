@@ -1,7 +1,8 @@
 import { eq, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, bandMembers, bandEvents, bandAttendance, bandHolidays, bandSystemData, BandMember, BandEvent, BandAttendance, BandHoliday, BandSystemData, InsertBandMember, InsertBandEvent, InsertBandAttendance, InsertBandHoliday, InsertBandSystemData } from "../drizzle/schema";
+import { InsertUser, users, bandMembers, bandEvents, bandAttendance, bandHolidays, bandSystemData, bandNotifications, BandMember, BandEvent, BandAttendance, BandHoliday, BandSystemData, BandNotification, InsertBandMember, InsertBandEvent, InsertBandAttendance, InsertBandHoliday, InsertBandSystemData, InsertBandNotification } from "../drizzle/schema";
 import { ENV } from './_core/env';
+import { desc } from "drizzle-orm";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -257,4 +258,35 @@ export async function updateBandSystemData(adminPassword: string) {
     console.error("[updateBandSystemData] Error:", error);
     throw error;
   }
+}
+
+// Notification queries
+export async function createNotification(notification: InsertBandNotification) {
+  const db = await getDb();
+  if (!db) return null;
+  return await db.insert(bandNotifications).values(notification);
+}
+
+export async function getNotifications() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(bandNotifications).orderBy(desc(bandNotifications.createdAt));
+}
+
+export async function getUnreadNotifications() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(bandNotifications).where(eq(bandNotifications.isRead, 0)).orderBy(desc(bandNotifications.createdAt));
+}
+
+export async function markNotificationAsRead(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  return await db.update(bandNotifications).set({ isRead: 1 }).where(eq(bandNotifications.id, id));
+}
+
+export async function markAllNotificationsAsRead() {
+  const db = await getDb();
+  if (!db) return null;
+  return await db.update(bandNotifications).set({ isRead: 1 }).where(eq(bandNotifications.isRead, 0));
 }
