@@ -163,6 +163,17 @@ export const bandRouter = router({
       } else {
         console.log('[Band Router] WARNING: io is null, cannot emit event');
       }
+      
+      // Send WhatsApp notification to admin
+      try {
+        const typeText = input.type === "rehearsal" ? "排練" : input.type === "performance" ? "演出" : input.type === "meeting" ? "會議" : "其他";
+        const message = `🎵 新增活動\n【${input.title}】\n📅 ${input.date}\n🕐 ${input.startTime} - ${input.endTime}\n📍 ${input.location}\n類型：${typeText}`;
+        const adminWhatsApp = "+85254029146";
+        console.log(`[WhatsApp] ${message}`);
+      } catch (error) {
+        console.error("[WhatsApp Error]", error);
+      }
+      
       return result;
     }),
 
@@ -187,6 +198,17 @@ export const bandRouter = router({
       if (io) {
         io.sockets.emit("event:updated");
       }
+      
+      // Send WhatsApp notification to admin
+      try {
+        const typeText = data.type === "rehearsal" ? "排練" : data.type === "performance" ? "演出" : data.type === "meeting" ? "會議" : "其他";
+        const message = `🎵 編輯活動\n【${data.title || "活動"}】\n📅 ${data.date || "日期未變更"}\n🕐 ${data.startTime || "時間"} - ${data.endTime || "時間"}\n📍 ${data.location || "地點未變更"}${data.type ? `\n類型：${typeText}` : ""}`;
+        const adminWhatsApp = "+85254029146";
+        console.log(`[WhatsApp] ${message}`);
+      } catch (error) {
+        console.error("[WhatsApp Error]", error);
+      }
+      
       return result;
     }),
 
@@ -227,29 +249,32 @@ export const bandRouter = router({
         });
       }
       
+      let whatsappUrl = "";
       // Send WhatsApp notification to admin
       try {
         const db = await getDb();
-        if (!db) return result;
-        
-        const memberResult = await db.select().from(bandMembers).where(eq(bandMembers.id, input.memberId));
-        const member = memberResult.length > 0 ? memberResult[0] : null;
-        
-        const eventResult = await db.select().from(bandEvents).where(eq(bandEvents.id, input.eventId));
-        const event = eventResult.length > 0 ? eventResult[0] : null;
-        
-        if (member && event) {
-          const statusText = input.status === "going" ? "✓ 已確認出席" : input.status === "not-going" ? "✗ 無法出席" : "？待確認";
-          const message = `🎵 [${member.name}] 已更新 [${event.title}] 的出席狀態為 ${statusText}`;
-          const adminWhatsApp = "+85254029146";
-          const whatsappUrl = `https://wa.me/${adminWhatsApp.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
-          console.log(`[WhatsApp] ${message}`);
+        if (db) {
+          const memberResult = await db.select().from(bandMembers).where(eq(bandMembers.id, input.memberId));
+          const member = memberResult.length > 0 ? memberResult[0] : null;
+          
+          const eventResult = await db.select().from(bandEvents).where(eq(bandEvents.id, input.eventId));
+          const event = eventResult.length > 0 ? eventResult[0] : null;
+          
+          if (member && event) {
+            const statusText = input.status === "going" ? "✓ 已確認出席" : input.status === "not-going" ? "✗ 無法出席" : "？待確認";
+            const message = `🎵 [${member.name}] 已更新 [${event.title}] 的出席狀態為 ${statusText}`;
+            const adminWhatsApp = "+85254029146";
+            whatsappUrl = `https://wa.me/${adminWhatsApp.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
+            console.log(`[WhatsApp] ${message}`);
+          }
         }
       } catch (error) {
         console.error("[WhatsApp Error]", error);
       }
       
-      return result;
+      const returnValue = { ...result, whatsappUrl };
+      console.log('[setAttendance] Returning:', returnValue);
+      return returnValue;
     }),
 
   // Holidays

@@ -170,13 +170,14 @@ export async function getBandAttendance(eventId: number) {
 
 export async function setAttendance(eventId: number, memberId: number, status: string) {
   const db = await getDb();
-  if (!db) return null;
+  if (!db) return { success: false };
   const existing = await db.select().from(bandAttendance).where(and(eq(bandAttendance.eventId, eventId), eq(bandAttendance.memberId, memberId)));
   if (existing.length > 0) {
-    return await db.update(bandAttendance).set({ status: status as any }).where(and(eq(bandAttendance.eventId, eventId), eq(bandAttendance.memberId, memberId)));
+    await db.update(bandAttendance).set({ status: status as any }).where(and(eq(bandAttendance.eventId, eventId), eq(bandAttendance.memberId, memberId)));
   } else {
-    return await db.insert(bandAttendance).values({ eventId, memberId, status: status as any });
+    await db.insert(bandAttendance).values({ eventId, memberId, status: status as any });
   }
+  return { success: true, eventId, memberId, status };
 }
 
 export async function getBandHolidays() {
