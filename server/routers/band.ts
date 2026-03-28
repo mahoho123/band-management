@@ -255,8 +255,7 @@ export const bandRouter = router({
         });
       }
       
-      let whatsappUrl = "";
-      // Send WhatsApp notification to admin
+      // Send Web Push notification to admin
       try {
         const db = await getDb();
         if (db) {
@@ -267,20 +266,20 @@ export const bandRouter = router({
           const event = eventResult.length > 0 ? eventResult[0] : null;
           
           if (member && event) {
-            const statusText = input.status === "going" ? "✓ 已確認出席" : input.status === "not-going" ? "✗ 無法出席" : "？待確認";
-            const message = `🎵 [${member.name}] 已更新 [${event.title}] 的出席狀態為 ${statusText}`;
-            const adminWhatsApp = "+85254029146";
-            whatsappUrl = `https://wa.me/${adminWhatsApp.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
-            console.log(`[WhatsApp] ${message}`);
+            const statusText = input.status === "going" ? "已確認出席" : input.status === "not-going" ? "已確認不出席" : "待確認";
+            await sendPushNotificationToAdmins({
+              title: "出席狀態更新",
+              body: `${member.name} ${statusText} - ${event.title}`,
+              eventId: input.eventId,
+              url: "/",
+            }).catch(err => console.error("[setAttendance] Push notification error:", err));
           }
         }
       } catch (error) {
-        console.error("[WhatsApp Error]", error);
+        console.error("[setAttendance] Error:", error);
       }
-      
 
-      console.log('[setAttendance] Returning whatsappUrl:', whatsappUrl);
-      return { success: true, whatsappUrl };
+      return { success: true };
     }),
 
   // Notifications

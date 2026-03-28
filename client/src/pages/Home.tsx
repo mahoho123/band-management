@@ -966,18 +966,9 @@ export default function Home() {
       memberId,
       status,
     }, {
-      onSuccess: (data: any) => {
-        // 如果有 WhatsApp URL，自動打開
-        console.log('[Attendance] Mutation success! Response data:', data);
-        console.log('[Attendance] Data type:', typeof data);
-        console.log('[Attendance] Has whatsappUrl:', !!data?.whatsappUrl);
-        
-        if (data?.whatsappUrl) {
-          console.log('[WhatsApp] Opening URL:', data.whatsappUrl);
-          window.open(data.whatsappUrl, '_blank');
-        } else {
-          console.log('[WhatsApp] No URL in response');
-        }
+      onSuccess: () => {
+        // 主管改成員出席記錄時，不需要任何通知
+        // Web Push 通知會由後端自動發送給主管
       },
       onError: () => {
         // 失敗時回滚本地狀態
