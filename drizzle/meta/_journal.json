@@ -29,6 +29,13 @@
       "when": 1774637923017,
       "tag": "0003_slim_jubilee",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1774722074321,
+      "tag": "0004_optimal_dreaming_celestial",
+      "breakpoints": true
     }
   ]
 }

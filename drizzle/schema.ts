@@ -104,3 +104,16 @@ export const bandNotifications = mysqlTable("band_notifications", {
 
 export type BandNotification = typeof bandNotifications.$inferSelect;
 export type InsertBandNotification = typeof bandNotifications.$inferInsert;
+// Web Push Subscriptions table
+export const pushSubscriptions = mysqlTable("push_subscriptions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  endpoint: text("endpoint").notNull(),
+  auth: varchar("auth", { length: 255 }).notNull(),
+  p256dh: varchar("p256dh", { length: 255 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type PushSubscription = typeof pushSubscriptions.$inferSelect;
+export type InsertPushSubscription = typeof pushSubscriptions.$inferInsert;

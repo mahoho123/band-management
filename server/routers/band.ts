@@ -2,6 +2,7 @@ import { z } from "zod";
 import { publicProcedure, router } from "../_core/trpc";
 import { getIO } from "../_core/index";
 import { getDb } from "../db";
+import { sendPushNotificationToAdmins } from "../_core/webpush";
 import { and, eq } from "drizzle-orm";
 import { bandMembers, bandEvents, bandSystemData } from "../../drizzle/schema";
 import {
@@ -22,6 +23,9 @@ import {
   updateBandSystemData,
   createNotification,
   getUnreadNotifications,
+  savePushSubscription,
+  getPushSubscriptionsForUser,
+  deletePushSubscription,
 } from "../db";
 
 export const bandRouter = router({
@@ -303,5 +307,47 @@ export const bandRouter = router({
         io.sockets.emit("holiday:added");
       }
       return result;
+    }),
+
+  // Web Push Subscriptions
+  subscribeToPush: publicProcedure
+    .input(
+      z.object({
+        userId: z.number(),
+        subscription: z.object({
+          endpoint: z.string(),
+          keys: z.object({
+            auth: z.string(),
+            p256dh: z.string(),
+          }),
+        }),
+      })
+    )
+    .mutation(async ({ input }) => {
+      console.log("[subscribeToPush] User", input.userId, "subscribing to push notifications");
+      const result = await savePushSubscription(input.userId, input.subscription);
+      return { success: true, message: "Subscribed to push notifications" };
+    }),
+
+  unsubscribeFromPush: publicProcedure
+    .input(
+      z.object({
+        endpoint: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      console.log("[unsubscribeFromPush] Unsubscribing endpoint:", input.endpoint);
+      await deletePushSubscription(input.endpoint);
+      return { success: true, message: "Unsubscribed from push notifications" };
+    }),
+
+  getPushSubscriptions: publicProcedure
+    .input(
+      z.object({
+        userId: z.number(),
+      })
+    )
+    .query(async ({ input }) => {
+      return await getPushSubscriptionsForUser(input.userId);
     }),
 });

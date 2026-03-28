@@ -7,6 +7,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { DatePicker } from "@/components/DatePicker";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 
@@ -862,15 +863,6 @@ export default function Home() {
         [currentUser.id as number]: status
       }
     }));
-
-    // 立即打開 WhatsApp URL
-    const statusText = status === "going" ? "✓ 已確認出席" : status === "not-going" ? "✗ 無法出席" : "？待確認";
-    const message = `🎵 [${currentUser.name}] 已更新 [${event.title}] 的出席狀態為 ${statusText}`;
-    const adminWhatsApp = "85254029146";
-    const whatsappUrl = `https://wa.me/${adminWhatsApp}?text=${encodeURIComponent(message)}`;
-    
-    console.log('[WhatsApp] Opening URL:', whatsappUrl);
-    window.open(whatsappUrl, '_blank');
 
     // 後台同步到服務器
     setAttendanceMutation.mutate({

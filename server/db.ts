@@ -1,6 +1,6 @@
 import { eq, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, bandMembers, bandEvents, bandAttendance, bandHolidays, bandSystemData, bandNotifications, BandMember, BandEvent, BandAttendance, BandHoliday, BandSystemData, BandNotification, InsertBandMember, InsertBandEvent, InsertBandAttendance, InsertBandHoliday, InsertBandSystemData, InsertBandNotification } from "../drizzle/schema";
+import { InsertUser, users, bandMembers, bandEvents, bandAttendance, bandHolidays, bandSystemData, bandNotifications, pushSubscriptions, BandMember, BandEvent, BandAttendance, BandHoliday, BandSystemData, BandNotification, PushSubscription, InsertBandMember, InsertBandEvent, InsertBandAttendance, InsertBandHoliday, InsertBandSystemData, InsertBandNotification, InsertPushSubscription } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { desc } from "drizzle-orm";
 
@@ -289,4 +289,83 @@ export async function markAllNotificationsAsRead() {
   const db = await getDb();
   if (!db) return null;
   return await db.update(bandNotifications).set({ isRead: 1 }).where(eq(bandNotifications.isRead, 0));
+}
+
+// Push Subscription queries
+export async function savePushSubscription(userId: number, subscription: any) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  try {
+    // Check if subscription already exists
+    const existing = await db
+      .select()
+      .from(pushSubscriptions)
+      .where(eq(pushSubscriptions.endpoint, subscription.endpoint))
+      .limit(1);
+    
+    if (existing.length > 0) {
+      // Update existing subscription
+      return await db
+        .update(pushSubscriptions)
+        .set({
+          auth: subscription.keys.auth,
+          p256dh: subscription.keys.p256dh,
+          updatedAt: new Date(),
+        })
+        .where(eq(pushSubscriptions.id, existing[0].id));
+    } else {
+      // Insert new subscription
+      return await db.insert(pushSubscriptions).values({
+        userId,
+        endpoint: subscription.endpoint,
+        auth: subscription.keys.auth,
+        p256dh: subscription.keys.p256dh,
+      });
+    }
+  } catch (error) {
+    console.error("[savePushSubscription] Error:", error);
+    throw error;
+  }
+}
+
+export async function getPushSubscriptionsForUser(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  try {
+    return await db
+      .select()
+      .from(pushSubscriptions)
+      .where(eq(pushSubscriptions.userId, userId));
+  } catch (error) {
+    console.error("[getPushSubscriptionsForUser] Error:", error);
+    return [];
+  }
+}
+
+export async function getAllPushSubscriptions() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  try {
+    return await db.select().from(pushSubscriptions);
+  } catch (error) {
+    console.error("[getAllPushSubscriptions] Error:", error);
+    return [];
+  }
+}
+
+export async function deletePushSubscription(endpoint: string) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  try {
+    return await db
+      .delete(pushSubscriptions)
+      .where(eq(pushSubscriptions.endpoint, endpoint));
+  } catch (error) {
+    console.error("[deletePushSubscription] Error:", error);
+    throw error;
+  }
 }
