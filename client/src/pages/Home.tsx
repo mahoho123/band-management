@@ -13,6 +13,27 @@ import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 
 import { trpc } from "@/lib/trpc";
 
+// Helper functions for Web Push
+function urlBase64ToUint8Array(base64String: string): Uint8Array {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
+function arrayBufferToBase64(buffer: any): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return window.btoa(binary);
+}
+
 // ============================================
 // TYPES
 // ============================================
@@ -581,6 +602,46 @@ export default function Home() {
           setShowLoginModal(false);
           setAdminLoginPassword("");
           showToast("主管登入成功", "success");
+          
+          // Subscribe to Web Push notifications
+          if ('serviceWorker' in navigator && 'PushManager' in window) {
+            navigator.serviceWorker.ready.then(registration => {
+              registration.pushManager.getSubscription().then(subscription => {
+                if (!subscription) {
+                  console.log('[Admin Login] Subscribing to push notifications');
+                  const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+                  if (vapidPublicKey) {
+                    // Subscribe to push
+                    registration.pushManager.subscribe({
+                      userVisibleOnly: true,
+                      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+                    }).then(newSubscription => {
+                      // Save subscription to server
+                      fetch('/api/trpc/band.subscribeToPush', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                          json: {
+                            userId: 0,
+                            subscription: {
+                              endpoint: newSubscription.endpoint,
+                              keys: {
+                                auth: arrayBufferToBase64(newSubscription.getKey('auth')),
+                                p256dh: arrayBufferToBase64(newSubscription.getKey('p256dh')),
+                              },
+                            },
+                          },
+                        }),
+                      }).catch(err => console.error('[Admin Login] Failed to save subscription:', err));
+                    }).catch(err => console.error('[Admin Login] Push subscription failed:', err));
+                  }
+                } else {
+                  console.log('[Admin Login] Already subscribed to push notifications');
+                }
+              });
+            }).catch(err => console.error('[Admin Login] Service Worker not ready:', err));
+          }
         } else {
           showToast(result.message || "主管密碼錯誤", "error");
         }
