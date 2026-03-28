@@ -566,3 +566,10 @@
 - [x] 當主管編輯活動時，發送 WhatsApp 通知給主管（+85254029146）
 - [x] 通知內容包含：活動名稱、日期、時間、地點
 - [x] 測試通知功能
+
+## 新需求 (80) - 改為 WhatsApp 連結通知
+- [ ] 移除應用內通知系統（NotificationBar 組件）
+- [ ] 修改 setAttendance 返回 WhatsApp 連結而不是創建通知
+- [ ] 成員改變出席狀態時自動打開 WhatsApp 對話框
+- [ ] WhatsApp 連結指向 https://wa.me/85254029146
+- [ ] 測試 WhatsApp 通知功能

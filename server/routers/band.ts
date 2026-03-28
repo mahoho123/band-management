@@ -274,39 +274,9 @@ export const bandRouter = router({
         console.error("[WhatsApp Error]", error);
       }
       
-      // Create in-app notification for admin
-      try {
-        const db = await getDb();
-        if (db) {
-          const memberResult = await db.select().from(bandMembers).where(eq(bandMembers.id, input.memberId));
-          const member = memberResult.length > 0 ? memberResult[0] : null;
-          
-          const eventResult = await db.select().from(bandEvents).where(eq(bandEvents.id, input.eventId));
-          const event = eventResult.length > 0 ? eventResult[0] : null;
-          
-          if (member && event) {
-            const statusText = input.status === "going" ? "✓ 已確認出席" : input.status === "not-going" ? "✗ 無法出席" : "？待確認";
-            const title = `${member.name} 已更新出席狀態`;
-            const message = `${member.name} 已將 [${event.title}] 的出席狀態更新為 ${statusText}`;
-            
-            await createNotification({
-              eventId: input.eventId,
-              memberId: input.memberId,
-              type: "attendance-changed",
-              title,
-              message,
-              isRead: 0,
-            });
-            console.log(`[Notification] Created: ${title}`);
-          }
-        }
-      } catch (error) {
-        console.error("[Notification Error]", error);
-      }
-      
-      const returnValue = { ...result, whatsappUrl };
-      console.log('[setAttendance] Returning:', returnValue);
-      return returnValue;
+
+      console.log('[setAttendance] Returning whatsappUrl:', whatsappUrl);
+      return { success: true, whatsappUrl };
     }),
 
   // Notifications

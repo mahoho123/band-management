@@ -9,7 +9,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { DatePicker } from "@/components/DatePicker";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
-import { NotificationBar } from "@/components/NotificationBar";
+
 import { trpc } from "@/lib/trpc";
 
 // ============================================
@@ -863,27 +863,23 @@ export default function Home() {
       }
     }));
 
+    // 立即打開 WhatsApp URL
+    const statusText = status === "going" ? "✓ 已確認出席" : status === "not-going" ? "✗ 無法出席" : "？待確認";
+    const message = `🎵 [${currentUser.name}] 已更新 [${event.title}] 的出席狀態為 ${statusText}`;
+    const adminWhatsApp = "85254029146";
+    const whatsappUrl = `https://wa.me/${adminWhatsApp}?text=${encodeURIComponent(message)}`;
+    
+    console.log('[WhatsApp] Opening URL:', whatsappUrl);
+    window.open(whatsappUrl, '_blank');
+
     // 後台同步到服務器
     setAttendanceMutation.mutate({
       eventId,
       memberId: currentUser.id as number,
       status,
     }, {
-      onSuccess: (data: any) => {
-        // 如果有 WhatsApp URL，自動打開
-        console.log('[Attendance] Mutation success! Response data:', data);
-        console.log('[Attendance] Data type:', typeof data);
-        console.log('[Attendance] Has whatsappUrl:', !!data?.whatsappUrl);
-        
-        if (data?.whatsappUrl) {
-          console.log('[WhatsApp] Opening URL:', data.whatsappUrl);
-          window.open(data.whatsappUrl, '_blank');
-        } else {
-          console.log('[WhatsApp] No URL in response');
-        }
-      },
       onError: () => {
-        // 失敗時回滚本地狀態
+        // 失敗時回溻本地狀態
         setLocalAttendance(prev => ({
           ...prev,
           [eventId]: {
@@ -1335,7 +1331,7 @@ export default function Home() {
   return (
     <div className="min-h-screen" style={{ background: "linear-gradient(135deg, #FFF8E1 0%, #FFF3CD 100%)" }}>
       {/* Notification Bar */}
-      {currentUser?.role === "admin" && <NotificationBar />}
+
       {/* Setup Modal */}
       {showSetupModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 backdrop-blur-sm overflow-y-auto">
