@@ -369,3 +369,39 @@ export async function deletePushSubscription(endpoint: string) {
     throw error;
   }
 }
+
+// Admin Push Subscription queries
+export async function updateAdminPushSubscription(subscription: string | null) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  try {
+    const existing = await db.select().from(bandSystemData).limit(1);
+    if (existing.length > 0) {
+      return await db
+        .update(bandSystemData)
+        .set({ adminSubscription: subscription })
+        .where(eq(bandSystemData.id, existing[0].id));
+    }
+    return null;
+  } catch (error) {
+    console.error("[updateAdminPushSubscription] Error:", error);
+    throw error;
+  }
+}
+
+export async function getAdminPushSubscription() {
+  const db = await getDb();
+  if (!db) return null;
+  
+  try {
+    const result = await db
+      .select({ sub: bandSystemData.adminSubscription })
+      .from(bandSystemData)
+      .limit(1);
+    return result.length > 0 ? result[0].sub : null;
+  } catch (error) {
+    console.error("[getAdminPushSubscription] Error:", error);
+    return null;
+  }
+}

@@ -14,8 +14,6 @@ self.addEventListener('push', (event) => {
 
     const options = {
       body: data.body || '您有新的通知',
-      icon: '/icon-192x192.png',
-      badge: '/badge-72x72.png',
       tag: 'attendance-notification',
       requireInteraction: true,
       data: {
@@ -34,8 +32,6 @@ self.addEventListener('push', (event) => {
     event.waitUntil(
       self.registration.showNotification('樂隊管理系統', {
         body: event.data.text() || '您有新的通知',
-        icon: '/icon-192x192.png',
-        badge: '/badge-72x72.png',
         tag: 'attendance-notification',
         requireInteraction: true,
       })

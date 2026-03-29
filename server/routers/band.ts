@@ -26,6 +26,8 @@ import {
   savePushSubscription,
   getPushSubscriptionsForUser,
   deletePushSubscription,
+  updateAdminPushSubscription,
+  getAdminPushSubscription,
 } from "../db";
 
 export const bandRouter = router({
@@ -349,4 +351,23 @@ export const bandRouter = router({
     .query(async ({ input }) => {
       return await getPushSubscriptionsForUser(input.userId);
     }),
+
+  // Admin Web Push Subscriptions
+  updateAdminPushSubscription: publicProcedure
+    .input(
+      z.object({
+        subscription: z.string().nullable(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      console.log("[updateAdminPushSubscription] Updating admin subscription");
+      const result = await updateAdminPushSubscription(input.subscription);
+      return { success: true, message: "Admin subscription updated" };
+    }),
+
+  getAdminPushSubscription: publicProcedure.query(async () => {
+    console.log("[getAdminPushSubscription] Fetching admin subscription");
+    const subscription = await getAdminPushSubscription();
+    return subscription ? JSON.parse(subscription) : null;
+  }),
 });

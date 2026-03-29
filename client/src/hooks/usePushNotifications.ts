@@ -62,28 +62,26 @@ export function usePushNotifications(userId: number | null) {
 
       console.log('[usePushNotifications] Subscribed to push notifications:', newSubscription);
 
-      // Save subscription to server (fire and forget)
+      // Save subscription to server using tRPC
       const auth = newSubscription.getKey('auth');
       const p256dh = newSubscription.getKey('p256dh');
       
       if (auth && p256dh) {
-        fetch('/api/trpc/band.subscribeToPush', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({
-            json: {
-              userId,
-              subscription: {
-                endpoint: newSubscription.endpoint,
-                keys: {
-                  auth: arrayBufferToBase64(auth),
-                  p256dh: arrayBufferToBase64(p256dh),
-                },
+        try {
+          await trpc.band.subscribeToPush.mutate({
+            userId,
+            subscription: {
+              endpoint: newSubscription.endpoint,
+              keys: {
+                auth: arrayBufferToBase64(auth),
+                p256dh: arrayBufferToBase64(p256dh),
               },
             },
-          }),
-        }).catch(err => console.error('[usePushNotifications] Failed to save subscription:', err));
+          });
+          console.log('[usePushNotifications] Subscription saved to server');
+        } catch (err) {
+          console.error('[usePushNotifications] Failed to save subscription:', err);
+        }
       }
 
       setSubscription(newSubscription);
@@ -100,17 +98,15 @@ export function usePushNotifications(userId: number | null) {
       // Unsubscribe from push notifications
       await subscription.unsubscribe();
 
-      // Notify server (fire and forget)
-      fetch('/api/trpc/band.unsubscribeFromPush', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          json: {
-            endpoint: subscription.endpoint,
-          },
-        }),
-      }).catch(err => console.error('[usePushNotifications] Failed to unsubscribe:', err));
+      // Notify server using tRPC
+      try {
+        await trpc.band.unsubscribeFromPush.mutate({
+          endpoint: subscription.endpoint,
+        });
+        console.log('[usePushNotifications] Unsubscription saved to server');
+      } catch (err) {
+        console.error('[usePushNotifications] Failed to unsubscribe:', err);
+      }
 
       setSubscription(null);
       setIsSubscribed(false);

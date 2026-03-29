@@ -1,6 +1,6 @@
 import webpush from 'web-push';
 import { ENV } from './env';
-import { getPushSubscriptionsForUser, getAllPushSubscriptions } from '../db';
+import { getPushSubscriptionsForUser, getAllPushSubscriptions, getAdminPushSubscription } from '../db';
 
 // Configure web-push
 if (ENV.vapidPrivateKey && ENV.vapidPublicKey) {
@@ -69,17 +69,26 @@ export async function sendPushNotificationToUser(
 }
 
 /**
- * Send push notification to all admin users
+ * Send push notification to admin
+ * Uses the admin's single subscription stored in bandSystemData
  */
 export async function sendPushNotificationToAdmins(
   payload: PushNotificationPayload
 ): Promise<void> {
   try {
-    // Get all subscriptions (in a real app, you'd filter by admin role)
-    const allSubscriptions = await getAllPushSubscriptions();
+    // Get admin's subscription from system data
+    const subscriptionJson = await getAdminPushSubscription();
     
-    if (allSubscriptions.length === 0) {
-      console.log('[webpush] No subscriptions found for admins');
+    if (!subscriptionJson) {
+      console.log('[webpush] No admin subscription found');
+      return;
+    }
+
+    let subscription: any;
+    try {
+      subscription = JSON.parse(subscriptionJson);
+    } catch (error) {
+      console.error('[webpush] Failed to parse admin subscription:', error);
       return;
     }
 
@@ -90,28 +99,26 @@ export async function sendPushNotificationToAdmins(
       url: payload.url || '/',
     });
 
-    for (const subscription of allSubscriptions) {
-      try {
-        await webpush.sendNotification(
-          {
-            endpoint: subscription.endpoint,
-            keys: {
-              auth: subscription.auth,
-              p256dh: subscription.p256dh,
-            },
+    try {
+      await webpush.sendNotification(
+        {
+          endpoint: subscription.endpoint,
+          keys: {
+            auth: subscription.keys.auth,
+            p256dh: subscription.keys.p256dh,
           },
-          notificationPayload
-        );
-        console.log(`[webpush] Notification sent to admin user ${subscription.userId}`);
-      } catch (error: any) {
-        if (error.statusCode === 410) {
-          console.log(`[webpush] Subscription expired for user ${subscription.userId}, removing...`);
-        } else {
-          console.error(`[webpush] Error sending notification to user ${subscription.userId}:`, error);
-        }
+        },
+        notificationPayload
+      );
+      console.log('[webpush] Notification sent to admin');
+    } catch (error: any) {
+      if (error.statusCode === 410) {
+        console.log('[webpush] Admin subscription expired, removing...');
+      } else {
+        console.error('[webpush] Error sending notification to admin:', error);
       }
     }
   } catch (error) {
-    console.error('[webpush] Error sending push notifications to admins:', error);
+    console.error('[webpush] Error sending push notification to admin:', error);
   }
 }

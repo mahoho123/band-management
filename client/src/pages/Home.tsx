@@ -10,6 +10,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { DatePicker } from "@/components/DatePicker";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
+import { AdminPushSubscription } from "@/components/AdminPushSubscription";
 
 import { trpc } from "@/lib/trpc";
 
@@ -462,6 +463,7 @@ export default function Home() {
   // WhatsApp notification states
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
   const [showWhatsAppGuide, setShowWhatsAppGuide] = useState(false);
+  const [showPushNotificationSettings, setShowPushNotificationSettings] = useState(false);
   const [whatsAppMessage, setWhatsAppMessage] = useState("");
   const [whatsAppMode, setWhatsAppMode] = useState<"personal" | "group" | "copy">("personal");
   const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
@@ -2266,6 +2268,34 @@ export default function Home() {
       )}
 
 
+      {/* Push Notification Settings Modal */}
+      {showPushNotificationSettings && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 backdrop-blur-sm overflow-y-auto">
+          <div className="glass-panel rounded-xl sm:rounded-2xl w-full max-w-sm sm:max-w-2xl p-4 sm:p-6 modal-enter shadow-2xl my-4 sm:my-8">
+            <div className="flex items-center justify-between mb-4 sm:mb-5">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-800 flex items-center gap-2">
+                <i className="fas fa-bell text-blue-500" />推播通知設定
+              </h3>
+              <button
+                onClick={() => setShowPushNotificationSettings(false)}
+                className="text-gray-400 hover:text-gray-600 text-lg sm:text-xl ml-2 flex-shrink-0"
+              >
+                ✕
+              </button>
+            </div>
+
+            <AdminPushSubscription />
+
+            <button
+              onClick={() => setShowPushNotificationSettings(false)}
+              className="w-full mt-4 bg-blue-500 text-white py-2.5 rounded-xl hover:bg-blue-600 transition-all font-medium"
+            >
+              關閉
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* WhatsApp Guide Modal */}
       {showWhatsAppGuide && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 backdrop-blur-sm overflow-y-auto">
@@ -2400,6 +2430,15 @@ export default function Home() {
             {currentUser?.role === "admin" && (
               <button onClick={() => setCurrentView("members")} className={`nav-tab text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 ${currentView === "members" ? "active" : ""}`}>
                 <i className="fas fa-users" /><span className="hidden sm:inline">成員管理</span><span className="sm:hidden">成</span>
+              </button>
+            )}
+            {currentUser?.role === "admin" && (
+              <button
+                onClick={() => setShowPushNotificationSettings(true)}
+                className="nav-tab text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2"
+                title="推播通知設定"
+              >
+                <i className="fas fa-bell" /><span className="hidden sm:inline">通知設定</span><span className="sm:hidden">鈴</span>
               </button>
             )}
             {currentUser?.role === "admin" && (
