@@ -604,46 +604,8 @@ export default function Home() {
           setShowLoginModal(false);
           setAdminLoginPassword("");
           showToast("主管登入成功", "success");
-          
-          // Subscribe to Web Push notifications
-          if ('serviceWorker' in navigator && 'PushManager' in window) {
-            navigator.serviceWorker.ready.then(registration => {
-              registration.pushManager.getSubscription().then(subscription => {
-                if (!subscription) {
-                  console.log('[Admin Login] Subscribing to push notifications');
-                  const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-                  if (vapidPublicKey) {
-                    // Subscribe to push
-                    registration.pushManager.subscribe({
-                      userVisibleOnly: true,
-                      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
-                    }).then(newSubscription => {
-                      // Save subscription to server
-                      fetch('/api/trpc/band.subscribeToPush', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        credentials: 'include',
-                        body: JSON.stringify({
-                          json: {
-                            userId: 0,
-                            subscription: {
-                              endpoint: newSubscription.endpoint,
-                              keys: {
-                                auth: arrayBufferToBase64(newSubscription.getKey('auth')),
-                                p256dh: arrayBufferToBase64(newSubscription.getKey('p256dh')),
-                              },
-                            },
-                          },
-                        }),
-                      }).catch(err => console.error('[Admin Login] Failed to save subscription:', err));
-                    }).catch(err => console.error('[Admin Login] Push subscription failed:', err));
-                  }
-                } else {
-                  console.log('[Admin Login] Already subscribed to push notifications');
-                }
-              });
-            }).catch(err => console.error('[Admin Login] Service Worker not ready:', err));
-          }
+          // Note: Web Push subscription is handled by AdminPushSubscription component
+          // User can enable notifications via "通知設定" button
         } else {
           showToast(result.message || "主管密碼錯誤", "error");
         }

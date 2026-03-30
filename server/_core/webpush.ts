@@ -16,6 +16,9 @@ export interface PushNotificationPayload {
   body: string;
   eventId?: number;
   url?: string;
+  icon?: string; // URL to notification icon/logo
+  badge?: string; // URL to notification badge
+  tag?: string; // Notification tag for grouping
 }
 
 /**
@@ -70,25 +73,17 @@ export async function sendPushNotificationToUser(
 
 /**
  * Send push notification to admin
- * Uses the admin's single subscription stored in bandSystemData
+ * Supports multiple devices/subscriptions
  */
 export async function sendPushNotificationToAdmins(
   payload: PushNotificationPayload
 ): Promise<void> {
   try {
-    // Get admin's subscription from system data
-    const subscriptionJson = await getAdminPushSubscription();
+    // Get all admin subscriptions for multi-device support
+    const subscriptions = await getAdminPushSubscription();
     
-    if (!subscriptionJson) {
-      console.log('[webpush] No admin subscription found');
-      return;
-    }
-
-    let subscription: any;
-    try {
-      subscription = JSON.parse(subscriptionJson);
-    } catch (error) {
-      console.error('[webpush] Failed to parse admin subscription:', error);
+    if (!subscriptions || subscriptions.length === 0) {
+      console.log('[webpush] No admin subscriptions found');
       return;
     }
 
@@ -97,25 +92,33 @@ export async function sendPushNotificationToAdmins(
       body: payload.body,
       eventId: payload.eventId,
       url: payload.url || '/',
+      icon: payload.icon,
+      badge: payload.badge,
+      tag: payload.tag || 'attendance-update',
     });
 
-    try {
-      await webpush.sendNotification(
-        {
-          endpoint: subscription.endpoint,
-          keys: {
-            auth: subscription.keys.auth,
-            p256dh: subscription.keys.p256dh,
+    // Send to all admin subscriptions
+    for (const subscription of subscriptions) {
+      try {
+        console.log('[webpush] Sending notification to admin device:', subscription.endpoint.substring(0, 50) + '...');
+        await webpush.sendNotification(
+          {
+            endpoint: subscription.endpoint,
+            keys: {
+              auth: subscription.auth,
+              p256dh: subscription.p256dh,
+            },
           },
-        },
-        notificationPayload
-      );
-      console.log('[webpush] Notification sent to admin');
-    } catch (error: any) {
-      if (error.statusCode === 410) {
-        console.log('[webpush] Admin subscription expired, removing...');
-      } else {
-        console.error('[webpush] Error sending notification to admin:', error);
+          notificationPayload
+        );
+        console.log('[webpush] Notification sent to admin device successfully');
+      } catch (error: any) {
+        if (error.statusCode === 410) {
+          console.log('[webpush] Admin subscription expired, removing...');
+          // Could delete the subscription here if needed
+        } else {
+          console.error('[webpush] Error sending notification to admin device:', error.message);
+        }
       }
     }
   } catch (error) {

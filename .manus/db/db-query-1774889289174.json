@@ -1,0 +1,14 @@
+{
+  "query": "SELECT id, adminSubscription FROM band_system_data LIMIT 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ssV1gG8ge5UMiMb.root --database nisJJQWqpdHcjeFLPNJCii --execute SELECT id, adminSubscription FROM band_system_data LIMIT 1;",
+  "rows": [
+    {
+      "id": "2",
+      "adminSubscription": "{\"endpoint\":\"https://fcm.googleapis.com/fcm/send/cakOvDcv3RU:APA91bGNPyNnROOSp76QHOyWcNDCbrvqlofxA-lHoCaHVXosDY5uYAfcDV4BfXAlyMbxF0F0XrKvXEAjdRjbvneFDfajXG4SuhjDnKfXJpri5ZmHgOkkjZ392x4lvm4dmdvulGWoHxyx\",\"keys\":{\"auth\":\"x+NJ84A21ebDukCsjwKMug==\",\"p256dh\":\"BEBZadvorU6DlpfR3lOjExyhqVcWX3kC+x9amoYd++3DLR3PhyoNfmHG/JyEYZTEulOekD2PVhn5nONt9jHCpis=\"}}"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tadminSubscription\n2\t{\"endpoint\":\"https://fcm.googleapis.com/fcm/send/cakOvDcv3RU:APA91bGNPyNnROOSp76QHOyWcNDCbrvqlofxA-lHoCaHVXosDY5uYAfcDV4BfXAlyMbxF0F0XrKvXEAjdRjbvneFDfajXG4SuhjDnKfXJpri5ZmHgOkkjZ392x4lvm4dmdvulGWoHxyx\",\"keys\":{\"auth\":\"x+NJ84A21ebDukCsjwKMug==\",\"p256dh\":\"BEBZadvorU6DlpfR3lOjExyhqVcWX3kC+x9amoYd++3DLR3PhyoNfmHG/JyEYZTEulOekD2PVhn5nONt9jHCpis=\"}}\n",
+  "stderr": "",
+  "execution_time_ms": 1652
+}

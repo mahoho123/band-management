@@ -10,7 +10,7 @@ export function AdminPushSubscription() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const updateAdminSubscriptionMutation = trpc.band.updateAdminPushSubscription.useMutation();
+  const savePushSubscriptionMutation = trpc.band.savePushSubscription.useMutation();
 
   // Check if already subscribed on mount
   useEffect(() => {
@@ -134,7 +134,8 @@ export function AdminPushSubscription() {
       console.log("[AdminPushSubscription] Subscription data:", subscriptionData);
       console.log("[AdminPushSubscription] Sending to server...");
 
-      await updateAdminSubscriptionMutation.mutateAsync({
+      // Save subscription to database (will be stored in push_subscriptions table for multi-device support)
+      await savePushSubscriptionMutation.mutateAsync({
         subscription: subscriptionJson,
       });
       console.log("[AdminPushSubscription] Subscription saved to server successfully");

@@ -390,18 +390,21 @@ export async function updateAdminPushSubscription(subscription: string | null) {
   }
 }
 
+// Admin user ID constant
+const ADMIN_USER_ID = 0;
+
 export async function getAdminPushSubscription() {
+  // Returns all admin subscriptions for multi-device support
   const db = await getDb();
-  if (!db) return null;
+  if (!db) return [];
   
   try {
-    const result = await db
-      .select({ sub: bandSystemData.adminSubscription })
-      .from(bandSystemData)
-      .limit(1);
-    return result.length > 0 ? result[0].sub : null;
+    return await db
+      .select()
+      .from(pushSubscriptions)
+      .where(eq(pushSubscriptions.userId, ADMIN_USER_ID));
   } catch (error) {
     console.error("[getAdminPushSubscription] Error:", error);
-    return null;
+    return [];
   }
 }

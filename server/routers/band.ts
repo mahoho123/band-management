@@ -259,26 +259,44 @@ export const bandRouter = router({
       
       // Send Web Push notification to admin
       try {
+        console.log('[setAttendance] Attempting to send push notification...');
         const db = await getDb();
         if (db) {
           const memberResult = await db.select().from(bandMembers).where(eq(bandMembers.id, input.memberId));
           const member = memberResult.length > 0 ? memberResult[0] : null;
+          console.log('[setAttendance] Member found:', member?.name);
           
           const eventResult = await db.select().from(bandEvents).where(eq(bandEvents.id, input.eventId));
           const event = eventResult.length > 0 ? eventResult[0] : null;
+          console.log('[setAttendance] Event found:', event?.title);
           
           if (member && event) {
-            const statusText = input.status === "going" ? "已確認出席" : input.status === "not-going" ? "已確認不出席" : "待確認";
+            const statusText = input.status === "going" ? "✅ 已確認出席" : input.status === "not-going" ? "❌ 已確認不出席" : "❓ 待確認";
+            const logoUrl = 'https://private-us-east-1.manuscdn.com/user_upload_by_module/session_file/310519663399040844/gzLFWzLTtdONfpLM.png?Expires=1804689922&Signature=GjamdKWB7jIFfylhk1vWl6LTko2pqCi7dWRaSDMKsZ08Fk04434CN4eAldH1hN2MCJNxw7nN~QzSXANl2PUuEla43XjB-1faN5aRUCnmDsqzQ2DGbWvizH7cIVhTp0SxvhHS9QqslV-vs9ABM1w5W3xoiP3xHFhgAgofLlnyrS3hbxV4ly2pyaKVTMBX4bmybClEEcTOFVZgPEjbMZpun0eVdJ18kI2hT1~HzrnIGb8jzsBk2umLWiamAea3eDH1yk2rE8csZgNvZ-ANF6BNtGJSc5kUIJq1NzPrCQtjgus0Q4OhUCiK~aKCn5RmMOF1ub7hKfbspQj8bNgOAftKRA__&Key-Pair-Id=K2HSFNDJXOU9YS';
+            
+            // Format event details for notification
+            const eventDetails = `📅 ${event.date}\n🕐 ${event.startTime} - ${event.endTime}\n📍 ${event.location}`;
+            const notificationBody = `${member.name}\n${statusText}\n\n${event.title}\n${eventDetails}`;
+            
+            console.log('[setAttendance] Sending push notification with status:', statusText);
             await sendPushNotificationToAdmins({
-              title: "出席狀態更新",
-              body: `${member.name} ${statusText} - ${event.title}`,
+              title: "🎵 出席狀態更新",
+              body: notificationBody,
               eventId: input.eventId,
               url: "/",
+              icon: logoUrl,
+              badge: logoUrl,
+              tag: `attendance-${input.eventId}`,
             }).catch(err => console.error("[setAttendance] Push notification error:", err));
+            console.log('[setAttendance] Push notification sent successfully');
+          } else {
+            console.log('[setAttendance] Member or event not found, skipping push notification');
           }
+        } else {
+          console.log('[setAttendance] Database not available');
         }
       } catch (error) {
-        console.error("[setAttendance] Error:", error);
+        console.error("[setAttendance] Error sending push notification:", error);
       }
 
       return { success: true };
@@ -366,8 +384,8 @@ export const bandRouter = router({
     }),
 
   getAdminPushSubscription: publicProcedure.query(async () => {
-    console.log("[getAdminPushSubscription] Fetching admin subscription");
-    const subscription = await getAdminPushSubscription();
-    return subscription ? JSON.parse(subscription) : null;
+    console.log("[getAdminPushSubscription] Fetching admin subscriptions");
+    const subscriptions = await getAdminPushSubscription();
+    return subscriptions || [];
   }),
 });

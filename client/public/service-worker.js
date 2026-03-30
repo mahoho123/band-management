@@ -14,13 +14,17 @@ self.addEventListener('push', (event) => {
 
     const options = {
       body: data.body || '您有新的通知',
-      tag: 'attendance-notification',
+      tag: data.tag || 'attendance-notification',
       requireInteraction: true,
+      icon: data.icon, // Display logo as notification icon
+      badge: data.badge, // Display logo as notification badge
       data: {
         url: data.url || '/',
         eventId: data.eventId,
       },
     };
+    
+    console.log('[Service Worker] Notification options:', options);
 
     event.waitUntil(
       self.registration.showNotification(data.title || '樂隊管理系統', options)
@@ -30,7 +34,7 @@ self.addEventListener('push', (event) => {
     
     // Fallback for non-JSON data
     event.waitUntil(
-      self.registration.showNotification('樂隊管理系統', {
+      self.registration.showNotification(data.title || '樂隊管理系統', {
         body: event.data.text() || '您有新的通知',
         tag: 'attendance-notification',
         requireInteraction: true,
