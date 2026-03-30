@@ -94,6 +94,17 @@ queryClient.getMutationCache().subscribe(event => {
   }
 });
 
+// Register Service Worker for Web Push notifications
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js')
+    .then(registration => {
+      console.log('[SW] Service Worker registered successfully:', registration);
+    })
+    .catch(error => {
+      console.error('[SW] Service Worker registration failed:', error);
+    });
+}
+
 const trpcClient = trpc.createClient({
   links: [
     httpBatchLink({

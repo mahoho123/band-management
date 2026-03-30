@@ -41,32 +41,48 @@ export function AdminPushSubscription() {
     setSuccess(false);
 
     try {
+      console.log("[AdminPushSubscription] Starting subscription process...");
+      
       // Check browser support
       if (!("serviceWorker" in navigator)) {
         throw new Error("您的瀏覽器不支援 Service Worker");
       }
+      console.log("[AdminPushSubscription] Service Worker supported");
 
       if (!("PushManager" in window)) {
         throw new Error("您的瀏覽器不支援 Web Push");
       }
+      console.log("[AdminPushSubscription] PushManager supported");
 
       // Get service worker registration
+      console.log("[AdminPushSubscription] Waiting for service worker...");
       const registration = await navigator.serviceWorker.ready;
+      console.log("[AdminPushSubscription] Service worker ready:", registration);
 
       // Request notification permission
+      console.log("[AdminPushSubscription] Current notification permission:", Notification.permission);
+      
       if (Notification.permission === "denied") {
-        throw new Error("您已拒絕通知權限。請在瀏覽器設定中允許通知。");
+        // Permission was previously denied - provide clear instructions
+        const instructions = "您已拒絕通知權限。\n\n請在瀏覽器設定中允許通知:\n1. 點擊地址欄左側的鎖定圖標\n2. 找到『通知』設定\n3. 將其改為『允許』\n4. 重新點擊『啟用推播通知』按鈕";
+        setError(instructions);
+        setIsLoading(false);
+        return;
       }
 
       if (Notification.permission !== "granted") {
+        console.log("[AdminPushSubscription] Requesting notification permission...");
         const permission = await Notification.requestPermission();
+        console.log("[AdminPushSubscription] Permission result:", permission);
         if (permission !== "granted") {
           throw new Error("您拒絕了通知權限");
         }
       }
+      console.log("[AdminPushSubscription] Notification permission granted");
 
       // Get VAPID public key from environment
       const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+      console.log("[AdminPushSubscription] VAPID public key:", vapidPublicKey ? "present" : "missing");
       if (!vapidPublicKey) {
         throw new Error("VAPID 公鑰未配置");
       }
@@ -88,19 +104,40 @@ export function AdminPushSubscription() {
       };
 
       // Subscribe to push notifications
+      console.log("[AdminPushSubscription] Subscribing to push notifications...");
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
       });
+      console.log("[AdminPushSubscription] Push subscription successful:", subscription);
 
-      // Save subscription to database
-      const subscriptionJson = JSON.stringify(subscription);
-      console.log("[AdminPushSubscription] Subscription object:", subscription);
-      console.log("[AdminPushSubscription] Subscription JSON:", subscriptionJson);
+      // Extract subscription data (PushSubscription object is not directly serializable)
+      console.log("[AdminPushSubscription] Extracting subscription keys...");
+      const auth = subscription.getKey('auth');
+      const p256dh = subscription.getKey('p256dh');
+      console.log("[AdminPushSubscription] Auth key present:", !!auth, "P256dh key present:", !!p256dh);
+      
+      if (!auth || !p256dh) {
+        throw new Error("無法獲取訂閱密鑰");
+      }
+
+      // Convert to base64 for storage
+      const subscriptionData = {
+        endpoint: subscription.endpoint,
+        keys: {
+          auth: arrayBufferToBase64(auth),
+          p256dh: arrayBufferToBase64(p256dh),
+        },
+      };
+      
+      const subscriptionJson = JSON.stringify(subscriptionData);
+      console.log("[AdminPushSubscription] Subscription data:", subscriptionData);
+      console.log("[AdminPushSubscription] Sending to server...");
 
       await updateAdminSubscriptionMutation.mutateAsync({
         subscription: subscriptionJson,
       });
+      console.log("[AdminPushSubscription] Subscription saved to server successfully");
 
       setIsSubscribed(true);
       setSuccess(true);
@@ -114,6 +151,16 @@ export function AdminPushSubscription() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Helper function to convert ArrayBuffer to Base64
+  const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    for (let i = 0; i < bytes.byteLength; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return window.btoa(binary);
   };
 
   const handleUnsubscribe = async () => {

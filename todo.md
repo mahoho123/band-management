@@ -579,3 +579,16 @@
 - [ ] 成員改變出席狀態時自動打開 WhatsApp 對話框
 - [ ] WhatsApp 連結指向 https://wa.me/85254029146
 - [ ] 測試 WhatsApp 通知功能
+
+
+## 新需求 (84) - Web Push 推播通知系統完整實現
+- [x] 資料庫 Schema 更新 - 添加 adminSubscription 欄位
+- [x] 資料庫邏輯 - updateAdminPushSubscription() 和 getAdminPushSubscription()
+- [x] tRPC Router - 添加推播訂閱和發送邏輯
+- [x] Service Worker 註冊 - 在 main.tsx 中自動註冊
+- [x] 主管授權頁面 - AdminPushSubscription 組件
+- [x] VAPID 密鑰配置 - 設置 VITE_VAPID_PUBLIC_KEY 和 VAPID_PRIVATE_KEY
+- [x] 修復通知權限拒絕錯誤 - 提供清晰的用戶指導
+- [x] 添加詳細調試日誌 - 追蹤推播訂閱流程
+- [ ] 完整功能測試 - 驗證推播通知端到端工作
+- [ ] 編寫 vitest 單元測試 - 測試推播訂閱和發送邏輯

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { trpc } from '@/lib/trpc';
 
+// Note: This hook is kept for backward compatibility but the main push subscription
+// logic has been moved to AdminPushSubscription component for better control
 export function usePushNotifications(userId: number | null) {
   const [isSupported, setIsSupported] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -61,29 +63,6 @@ export function usePushNotifications(userId: number | null) {
       });
 
       console.log('[usePushNotifications] Subscribed to push notifications:', newSubscription);
-
-      // Save subscription to server using tRPC
-      const auth = newSubscription.getKey('auth');
-      const p256dh = newSubscription.getKey('p256dh');
-      
-      if (auth && p256dh) {
-        try {
-          await trpc.band.subscribeToPush.mutate({
-            userId,
-            subscription: {
-              endpoint: newSubscription.endpoint,
-              keys: {
-                auth: arrayBufferToBase64(auth),
-                p256dh: arrayBufferToBase64(p256dh),
-              },
-            },
-          });
-          console.log('[usePushNotifications] Subscription saved to server');
-        } catch (err) {
-          console.error('[usePushNotifications] Failed to save subscription:', err);
-        }
-      }
-
       setSubscription(newSubscription);
       setIsSubscribed(true);
     } catch (error) {
@@ -97,17 +76,6 @@ export function usePushNotifications(userId: number | null) {
     try {
       // Unsubscribe from push notifications
       await subscription.unsubscribe();
-
-      // Notify server using tRPC
-      try {
-        await trpc.band.unsubscribeFromPush.mutate({
-          endpoint: subscription.endpoint,
-        });
-        console.log('[usePushNotifications] Unsubscription saved to server');
-      } catch (err) {
-        console.error('[usePushNotifications] Failed to unsubscribe:', err);
-      }
-
       setSubscription(null);
       setIsSubscribed(false);
       console.log('[usePushNotifications] Unsubscribed from push notifications');
