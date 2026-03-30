@@ -45,14 +45,19 @@ export function AdminPushSubscription() {
       
       // Check browser support
       if (!("serviceWorker" in navigator)) {
-        throw new Error("您的瀏覽器不支援 Service Worker");
+        throw new Error("❌ 您的瀏覽器不支援 Service Worker。\n請使用 Chrome、Firefox 或 Edge 瀏覽器。");
       }
       console.log("[AdminPushSubscription] Service Worker supported");
 
       if (!("PushManager" in window)) {
-        throw new Error("您的瀏覽器不支援 Web Push");
+        throw new Error("❌ 您的瀏覽器不支援 Web Push。\n請確保使用最新版本的瀏覽器。");
       }
       console.log("[AdminPushSubscription] PushManager supported");
+
+      if (!("Notification" in window)) {
+        throw new Error("❌ 您的瀏覽器不支援 Notification API。");
+      }
+      console.log("[AdminPushSubscription] Notification API supported");
 
       // Get service worker registration
       console.log("[AdminPushSubscription] Waiting for service worker...");
@@ -64,7 +69,7 @@ export function AdminPushSubscription() {
       
       if (Notification.permission === "denied") {
         // Permission was previously denied - provide clear instructions
-        const instructions = "您已拒絕通知權限。\n\n請在瀏覽器設定中允許通知:\n1. 點擊地址欄左側的鎖定圖標\n2. 找到『通知』設定\n3. 將其改為『允許』\n4. 重新點擊『啟用推播通知』按鈕";
+        const instructions = "❌ 您已拒絕通知權限。\n\n請在瀏覽器設定中允許通知：\n\n📱 手機 (Android/iOS)：\n1. 開啟瀏覽器設定\n2. 找到『通知』或『權限』\n3. 允許此網站的通知\n\n💻 電腦 (Windows/Mac)：\n1. 點擊地址欄左側的鎖定圖標\n2. 找到『通知』設定\n3. 將其改為『允許』\n\n4. 重新點擊『啟用推播通知』按鈕";
         setError(instructions);
         setIsLoading(false);
         return;
@@ -75,7 +80,11 @@ export function AdminPushSubscription() {
         const permission = await Notification.requestPermission();
         console.log("[AdminPushSubscription] Permission result:", permission);
         if (permission !== "granted") {
-          throw new Error("您拒絕了通知權限");
+          if (permission === "denied") {
+            throw new Error("❌ 您拒絕了通知權限。請在瀏覽器設定中允許通知後重試。");
+          } else {
+            throw new Error("❌ 無法獲取通知權限。");
+          }
         }
       }
       console.log("[AdminPushSubscription] Notification permission granted");
@@ -84,7 +93,7 @@ export function AdminPushSubscription() {
       const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
       console.log("[AdminPushSubscription] VAPID public key:", vapidPublicKey ? "present" : "missing");
       if (!vapidPublicKey) {
-        throw new Error("VAPID 公鑰未配置");
+        throw new Error("❌ VAPID 公鑰未配置。請聯絡管理員。");
       }
 
       // Convert VAPID key to Uint8Array
@@ -118,7 +127,7 @@ export function AdminPushSubscription() {
       console.log("[AdminPushSubscription] Auth key present:", !!auth, "P256dh key present:", !!p256dh);
       
       if (!auth || !p256dh) {
-        throw new Error("無法獲取訂閱密鑰");
+        throw new Error("❌ 無法獲取訂閱密鑰。請重試。");
       }
 
       // Convert to base64 for storage
@@ -146,7 +155,7 @@ export function AdminPushSubscription() {
       // Clear success message after 3 seconds
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "訂閱失敗";
+      const errorMessage = err instanceof Error ? err.message : "❌ 訂閱失敗。請重試。";
       console.error("[AdminPushSubscription] Error:", err);
       setError(errorMessage);
     } finally {
@@ -181,9 +190,11 @@ export function AdminPushSubscription() {
         // Note: We don't need to explicitly delete from database on unsubscribe
         // The subscription will be automatically cleaned up when expired
         setIsSubscribed(false);
+        setSuccess(true);
+        setTimeout(() => setSuccess(false), 3000);
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "取消訂閱失敗";
+      const errorMessage = err instanceof Error ? err.message : "❌ 取消訂閱失敗。請重試。";
       console.error("[AdminPushSubscription] Error:", err);
       setError(errorMessage);
     } finally {
@@ -206,14 +217,16 @@ export function AdminPushSubscription() {
         {error && (
           <div className="flex items-start gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
             <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-red-700">{error}</div>
+            <div className="text-sm text-red-700 whitespace-pre-line">{error}</div>
           </div>
         )}
 
         {success && (
           <div className="flex items-start gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
             <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-green-700">推播通知已成功啟用！</div>
+            <div className="text-sm text-green-700">
+              {isSubscribed ? "✅ 推播通知已成功啟用！" : "✅ 推播通知已停用"}
+            </div>
           </div>
         )}
 
@@ -251,6 +264,7 @@ export function AdminPushSubscription() {
             <li>請點擊「允許」以接收推播通知</li>
             <li>啟用後，成員改變出席狀態時您會立即收到通知</li>
             <li>通知會在瀏覽器/手機上顯示，無需打開應用</li>
+            <li>支援多設備訂閱 - 在不同設備上分別啟用即可在所有設備上收到通知</li>
           </ul>
         </div>
       </CardContent>

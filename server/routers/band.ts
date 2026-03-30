@@ -279,6 +279,10 @@ export const bandRouter = router({
             const notificationBody = `${member.name}\n${statusText}\n\n${event.title}\n${eventDetails}`;
             
             console.log('[setAttendance] Sending push notification with status:', statusText);
+            const timestamp = Date.now();
+            const dynamicTag = `attendance-${event.date}-${timestamp}`;
+            const dateTag = `attendance-date-${event.date}`;
+            
             await sendPushNotificationToAdmins({
               title: "🎵 出席狀態更新",
               body: notificationBody,
@@ -286,7 +290,9 @@ export const bandRouter = router({
               url: "/",
               icon: logoUrl,
               badge: logoUrl,
-              tag: `attendance-${input.eventId}`,
+              tag: dynamicTag,
+              dateTag: dateTag,
+              date: event.date,
             }).catch(err => console.error("[setAttendance] Push notification error:", err));
             console.log('[setAttendance] Push notification sent successfully');
           } else {

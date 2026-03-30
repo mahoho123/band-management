@@ -12,34 +12,54 @@ self.addEventListener('push', (event) => {
     const data = event.data.json();
     console.log('[Service Worker] Push data:', data);
 
+    // Use dynamic tag with timestamp to force re-notification on Android
+    const notificationTag = data.tag || `attendance-${Date.now()}`;
+    const dateTag = data.dateTag || `attendance-date-${data.date}`;
+    
+    console.log('[Service Worker] Using notification tag:', notificationTag, 'dateTag:', dateTag);
+
     const options = {
       body: data.body || '您有新的通知',
-      tag: 'band-attendance-update', // Use consistent tag to replace old notifications
-      renotify: true, // Re-notify and play sound on each update
+      tag: notificationTag,
+      renotify: true,
       requireInteraction: true,
-      icon: data.icon, // Display logo as notification icon
-      badge: data.badge, // Display logo as notification badge
+      icon: data.icon,
+      badge: data.badge,
+      vibrate: [200, 100, 200],
       data: {
         url: data.url || '/',
         eventId: data.eventId,
+        dateTag: dateTag,
+        date: data.date,
       },
     };
     
     console.log('[Service Worker] Notification options:', options);
 
+    // Close old notifications for the same date before showing new one
     event.waitUntil(
-      self.registration.showNotification(data.title || '樂隊管理系統', options)
+      self.registration.getNotifications({ tag: dateTag }).then((notifications) => {
+        console.log(`[Service Worker] Found ${notifications.length} existing notifications with tag ${dateTag}`);
+        notifications.forEach((notification) => {
+          console.log('[Service Worker] Closing old notification:', notification);
+          notification.close();
+        });
+      }).then(() => {
+        return self.registration.showNotification(data.title || '樂隊管理系統', options);
+      })
     );
   } catch (error) {
     console.error('[Service Worker] Error processing push:', error);
     
     // Fallback for non-JSON data
+    const fallbackTag = `attendance-${Date.now()}`;
     event.waitUntil(
       self.registration.showNotification(data.title || '樂隊管理系統', {
         body: event.data.text() || '您有新的通知',
-        tag: 'band-attendance-update',
+        tag: fallbackTag,
         renotify: true,
         requireInteraction: true,
+        vibrate: [200, 100, 200],
       })
     );
   }
