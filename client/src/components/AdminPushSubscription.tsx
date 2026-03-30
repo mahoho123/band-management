@@ -178,9 +178,8 @@ export function AdminPushSubscription() {
 
       if (subscription) {
         await subscription.unsubscribe();
-        await updateAdminSubscriptionMutation.mutateAsync({
-          subscription: null,
-        });
+        // Note: We don't need to explicitly delete from database on unsubscribe
+        // The subscription will be automatically cleaned up when expired
         setIsSubscribed(false);
       }
     } catch (err) {
