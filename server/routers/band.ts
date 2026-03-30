@@ -388,4 +388,23 @@ export const bandRouter = router({
     const subscriptions = await getAdminPushSubscription();
     return subscriptions || [];
   }),
+
+  savePushSubscription: publicProcedure
+    .input(
+      z.object({
+        subscription: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      console.log("[savePushSubscription] Saving push subscription");
+      try {
+        const subscriptionData = JSON.parse(input.subscription);
+        const result = await savePushSubscription(0, subscriptionData);
+        console.log("[savePushSubscription] Subscription saved successfully");
+        return { success: true, message: "Push subscription saved" };
+      } catch (error) {
+        console.error("[savePushSubscription] Error saving subscription:", error);
+        throw error;
+      }
+    }),
 });
