@@ -14,7 +14,8 @@ self.addEventListener('push', (event) => {
 
     const options = {
       body: data.body || '您有新的通知',
-      tag: data.tag || 'attendance-notification',
+      tag: 'band-attendance-update', // Use consistent tag to replace old notifications
+      renotify: true, // Re-notify and play sound on each update
       requireInteraction: true,
       icon: data.icon, // Display logo as notification icon
       badge: data.badge, // Display logo as notification badge
@@ -36,7 +37,8 @@ self.addEventListener('push', (event) => {
     event.waitUntil(
       self.registration.showNotification(data.title || '樂隊管理系統', {
         body: event.data.text() || '您有新的通知',
-        tag: 'attendance-notification',
+        tag: 'band-attendance-update',
+        renotify: true,
         requireInteraction: true,
       })
     );
