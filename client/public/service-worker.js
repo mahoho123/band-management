@@ -12,15 +12,15 @@ self.addEventListener('push', (event) => {
     const data = event.data.json();
     console.log('[Service Worker] Push data:', data);
 
-    // Use dynamic tag with timestamp to force re-notification on Android
-    const notificationTag = data.tag || `attendance-${Date.now()}`;
-    const dateTag = data.dateTag || `attendance-date-${data.date}`;
+    // Use eventTag to group notifications by event (same event, multiple status changes)
+    // This ensures old notifications for the same event are closed when a new one arrives
+    const eventTag = data.eventTag || `attendance-event-${data.eventId || Date.now()}`;
     
-    console.log('[Service Worker] Using notification tag:', notificationTag, 'dateTag:', dateTag);
+    console.log('[Service Worker] Using notification tag:', eventTag);
 
     const options = {
       body: data.body || '您有新的通知',
-      tag: notificationTag,
+      tag: eventTag,
       renotify: true,
       requireInteraction: true,
       icon: data.icon,
@@ -29,17 +29,16 @@ self.addEventListener('push', (event) => {
       data: {
         url: data.url || '/',
         eventId: data.eventId,
-        dateTag: dateTag,
-        date: data.date,
       },
     };
     
     console.log('[Service Worker] Notification options:', options);
 
-    // Close old notifications for the same date before showing new one
+    // Close old notifications for the same event before showing new one
+    // This ensures only the latest notification for each event is shown
     event.waitUntil(
-      self.registration.getNotifications({ tag: dateTag }).then((notifications) => {
-        console.log(`[Service Worker] Found ${notifications.length} existing notifications with tag ${dateTag}`);
+      self.registration.getNotifications({ tag: eventTag }).then((notifications) => {
+        console.log(`[Service Worker] Found ${notifications.length} existing notifications with tag ${eventTag}`);
         notifications.forEach((notification) => {
           console.log('[Service Worker] Closing old notification:', notification);
           notification.close();

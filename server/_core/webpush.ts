@@ -18,9 +18,7 @@ export interface PushNotificationPayload {
   url?: string;
   icon?: string; // URL to notification icon/logo
   badge?: string; // URL to notification badge
-  tag?: string; // Notification tag for grouping
-  dateTag?: string; // Date-based tag for grouping notifications by date
-  date?: string; // Event date for Service Worker to handle old notification closing
+  eventTag?: string; // Event-based tag for grouping notifications by event (same event, multiple status changes)
 }
 
 /**
@@ -96,9 +94,7 @@ export async function sendPushNotificationToAdmins(
       url: payload.url || '/',
       icon: payload.icon,
       badge: payload.badge,
-      tag: payload.tag || 'attendance-update',
-      dateTag: payload.dateTag,
-      date: payload.date,
+      eventTag: payload.eventTag || `attendance-event-${payload.eventId}`,
     });
 
     // Send to all admin subscriptions
