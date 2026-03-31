@@ -1624,7 +1624,7 @@ export default function Home() {
       {/* Event Modal */}
       {showEventModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 overflow-y-auto">
-          <div className="glass-panel rounded-xl sm:rounded-2xl w-full max-w-sm sm:max-w-2xl p-4 sm:p-6 modal-enter shadow-2xl my-4 sm:my-8">
+          <div className="glass-panel rounded-xl sm:rounded-2xl w-full max-w-xs sm:max-w-sm md:max-w-2xl lg:max-w-3xl p-3 sm:p-4 md:p-6 modal-enter shadow-2xl my-2 sm:my-4 md:my-8 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-3 sm:mb-5">
               <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 truncate">
                 {eventModalMode === "add" ? "新增活動" : eventModalMode === "edit" ? "編輯活動" : "活動詳情"}
@@ -2233,7 +2233,7 @@ export default function Home() {
       {/* Push Notification Settings Modal */}
       {showPushNotificationSettings && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 backdrop-blur-sm overflow-y-auto">
-          <div className="glass-panel rounded-xl sm:rounded-2xl w-full max-w-sm sm:max-w-2xl p-4 sm:p-6 modal-enter shadow-2xl my-4 sm:my-8">
+          <div className="glass-panel rounded-xl sm:rounded-2xl w-full max-w-xs sm:max-w-sm md:max-w-2xl lg:max-w-3xl p-3 sm:p-4 md:p-6 modal-enter shadow-2xl my-2 sm:my-4 md:my-8 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4 sm:mb-5">
               <h3 className="text-lg sm:text-xl font-bold text-gray-800 flex items-center gap-2">
                 <i className="fas fa-bell text-blue-500" />推播通知設定
@@ -2261,7 +2261,7 @@ export default function Home() {
       {/* WhatsApp Guide Modal */}
       {showWhatsAppGuide && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 backdrop-blur-sm overflow-y-auto">
-          <div className="glass-panel rounded-xl sm:rounded-2xl w-full max-w-sm sm:max-w-2xl p-4 sm:p-6 modal-enter shadow-2xl my-4 sm:my-8">
+          <div className="glass-panel rounded-xl sm:rounded-2xl w-full max-w-xs sm:max-w-sm md:max-w-2xl lg:max-w-3xl p-3 sm:p-4 md:p-6 modal-enter shadow-2xl my-2 sm:my-4 md:my-8 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4 sm:mb-5">
               <h3 className="text-lg sm:text-xl font-bold text-gray-800 flex items-center gap-2">
                 <i className="fab fa-whatsapp text-green-500" />WhatsApp 通知功能使用指南
@@ -2905,8 +2905,8 @@ export default function Home() {
 
       {/* Reset Password Modal */}
       {resetPasswordState && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div className="glass-panel rounded-2xl w-full max-w-sm p-6 modal-enter shadow-2xl">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 backdrop-blur-sm overflow-y-auto">
+          <div className="glass-panel rounded-xl sm:rounded-2xl w-full max-w-xs sm:max-w-sm md:max-w-md p-3 sm:p-4 md:p-6 modal-enter shadow-2xl my-2 sm:my-4 mx-auto max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-gray-800">
                 {resetPasswordState.type === 'admin' ? '重設主管密碼' : `重設 ${resetPasswordState.memberName} 的密碼`}
