@@ -614,3 +614,7 @@
 - [x] 修復 Service Worker 通知關閉邏輯（改用 eventTag 而不是 dateTag）
 - [x] 更新後端推播邏輯以傳遞 eventTag
 - [ ] 測試同一活動多次改變時的通知行為
+
+## Bug 修復 (88) - 電腦上每個成員改變狀態都要顯示獨立通知
+- [x] 更新 eventTag 為 attendance-event-${eventId}-${memberId}
+- [x] 測試每個成員改變狀態時的通知行為

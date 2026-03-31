@@ -279,7 +279,7 @@ export const bandRouter = router({
             const notificationBody = `${member.name}\n${statusText}\n\n${event.title}\n${eventDetails}`;
             
             console.log('[setAttendance] Sending push notification with status:', statusText);
-            const eventTag = `attendance-event-${input.eventId}`;
+            const eventTag = `attendance-event-${input.eventId}-${input.memberId}`;
             
             await sendPushNotificationToAdmins({
               title: "🎵 出席狀態更新",
