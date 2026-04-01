@@ -2418,6 +2418,7 @@ export default function Home() {
         {/* Calendar View */}
         {currentView === "calendar" && (
           <div className="glass-panel rounded-lg sm:rounded-xl md:rounded-2xl p-2 sm:p-3 md:p-5 shadow-lg">
+            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 mb-3 sm:mb-4">樂隊月曆視圖</h2>
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-3 sm:mb-5">
               <div className="flex items-center gap-1 sm:gap-2 md:gap-3 flex-wrap w-full sm:w-auto">
                 <button
@@ -2485,7 +2486,7 @@ export default function Home() {
         {currentView === "list" && (
           <div className="glass-panel rounded-lg sm:rounded-xl md:rounded-2xl p-3 sm:p-4 md:p-5 shadow-lg">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-3 sm:mb-5">
-              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">活動清單</h2>
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">樂隊活動清單</h2>
               {currentUser?.role === "admin" && (
                 <button
                   onClick={() => openAddEventModal()}
@@ -2772,7 +2773,7 @@ export default function Home() {
         {currentView === "members" && currentUser?.role === "admin" && (
           <div className="glass-panel rounded-2xl p-5 shadow-lg">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-5">
-              <h2 className="text-xl font-bold text-gray-800">成員管理</h2>
+              <h2 className="text-xl font-bold text-gray-800">樂隊成員管理</h2>
               <div className="flex gap-2 flex-wrap">
                 <button
                   onClick={handleResetAdminPassword}
