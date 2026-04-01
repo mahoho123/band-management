@@ -5,6 +5,7 @@ import { getDb } from "../db";
 import { sendPushNotificationToAdmins } from "../_core/webpush";
 import { and, eq } from "drizzle-orm";
 import { bandMembers, bandEvents, bandSystemData } from "../../drizzle/schema";
+import { getFromCache, setInCache, deleteFromCache, clearCacheByPrefix, CACHE_KEYS } from "../cache";
 import {
   getBandMembers,
   addBandMember,
@@ -89,9 +90,17 @@ export const bandRouter = router({
       return { success: false, message: "成員密碼錯誤" };
     }),
 
-  // Members
+  // Members - 使用緩存
   getMembers: publicProcedure.query(async () => {
-    return await getBandMembers();
+    const cached = getFromCache(CACHE_KEYS.MEMBERS);
+    if (cached) {
+      return cached;
+    }
+    const members = await getBandMembers();
+    if (members) {
+      setInCache(CACHE_KEYS.MEMBERS, members);
+    }
+    return members;
   }),
 
   addMember: publicProcedure
@@ -105,6 +114,7 @@ export const bandRouter = router({
     )
     .mutation(async ({ input }) => {
       const result = await addBandMember(input);
+      deleteFromCache(CACHE_KEYS.MEMBERS);
       const io = getIO();
       if (io) {
         io.sockets.emit("member:added");
@@ -125,6 +135,7 @@ export const bandRouter = router({
     .mutation(async ({ input }) => {
       const { id, ...data } = input;
       const result = await updateBandMember(id, data);
+      deleteFromCache(CACHE_KEYS.MEMBERS);
       const io = getIO();
       if (io) {
         io.sockets.emit("member:updated");
@@ -136,6 +147,8 @@ export const bandRouter = router({
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input }) => {
       const result = await deleteBandMember(input.id);
+      deleteFromCache(CACHE_KEYS.MEMBERS);
+      clearCacheByPrefix("attendance:");
       const io = getIO();
       if (io) {
         io.sockets.emit("member:deleted");
@@ -143,9 +156,17 @@ export const bandRouter = router({
       return result;
     }),
 
-  // Events
+  // Events - 使用緩存
   getEvents: publicProcedure.query(async () => {
-    return await getBandEvents();
+    const cached = getFromCache(CACHE_KEYS.EVENTS);
+    if (cached) {
+      return cached;
+    }
+    const events = await getBandEvents();
+    if (events) {
+      setInCache(CACHE_KEYS.EVENTS, events);
+    }
+    return events;
   }),
 
   addEvent: publicProcedure
@@ -163,6 +184,8 @@ export const bandRouter = router({
     )
     .mutation(async ({ input }) => {
       const result = await addBandEvent(input);
+      deleteFromCache(CACHE_KEYS.EVENTS);
+      deleteFromCache(CACHE_KEYS.EVENTS_BY_DATE(input.date));
       const io = getIO();
       console.log('[Band Router] addEvent - io instance:', io ? 'exists' : 'null');
       if (io) {
@@ -202,6 +225,10 @@ export const bandRouter = router({
     .mutation(async ({ input }) => {
       const { id, ...data } = input;
       const result = await updateBandEvent(id, data);
+      deleteFromCache(CACHE_KEYS.EVENTS);
+      if (input.date) {
+        deleteFromCache(CACHE_KEYS.EVENTS_BY_DATE(input.date));
+      }
       const io = getIO();
       if (io) {
         io.sockets.emit("event:updated");
@@ -231,11 +258,19 @@ export const bandRouter = router({
       return result;
     }),
 
-  // Attendance
+  // Attendance - 使用緩存
   getAttendance: publicProcedure
     .input(z.object({ eventId: z.number() }))
     .query(async ({ input }) => {
-      return await getBandAttendance(input.eventId);
+      const cached = getFromCache(CACHE_KEYS.ATTENDANCE(input.eventId));
+      if (cached) {
+        return cached;
+      }
+      const attendance = await getBandAttendance(input.eventId);
+      if (attendance) {
+        setInCache(CACHE_KEYS.ATTENDANCE(input.eventId), attendance);
+      }
+      return attendance;
     }),
 
   setAttendance: publicProcedure
@@ -248,6 +283,7 @@ export const bandRouter = router({
     )
     .mutation(async ({ input }) => {
       const result = await setAttendance(input.eventId, input.memberId, input.status);
+      deleteFromCache(CACHE_KEYS.ATTENDANCE(input.eventId));
       const io = getIO();
       if (io) {
         io.sockets.emit("attendance:changed", {
@@ -309,9 +345,17 @@ export const bandRouter = router({
     return await getUnreadNotifications();
   }),
 
-  // Holidays
+  // Holidays - 使用緩存
   getHolidays: publicProcedure.query(async () => {
-    return await getBandHolidays();
+    const cached = getFromCache(CACHE_KEYS.HOLIDAYS);
+    if (cached) {
+      return cached;
+    }
+    const holidays = await getBandHolidays();
+    if (holidays) {
+      setInCache(CACHE_KEYS.HOLIDAYS, holidays);
+    }
+    return holidays;
   }),
 
   addHoliday: publicProcedure
@@ -322,6 +366,7 @@ export const bandRouter = router({
       })
     )
     .mutation(async ({ input }) => {
+      deleteFromCache(CACHE_KEYS.HOLIDAYS);
       const result = await addBandHoliday(input);
       const io = getIO();
       if (io) {

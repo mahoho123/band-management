@@ -3,6 +3,7 @@ import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { Server as SocketIOServer } from "socket.io";
+import compression from "compression";
 import { registerOAuthRoutes } from "./oauth";
 import { registerChatRoutes } from "./chat";
 import { appRouter } from "../routers";
@@ -58,9 +59,23 @@ async function startServer() {
     });
   });
   
-  // Configure body parser with larger size limit for file uploads
+  // 含 gzip 墨缩成
+  app.use(compression());
+  
+  // 配置 body parser，文件上传大小限制
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
+  
+  // 添加響应頭优化
+  app.use((req, res, next) => {
+    // 缓存控制
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    // 不探测服务器
+    res.setHeader('X-Powered-By', 'Band Management');
+    // 安全不探测
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    next();
+  });
   
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
@@ -74,6 +89,13 @@ async function startServer() {
     createExpressMiddleware({
       router: appRouter,
       createContext,
+      responseMeta() {
+        return {
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+          },
+        };
+      },
     })
   );
   
