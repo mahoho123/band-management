@@ -3,7 +3,6 @@ import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { Server as SocketIOServer } from "socket.io";
-import compression from "compression";
 import { registerOAuthRoutes } from "./oauth";
 import { registerChatRoutes } from "./chat";
 import { appRouter } from "../routers";
@@ -60,7 +59,6 @@ async function startServer() {
   });
   
   // 含 gzip 墨缩成
-  app.use(compression());
   
   // 配置 body parser，文件上传大小限制
   app.use(express.json({ limit: "50mb" }));
