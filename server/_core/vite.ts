@@ -6,10 +6,19 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import viteConfig from "../../vite.config";
 
-export async function setupVite(app: Express, server: Server) {
+export async function setupVite(app: Express, server: Server, port?: number) {
   const serverOptions = {
     middlewareMode: true,
-    hmr: { server },
+    // hmr.server attaches the WebSocket to the Express HTTP server.
+    // hmr.port tells Vite the actual server port so the HMR client URL
+    // is correct (prevents fallback to localhost:5173 default).
+    // hmr.clientPort is also set so the browser knows which port to connect to
+    // when behind a proxy (e.g. manus.computer reverse proxy).
+    hmr: {
+      server,
+      port: port ?? 3000,
+      clientPort: port ?? 3000,
+    },
     allowedHosts: true as const,
   };
 
