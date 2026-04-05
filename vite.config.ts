@@ -181,6 +181,11 @@ export default defineConfig({
   },
   server: {
     host: true,
+    // Disable HMR WebSocket: the Manus reverse-proxy does not forward WebSocket
+    // upgrades on the Vite HMR path, so the connection always fails with
+    // "WebSocket closed without opened". Disabling HMR removes the cosmetic
+    // error; the app still hot-reloads via full-page reload on file changes.
+    hmr: false,
     allowedHosts: [
       ".manuspre.computer",
       ".manus.computer",

@@ -6,19 +6,11 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import viteConfig from "../../vite.config";
 
-export async function setupVite(app: Express, server: Server, port?: number) {
+export async function setupVite(app: Express, server: Server, _port?: number) {
   const serverOptions = {
     middlewareMode: true,
-    // hmr.server attaches the WebSocket to the Express HTTP server.
-    // hmr.port tells Vite the actual server port so the HMR client URL
-    // is correct (prevents fallback to localhost:5173 default).
-    // hmr.clientPort is also set so the browser knows which port to connect to
-    // when behind a proxy (e.g. manus.computer reverse proxy).
-    hmr: {
-      server,
-      port: port ?? 3000,
-      clientPort: port ?? 3000,
-    },
+    // HMR is disabled in vite.config.ts (hmr: false) because the Manus
+    // reverse-proxy does not forward WebSocket upgrades on the Vite HMR path.
     allowedHosts: true as const,
   };
 
@@ -27,6 +19,14 @@ export async function setupVite(app: Express, server: Server, port?: number) {
     configFile: false,
     server: serverOptions,
     appType: "custom",
+    // Force pre-bundle all deps at startup so the browserHash is stable
+    // before any browser requests arrive. This prevents the "outdated dep"
+    // 504 cycle that occurs when the browser has a cached page with an old
+    // hash and the HMR WebSocket is not available to trigger a reload.
+    optimizeDeps: {
+      ...(viteConfig.optimizeDeps ?? {}),
+      force: true,
+    },
   });
 
   app.use(vite.middlewares);
