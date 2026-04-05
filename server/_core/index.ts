@@ -66,8 +66,15 @@ async function startServer() {
   
   // 添加響应頭优化
   app.use((req, res, next) => {
-    // 缓存控制
-    res.setHeader('Cache-Control', 'public, max-age=3600');
+    // 在開發模式下，Vite 依賴和資源不應被快取，否則瀏覽器會載入舊版本導致 React 多實例問題
+    // 在生產模式下，靜態資源有內容 hash，可以長期快取
+    if (process.env.NODE_ENV === 'development') {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+    } else {
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+    }
     // 不探测服务器
     res.setHeader('X-Powered-By', 'Band Management');
     // 安全不探测
