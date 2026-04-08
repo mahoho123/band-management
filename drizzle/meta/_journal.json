@@ -43,6 +43,13 @@
       "when": 1774802835103,
       "tag": "0005_spooky_frank_castle",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1775667628285,
+      "tag": "0006_giant_cargill",
+      "breakpoints": true
     }
   ]
 }

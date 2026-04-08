@@ -717,3 +717,9 @@
 ## Bug 修復 (101) - 刪除活動失敗
 - [x] 調查 deleteEvent 失敗原因（漏清 EVENTS cache）
 - [x] 修復 deleteEvent 後清除 EVENTS cache 和 attendance cache
+
+## Bug 修復 (102) - band_notifications 表沒有記錄
+- [x] 調查 createNotification 是否被呼叫
+- [x] 更新 schema 支援多種通知類型
+- [x] 在 setAttendance/addEvent/updateEvent/deleteEvent 加入 createNotification 呼叫
+- [x] 執行 db:push 更新資料庫 schema

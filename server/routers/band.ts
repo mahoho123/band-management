@@ -196,14 +196,16 @@ export const bandRouter = router({
         console.log('[Band Router] WARNING: io is null, cannot emit event');
       }
       
-      // Send WhatsApp notification to admin
+      // Write notification to band_notifications table
       try {
         const typeText = input.type === "rehearsal" ? "排練" : input.type === "performance" ? "演出" : input.type === "meeting" ? "會議" : "其他";
-        const message = `🎵 新增活動\n【${input.title}】\n📅 ${input.date}\n🕐 ${input.startTime} - ${input.endTime}\n📍 ${input.location}\n類型：${typeText}`;
-        const adminWhatsApp = "+85254029146";
-        console.log(`[WhatsApp] ${message}`);
+        await createNotification({
+          title: `🎵 新增活動：${input.title}`,
+          message: `類型：${typeText}\n日期：${input.date}\n時間：${input.startTime} - ${input.endTime}\n地點：${input.location}`,
+          type: "event-added",
+        });
       } catch (error) {
-        console.error("[WhatsApp Error]", error);
+        console.error("[createNotification] addEvent error:", error);
       }
       
       return result;
@@ -235,14 +237,17 @@ export const bandRouter = router({
         io.sockets.emit("event:updated");
       }
       
-      // Send WhatsApp notification to admin
+      // Write notification to band_notifications table
       try {
         const typeText = data.type === "rehearsal" ? "排練" : data.type === "performance" ? "演出" : data.type === "meeting" ? "會議" : "其他";
-        const message = `🎵 編輯活動\n【${data.title || "活動"}】\n📅 ${data.date || "日期未變更"}\n🕐 ${data.startTime || "時間"} - ${data.endTime || "時間"}\n📍 ${data.location || "地點未變更"}${data.type ? `\n類型：${typeText}` : ""}`;
-        const adminWhatsApp = "+85254029146";
-        console.log(`[WhatsApp] ${message}`);
+        await createNotification({
+          eventId: id,
+          title: `🎵 編輯活動：${data.title || "活動"}`,
+          message: `日期：${data.date || "未變更"}\n時間：${data.startTime || ""} - ${data.endTime || ""}\n地點：${data.location || "未變更"}${data.type ? `\n類型：${typeText}` : ""}`,
+          type: "event-updated",
+        });
       } catch (error) {
-        console.error("[WhatsApp Error]", error);
+        console.error("[createNotification] updateEvent error:", error);
       }
       
       return result;
@@ -258,6 +263,17 @@ export const bandRouter = router({
       const io = getIO();
       if (io) {
         io.sockets.emit("event:deleted");
+      }
+      // Write notification to band_notifications table
+      try {
+        await createNotification({
+          eventId: input.id,
+          title: `🗑️ 刪除活動 #${input.id}`,
+          message: `活動 ID ${input.id} 已被刪除`,
+          type: "event-deleted",
+        });
+      } catch (error) {
+        console.error("[createNotification] deleteEvent error:", error);
       }
       return result;
     }),
@@ -320,6 +336,15 @@ export const bandRouter = router({
             // Format event details for notification
             const eventDetails = `📅 ${event.date}\n🕐 ${event.startTime} - ${event.endTime}\n📍 ${event.location}`;
             const notificationBody = `${member.name}\n${statusText}\n\n${event.title}\n${eventDetails}`;
+            
+            // Write to band_notifications table
+            await createNotification({
+              eventId: input.eventId,
+              memberId: input.memberId,
+              title: `🎵 出席狀態更新`,
+              message: `${member.name} ${statusText}\n\n${event.title}\n${eventDetails}`,
+              type: "attendance-changed",
+            }).catch(err => console.error("[createNotification] setAttendance error:", err));
             
             console.log('[setAttendance] Sending push notification with status:', statusText);
             const eventTag = `attendance-event-${input.eventId}-${input.memberId}`;

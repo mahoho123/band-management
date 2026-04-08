@@ -94,9 +94,9 @@ export type InsertBandSystemData = typeof bandSystemData.$inferInsert;
 // Notifications table
 export const bandNotifications = mysqlTable("band_notifications", {
   id: int("id").autoincrement().primaryKey(),
-  eventId: int("eventId").notNull(),
-  memberId: int("memberId").notNull(),
-  type: mysqlEnum("type", ["attendance-changed"]).notNull(),
+  eventId: int("eventId"),
+  memberId: int("memberId"),
+  type: mysqlEnum("type", ["attendance-changed", "event-added", "event-updated", "event-deleted", "member-added", "member-deleted", "system"]).notNull(),
   title: varchar("title", { length: 255 }).notNull(),
   message: text("message").notNull(),
   isRead: int("isRead").default(0).notNull(),
