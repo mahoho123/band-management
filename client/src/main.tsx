@@ -96,9 +96,30 @@ queryClient.getMutationCache().subscribe(event => {
 
 // Register Service Worker for Web Push notifications
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/service-worker.js')
+  navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
     .then(registration => {
       console.log('[SW] Service Worker registered successfully:', registration);
+
+      // Listen for a new SW waiting to activate and immediately activate it
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
+        if (!newWorker) return;
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            // New SW installed - tell it to skip waiting so it activates immediately
+            newWorker.postMessage({ type: 'SKIP_WAITING' });
+          }
+        });
+      });
+
+      // When the SW controller changes (new SW activated), reload to use new cache
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+          refreshing = true;
+          window.location.reload();
+        }
+      });
     })
     .catch(error => {
       console.error('[SW] Service Worker registration failed:', error);

@@ -693,3 +693,10 @@
 - [x] 調查 setAttendance API 是否成功
 - [x] 調查前端樂觀更新後被 refetch 覆蓋的問題
 - [x] 修復出席狀態更新邏輯
+
+## 功能改善 (97) - Service Worker 穩定性改善
+- [x] 檢查現有 Service Worker 實作
+- [x] 改善 push event 處理（確保 showNotification 正確呼叫）
+- [x] 加入 notificationclick 事件處理（點擊通知開啟網頁）
+- [x] 加入 iOS 主畫面安裝提示
+- [x] 改嚄前端通知授權流程
