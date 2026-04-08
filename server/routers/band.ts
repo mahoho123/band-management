@@ -85,6 +85,31 @@ export const bandRouter = router({
         return { success: false, message: "成員未設定密碼" };
       }
       if (input.password === member.password) {
+        // Notify admin that member has logged in
+        try {
+          const now = new Date();
+          const timeStr = now.toLocaleString('zh-HK', { timeZone: 'Asia/Hong_Kong', hour12: true, hour: 'numeric', minute: '2-digit' });
+          const dateStr = now.toLocaleDateString('zh-HK', { timeZone: 'Asia/Hong_Kong', month: 'long', day: 'numeric', weekday: 'short' });
+          const notifTitle = `👤 ${member.name} 已登入`;
+          const notifMessage = `${member.name}（${member.instrument || '成員'}）於 ${dateStr} ${timeStr} 登入系統`;
+          // Write to band_notifications table
+          await createNotification({
+            memberId: input.memberId,
+            title: notifTitle,
+            message: notifMessage,
+            type: 'member-added',
+          }).catch(err => console.error('[memberLogin] createNotification error:', err));
+          // Send push notification to admin
+          await sendPushNotificationToAdmins({
+            title: notifTitle,
+            body: notifMessage,
+            url: '/',
+            icon: '/logo.png',
+            badge: '/logo.png',
+          }).catch(err => console.error('[memberLogin] push notification error:', err));
+        } catch (err) {
+          console.error('[memberLogin] notification error:', err);
+        }
         return { success: true, message: "成員密碼驗證成功" };
       }
       return { success: false, message: "成員密碼錯誤" };

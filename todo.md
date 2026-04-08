@@ -733,3 +733,8 @@
 - [x] 找出 sendPushNotification 函數
 - [x] 加入 urgency: high
 - [x] 加入 TTL: 86400（24 小時）
+
+## 功能改善 (104) - 成員登入時通知主管
+- [x] 找出成員登入的 API 入口（verifyMemberPassword procedure）
+- [x] 加入推送通知給主管
+- [x] 加入 band_notifications 記錄寫入
