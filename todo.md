@@ -684,3 +684,12 @@
 - [x] 修改 server/routers/band.ts 的 getMembers/getEvents/getHolidays 使用類型化 cache
 - [x] 修復所有 attendance[member.id] 改為 attendance[String(member.id)]
 - [x] 修復 myStatus 在月曆視圖中使用 localAttendance 優先
+
+## Bug 修復 (95) - 移除 Vite HMR WebSocket 錯誤
+- [ ] 分析 WebSocket 錯誤原因（hmr: false 已設定但仍出現錯誤）
+- [ ] 完全移除瀏覽器 console 中的 WebSocket 錯誤訊息
+
+## Bug 修復 (96) - 出席狀態無法儲存（按後立即還原）
+- [x] 調查 setAttendance API 是否成功
+- [x] 調查前端樂觀更新後被 refetch 覆蓋的問題
+- [x] 修復出席狀態更新邏輯

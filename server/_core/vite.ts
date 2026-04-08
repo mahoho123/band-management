@@ -9,8 +9,12 @@ import viteConfig from "../../vite.config";
 export async function setupVite(app: Express, server: Server, _port?: number) {
   const serverOptions = {
     middlewareMode: true,
-    // HMR is disabled in vite.config.ts (hmr: false) because the Manus
+    // HMR is explicitly disabled here AND in vite.config.ts because the Manus
     // reverse-proxy does not forward WebSocket upgrades on the Vite HMR path.
+    // Without this, createViteServer ignores the vite.config.ts hmr:false and
+    // the browser still tries to open a WebSocket, producing the
+    // "WebSocket closed without opened" console error.
+    hmr: false,
     allowedHosts: true as const,
   };
 

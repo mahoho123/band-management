@@ -284,7 +284,10 @@ export const bandRouter = router({
     )
     .mutation(async ({ input }) => {
       const result = await setAttendance(input.eventId, input.memberId, input.status);
+      // Clear both attendance cache AND events cache so the next getEvents refetch
+      // returns the updated attendance data instead of stale cached data.
       deleteFromCache(CACHE_KEYS.ATTENDANCE(input.eventId));
+      deleteFromCache(CACHE_KEYS.EVENTS);
       const io = getIO();
       if (io) {
         io.sockets.emit("attendance:changed", {

@@ -73,6 +73,7 @@ export function useRealtimeSync() {
         console.log('[Realtime Sync] Attendance changed', data);
         if (data?.eventId && data?.memberId && data?.status) {
           // 直接更新 cache 中的 attendance，避免整個 refetch 造成 UI 閃爍
+          // 注意：attendance key 必須是字串（JSON 序列化後 object key 永遠是字串）
           queryClient.setQueryData(
             [['band', 'getEvents'], { type: 'query' }],
             (oldData: any) => {
@@ -83,7 +84,7 @@ export function useRealtimeSync() {
                   ...event,
                   attendance: {
                     ...event.attendance,
-                    [data.memberId]: data.status,
+                    [String(data.memberId)]: data.status,
                   },
                 };
               });
