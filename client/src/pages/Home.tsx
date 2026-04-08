@@ -525,12 +525,16 @@ export default function Home() {
     }
   }, [systemDataQuery.data, systemDataQuery.isLoading]);
 
-  // 初始化本地出席狀態緩存
+  // 初始化本地出席狀態緩存（強制所有 key 為字串，避免數字/字串 key 混用導致按鈕同時高亮問題）
   useEffect(() => {
     if (eventsQuery.data) {
-      const newLocalAttendance: Record<number, Record<number, string>> = {};
+      const newLocalAttendance: Record<number, Record<string, string>> = {};
       eventsQuery.data.forEach(event => {
-        newLocalAttendance[event.id] = { ...event.attendance };
+        const stringKeyAttendance: Record<string, string> = {};
+        Object.entries(event.attendance || {}).forEach(([k, v]) => {
+          stringKeyAttendance[String(k)] = String(v);
+        });
+        newLocalAttendance[event.id] = stringKeyAttendance;
       });
       setLocalAttendance(newLocalAttendance);
     }
