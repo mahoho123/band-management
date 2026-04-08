@@ -11,9 +11,6 @@ export async function setupVite(app: Express, server: Server, _port?: number) {
     middlewareMode: true,
     // HMR is explicitly disabled here AND in vite.config.ts because the Manus
     // reverse-proxy does not forward WebSocket upgrades on the Vite HMR path.
-    // Without this, createViteServer ignores the vite.config.ts hmr:false and
-    // the browser still tries to open a WebSocket, producing the
-    // "WebSocket closed without opened" console error.
     hmr: false,
     allowedHosts: true as const,
   };
@@ -31,6 +28,39 @@ export async function setupVite(app: Express, server: Server, _port?: number) {
       ...(viteConfig.optimizeDeps ?? {}),
       force: true,
     },
+  });
+
+  // Intercept @vite/client BEFORE Vite's own middlewares so we can patch out
+  // the WebSocket connection attempt. Vite always injects this script in dev
+  // mode even when hmr:false, causing a "WebSocket closed without opened"
+  // console.error in the browser. We fetch the original script from Vite's
+  // internal handler, then replace the two console.error calls with no-ops.
+  app.use("/@vite/client", async (req, res, next) => {
+    try {
+      // Load the original @vite/client content via Vite's transform pipeline
+      const result = await vite.transformRequest("/@vite/client");
+      if (!result) return next();
+
+      let code = result.code;
+
+      // Silence the "failed to connect to websocket" error log that fires when
+      // the Manus reverse-proxy rejects the WebSocket upgrade.
+      code = code.replace(
+        /console\.error\(`\[vite\] failed to connect to websocket\./g,
+        'console.debug(`[vite] websocket unavailable (expected in Manus proxy environment).'
+      );
+      code = code.replace(
+        /console\.error\(`\[vite\] failed to connect to websocket \(\$\{e\}\)\. `\);/g,
+        'console.debug(`[vite] websocket unavailable (expected in Manus proxy environment): ${e}`);'
+      );
+
+      res
+        .status(200)
+        .set({ "Content-Type": "application/javascript; charset=utf-8" })
+        .end(code);
+    } catch {
+      next();
+    }
   });
 
   app.use(vite.middlewares);

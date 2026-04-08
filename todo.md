@@ -686,8 +686,8 @@
 - [x] 修復 myStatus 在月曆視圖中使用 localAttendance 優先
 
 ## Bug 修復 (95) - 移除 Vite HMR WebSocket 錯誤
-- [ ] 分析 WebSocket 錯誤原因（hmr: false 已設定但仍出現錯誤）
-- [ ] 完全移除瀏覽器 console 中的 WebSocket 錯誤訊息
+- [x] 分析 WebSocket 錯誤原因（hmr: false 已設定但仍出現錯誤）
+- [x] 完全移除瀏覽器 console 中的 WebSocket 錯誤訊息
 
 ## Bug 修復 (96) - 出席狀態無法儲存（按後立即還原）
 - [x] 調查 setAttendance API 是否成功
