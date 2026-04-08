@@ -252,6 +252,9 @@ export const bandRouter = router({
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input }) => {
       const result = await deleteBandEvent(input.id);
+      // 清除 EVENTS cache 和相關的 attendance cache
+      deleteFromCache(CACHE_KEYS.EVENTS);
+      clearCacheByPrefix("attendance:");
       const io = getIO();
       if (io) {
         io.sockets.emit("event:deleted");

@@ -709,3 +709,11 @@
 - [x] 偵測 Android 設備品牌（小米/三星/OPPO/華為等）
 - [x] 在推播通知設定頁面加入對應品牌的省電模式白名單步驟指引
 - [x] 加入「已完成設定」確認按鈕追蹤用戶是否已完成設定
+
+## Bug 修復 (100) - 出席記錄更新後資料庫看不到
+- [x] 調查 setAttendance 是否真正寫入資料庫（還是只更新 cache）
+- [x] 確認出席記錄存在獨立的 band_attendance 表，不是 band_events 表
+
+## Bug 修復 (101) - 刪除活動失敗
+- [x] 調查 deleteEvent 失敗原因（漏清 EVENTS cache）
+- [x] 修復 deleteEvent 後清除 EVENTS cache 和 attendance cache
