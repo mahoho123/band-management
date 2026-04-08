@@ -738,3 +738,11 @@
 - [x] 找出成員登入的 API 入口（verifyMemberPassword procedure）
 - [x] 加入推送通知給主管
 - [x] 加入 band_notifications 記錄寫入
+
+## 功能改善 (105) - 出席狀態摘要加入時間日期
+- [x] 找出出席狀態摘要生成代碼
+- [x] 在摘要中加入活動日期、時間、地點和出席人數
+
+## 功能改善 (106) - WhatsApp 通知連結改為 adagio.manus.space
+- [x] 搜尋所有 bandmanage-nisjjqwq.manus.space 出現位置
+- [x] 全部改為 adagio.manus.space

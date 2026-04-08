@@ -1083,10 +1083,21 @@ export default function Home() {
     const notGoing = members.filter(m => attendance[String(m.id)] === "not-going").map(m => m.name).join(", ");
     const unknown = members.filter(m => attendance[String(m.id)] === "unknown").map(m => m.name).join(", ");
     
-    let summary = `【${event.title}】出席狀態\n\n`;
-    if (going) summary += `\u2713 出席: ${going}\n`;
-    if (notGoing) summary += `\u2717 不出席: ${notGoing}\n`;
-    if (unknown) summary += `❓ 未知道: ${unknown}\n`;
+    const dateStr = formatDate(event.date);
+    const startTime = formatTime12Full(event.startTime);
+    const endTime = formatTime12Full(event.endTime);
+    const typeLabel = TYPE_CONFIG[event.type]?.text || event.type;
+    const [, , day] = event.date.split("-").map(Number);
+    const weekDay = ["\u65e5", "\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d"][new Date(event.date).getDay()];
+    
+    let summary = `\uD83C\uDFB5 \u3010${event.title}\u3011${typeLabel}\u51fa\u5e2d\u72c0\u614b\n\n`;
+    summary += `\uD83D\uDCC5 \u65e5\u671f\uff1a${dateStr}\uff08${weekDay}\uff09\n`;
+    summary += `\u23F0 \u6642\u9593\uff1a${startTime} - ${endTime}\n`;
+    if (event.location) summary += `\uD83D\uDCCD \u5730\u9ede\uff1a${event.location}\n`;
+    summary += `\n`;
+    if (going) summary += `\u2705 \u51fa\u5e2d (${going.split(", ").length}\u4eba): ${going}\n`;
+    if (notGoing) summary += `\u274C \u4e0d\u51fa\u5e2d (${notGoing.split(", ").length}\u4eba): ${notGoing}\n`;
+    if (unknown) summary += `\u2753 \u672a\u56de\u8986 (${unknown.split(", ").length}\u4eba): ${unknown}\n`;
     return summary;
   };
 
@@ -1100,7 +1111,7 @@ export default function Home() {
     msg += `⏰ 時間：${startTime} - ${endTime}\n`;
     if (event.location) msg += `📍 地點：${event.location}\n`;
     msg += `\n請確認出席，謝謝！`;
-    msg += `\n\n🔗 出席登記：https://bandmanage-nisjjqwq.manus.space`;
+    msg += `\n\n🔗 出席登記：https://adagio.manus.space`;
     return msg;
   };
 
@@ -1131,7 +1142,7 @@ export default function Home() {
         if (e.notes) msg += `   \uD83D\uDCDD ${e.notes}\n`;
         msg += `\n`;
       });
-      msg += `請登入以下連結確認每個活動的出席狀態，謝謝！\n\uD83D\uDD17 https://bandmanage-nisjjqwq.manus.space`;
+      msg += `請登入以下連結確認每個活動的出席狀態，謝謝！\n\uD83D\uDD17 https://adagio.manus.space`;
     }
     return msg;
   };
