@@ -4,7 +4,7 @@ import { getIO } from "../_core/index";
 import { getDb } from "../db";
 import { sendPushNotificationToAdmins } from "../_core/webpush";
 import { and, eq } from "drizzle-orm";
-import { bandMembers, bandEvents, bandSystemData } from "../../drizzle/schema";
+import { bandMembers, bandEvents, bandSystemData, BandMember, BandEvent, BandHoliday } from "../../drizzle/schema";
 import { getFromCache, setInCache, deleteFromCache, clearCacheByPrefix, CACHE_KEYS } from "../cache";
 import {
   getBandMembers,
@@ -92,7 +92,7 @@ export const bandRouter = router({
 
   // Members - 使用緩存
   getMembers: publicProcedure.query(async () => {
-    const cached = getFromCache(CACHE_KEYS.MEMBERS);
+    const cached = getFromCache<BandMember[]>(CACHE_KEYS.MEMBERS);
     if (cached) {
       return cached;
     }
@@ -158,7 +158,8 @@ export const bandRouter = router({
 
   // Events - 使用緩存
   getEvents: publicProcedure.query(async () => {
-    const cached = getFromCache(CACHE_KEYS.EVENTS);
+    type EventWithAttendance = BandEvent & { attendance: Record<string, string> };
+    const cached = getFromCache<EventWithAttendance[]>(CACHE_KEYS.EVENTS);
     if (cached) {
       return cached;
     }
@@ -347,7 +348,7 @@ export const bandRouter = router({
 
   // Holidays - 使用緩存
   getHolidays: publicProcedure.query(async () => {
-    const cached = getFromCache(CACHE_KEYS.HOLIDAYS);
+    const cached = getFromCache<BandHoliday[]>(CACHE_KEYS.HOLIDAYS);
     if (cached) {
       return cached;
     }

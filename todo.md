@@ -675,3 +675,12 @@
 - [x] 添加關鍵字
 - [x] 添加 meta 標籤
 - [x] 添加結構化數據（JSON-LD）
+
+## Bug 修復 (94) - 出席記錄重新整理後不保存
+- [x] 修復 attendance key 類型不匹配問題（後端返回字串 key，前端用數字查詢）
+- [x] 修改 BandEvent interface 的 attendance 類型為 Record<string, string>
+- [x] 修改 localAttendance 狀態類型為 Record<number, Record<string, string>>
+- [x] 修改 server/db.ts 中 attendanceByEvent 使用 String(a.memberId) 作為 key
+- [x] 修改 server/routers/band.ts 的 getMembers/getEvents/getHolidays 使用類型化 cache
+- [x] 修復所有 attendance[member.id] 改為 attendance[String(member.id)]
+- [x] 修復 myStatus 在月曆視圖中使用 localAttendance 優先

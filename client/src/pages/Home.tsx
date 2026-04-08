@@ -55,7 +55,7 @@ interface BandEvent {
   location: string;
   type: "rehearsal" | "performance" | "meeting" | "other";
   notes?: string | null;
-  attendance: Record<number, string>;
+  attendance: Record<string, string>;
   isCompleted?: number | boolean;
   createdAt?: Date;
   updatedAt?: Date;
@@ -387,7 +387,7 @@ export default function Home() {
   const [showYearPicker, setShowYearPicker] = useState(false);
   
   // 本地出席狀態緩存 - 用於零延遲更新
-  const [localAttendance, setLocalAttendance] = useState<Record<number, Record<number, string>>>({});
+  const [localAttendance, setLocalAttendance] = useState<Record<number, Record<string, string>>>({});
 
   // Modal states
   const [showSetupModal, setShowSetupModal] = useState(false);
@@ -885,7 +885,7 @@ export default function Home() {
       ...prev,
       [eventId]: {
         ...prev[eventId],
-        [currentUser.id as number]: status
+        [String(currentUser.id)]: status
       }
     }));
 
@@ -901,7 +901,7 @@ export default function Home() {
           ...prev,
           [eventId]: {
             ...prev[eventId],
-            [currentUser.id as number]: event.attendance[currentUser.id as number] || "unknown"
+            [String(currentUser.id)]: event.attendance[String(currentUser.id)] || "unknown"
           }
         }));
         showToast("更新出席狀態失敗", "error");
@@ -920,7 +920,7 @@ export default function Home() {
       ...prev,
       [eventId]: {
         ...prev[eventId],
-        [memberId]: status
+        [String(memberId)]: status
       }
     }));
 
@@ -940,7 +940,7 @@ export default function Home() {
           ...prev,
           [eventId]: {
             ...prev[eventId],
-            [memberId]: event.attendance[memberId] || "unknown"
+            [String(memberId)]: event.attendance[String(memberId)] || "unknown"
           }
         }));
         showToast("更新出席狀態失敗", "error");
@@ -959,7 +959,7 @@ export default function Home() {
       ...prev,
       [selectedEventId]: {
         ...prev[selectedEventId],
-        [currentUser.id as number]: status
+        [String(currentUser.id)]: status
       }
     }));
 
@@ -975,7 +975,7 @@ export default function Home() {
           ...prev,
           [selectedEventId]: {
             ...prev[selectedEventId],
-            [currentUser.id as number]: event.attendance[currentUser.id as number] || "unknown"
+            [String(currentUser.id)]: event.attendance[String(currentUser.id)] || "unknown"
           }
         }));
         showToast("更新出席狀態失敗", "error");
@@ -1075,9 +1075,9 @@ export default function Home() {
   const generateAttendanceSummary = (event: BandEvent) => {
     const attendance = localAttendance[event.id] || event.attendance;
     const members = membersQuery.data || [];
-    const going = members.filter(m => attendance[m.id] === "going").map(m => m.name).join(", ");
-    const notGoing = members.filter(m => attendance[m.id] === "not-going").map(m => m.name).join(", ");
-    const unknown = members.filter(m => attendance[m.id] === "unknown").map(m => m.name).join(", ");
+    const going = members.filter(m => attendance[String(m.id)] === "going").map(m => m.name).join(", ");
+    const notGoing = members.filter(m => attendance[String(m.id)] === "not-going").map(m => m.name).join(", ");
+    const unknown = members.filter(m => attendance[String(m.id)] === "unknown").map(m => m.name).join(", ");
     
     let summary = `【${event.title}】出席狀態\n\n`;
     if (going) summary += `\u2713 出席: ${going}\n`;
@@ -1234,7 +1234,7 @@ export default function Home() {
             const goingCount = Object.values(attendance).filter(v => v === "going").length;
             const notGoingCount = Object.values(attendance).filter(v => v === "not-going").length;
             const unknownCount = Object.values(attendance).filter(v => v === "unknown").length;
-            const myStatus = currentUser?.role === "member" ? attendance[currentUser.id as number] : null;
+            const myStatus = currentUser?.role === "member" ? attendance[String(currentUser.id)] : null;
             return (
               <div key={i} className="text-xs sm:text-sm md:text-base space-y-1 mb-1 sm:mb-2 border-l-2 border-amber-300 pl-1.5 sm:pl-2"
               onClick={(e) => { e.stopPropagation(); openEventModal(evt.id); }}
@@ -1938,8 +1938,8 @@ export default function Home() {
                         </div>
                         {(() => {
                           // 使用 localAttendance 即時狀態，消除視覺延遲
-                          const myStatus = (localAttendance[selectedEvent.id]?.[currentUser.id as number]) 
-                            ?? selectedEvent.attendance[currentUser.id as number];
+                          const myStatus = (localAttendance[selectedEvent.id]?.[String(currentUser.id)]) 
+                            ?? selectedEvent.attendance[String(currentUser.id)];
                           return (
                             <div className="flex gap-3 flex-wrap">
                               <button
@@ -1981,10 +1981,10 @@ export default function Home() {
                                     <i className="fas fa-check" /> 出席 ({Object.values(attendance).filter(v => v === "going").length})
                                   </h5>
                                   <div className="space-y-1">
-                                    {(membersQuery.data || []).filter(m => attendance[m.id] === "going").length === 0 ? (
+                                    {(membersQuery.data || []).filter(m => attendance[String(m.id)] === "going").length === 0 ? (
                                       <p className="text-xs text-gray-500">暫無</p>
                                     ) : (
-                                      (membersQuery.data || []).filter(m => attendance[m.id] === "going").map(member => (
+                                      (membersQuery.data || []).filter(m => attendance[String(m.id)] === "going").map(member => (
                                         <div key={member.id} className="text-xs text-green-700 font-medium">{member.name}</div>
                                       ))
                                     )}
@@ -1997,10 +1997,10 @@ export default function Home() {
                                     <i className="fas fa-times" /> 不出席 ({Object.values(attendance).filter(v => v === "not-going").length})
                                   </h5>
                                   <div className="space-y-1">
-                                    {(membersQuery.data || []).filter(m => attendance[m.id] === "not-going").length === 0 ? (
+                                    {(membersQuery.data || []).filter(m => attendance[String(m.id)] === "not-going").length === 0 ? (
                                       <p className="text-xs text-gray-500">暫無</p>
                                     ) : (
-                                      (membersQuery.data || []).filter(m => attendance[m.id] === "not-going").map(member => (
+                                      (membersQuery.data || []).filter(m => attendance[String(m.id)] === "not-going").map(member => (
                                         <div key={member.id} className="text-xs text-red-700 font-medium">{member.name}</div>
                                       ))
                                     )}
@@ -2013,10 +2013,10 @@ export default function Home() {
                                     <i className="fas fa-question" /> 待確認 ({Object.values(attendance).filter(v => v === "unknown").length})
                                   </h5>
                                   <div className="space-y-1">
-                                    {(membersQuery.data || []).filter(m => attendance[m.id] === "unknown").length === 0 ? (
+                                    {(membersQuery.data || []).filter(m => attendance[String(m.id)] === "unknown").length === 0 ? (
                                       <p className="text-xs text-gray-500">暫無</p>
                                     ) : (
-                                      (membersQuery.data || []).filter(m => attendance[m.id] === "unknown").map(member => (
+                                      (membersQuery.data || []).filter(m => attendance[String(m.id)] === "unknown").map(member => (
                                         <div key={member.id} className="text-xs text-gray-700 font-medium">{member.name}</div>
                                       ))
                                     )}
@@ -2037,8 +2037,8 @@ export default function Home() {
                       ) : (
                         (membersQuery.data || []).map((member) => {
                           // 優先讀取 localAttendance 即時狀態，消除視覺延遲
-                          const status = (localAttendance[selectedEvent.id]?.[member.id]) 
-                            ?? selectedEvent.attendance[member.id];
+                          const status = (localAttendance[selectedEvent.id]?.[String(member.id)]) 
+                            ?? selectedEvent.attendance[String(member.id)];
                           return (
                             <div key={member.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                               <div className="flex items-center gap-2 flex-1">
@@ -2618,7 +2618,7 @@ export default function Home() {
                   const isOngoing = status === "ongoing";
                   const typeConf = TYPE_CONFIG[event.type];
                   const goingCount = Object.values(event.attendance).filter(v => v === "going").length;
-                  const myStatus = currentUser?.role === "member" ? event.attendance[currentUser.id as number] : null;
+                  const myStatus = currentUser?.role === "member" ? (localAttendance[event.id]?.[String(currentUser.id)] ?? event.attendance[String(currentUser.id)]) : null;
 
                   const isSelected = selectedEventIds.has(event.id);
                   const toggleEventSelection = (e: any) => {
@@ -2692,24 +2692,24 @@ export default function Home() {
                                 return (
                                   <>
                                     {/* Going */}
-                                    {(membersQuery.data || []).filter(m => attendance[m.id] === "going").length > 0 && (
+                                    {(membersQuery.data || []).filter(m => attendance[String(m.id)] === "going").length > 0 && (
                                       <div className="text-xs">
                                         <span className="px-2 py-0.5 rounded bg-green-100 text-green-700 font-medium mr-1 inline-block">✓ 出席</span>
-                                        <span className="text-gray-700">{(membersQuery.data || []).filter(m => attendance[m.id] === "going").map(m => m.name).join(", ")}</span>
+                                        <span className="text-gray-700">{(membersQuery.data || []).filter(m => attendance[String(m.id)] === "going").map(m => m.name).join(", ")}</span>
                                       </div>
                                     )}
                                     {/* Not Going */}
-                                    {(membersQuery.data || []).filter(m => attendance[m.id] === "not-going").length > 0 && (
+                                    {(membersQuery.data || []).filter(m => attendance[String(m.id)] === "not-going").length > 0 && (
                                       <div className="text-xs">
                                         <span className="px-2 py-0.5 rounded bg-red-100 text-red-700 font-medium mr-1 inline-block">✗ 不出席</span>
-                                        <span className="text-gray-700">{(membersQuery.data || []).filter(m => attendance[m.id] === "not-going").map(m => m.name).join(", ")}</span>
+                                        <span className="text-gray-700">{(membersQuery.data || []).filter(m => attendance[String(m.id)] === "not-going").map(m => m.name).join(", ")}</span>
                                       </div>
                                     )}
                                     {/* Unknown */}
-                                    {(membersQuery.data || []).filter(m => attendance[m.id] === "unknown").length > 0 && (
+                                    {(membersQuery.data || []).filter(m => attendance[String(m.id)] === "unknown").length > 0 && (
                                       <div className="text-xs">
                                         <span className="px-2 py-0.5 rounded bg-gray-200 text-gray-700 font-medium mr-1 inline-block">? 待確認</span>
-                                        <span className="text-gray-700">{(membersQuery.data || []).filter(m => attendance[m.id] === "unknown").map(m => m.name).join(", ")}</span>
+                                        <span className="text-gray-700">{(membersQuery.data || []).filter(m => attendance[String(m.id)] === "unknown").map(m => m.name).join(", ")}</span>
                                       </div>
                                     )}
                                   </>
@@ -2734,7 +2734,7 @@ export default function Home() {
                                     </span>
                                   );
                                 })}
-                                {membersQuery.data?.filter(m => !event.attendance[m.id]).map(member => (
+                                {membersQuery.data?.filter(m => !event.attendance[String(m.id)]).map(member => (
                                   <span key={member.id} className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600">
                                     {member.name} ?
                                   </span>
@@ -2819,23 +2819,23 @@ export default function Home() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {(membersQuery.data || []).map((member) => {
                   // Filter events by selected month
-                  const monthEvents = (eventsQuery.data || []).filter(e => {
+                  const monthEvents = (eventsQuery.data || []).filter((e: BandEvent) => {
                     const [year, month] = e.date.split('-');
                     const yearMatch = parseInt(year) === listYear;
                     const monthMatch = listMonth === "all" || parseInt(month) === parseInt(listMonth as string) + 1;
                     return yearMatch && monthMatch;
                   });
-                  const eventCount = monthEvents.filter(e => {
+                  const eventCount = monthEvents.filter((e: BandEvent) => {
                     const att = localAttendance[e.id] || e.attendance;
-                    return att[member.id] === "going";
+                    return att[String(member.id)] === "going";
                   }).length;
-                  const notAttendingCount = monthEvents.filter(e => {
+                  const notAttendingCount = monthEvents.filter((e: BandEvent) => {
                     const att = localAttendance[e.id] || e.attendance;
-                    return att[member.id] === "not-going";
+                    return att[String(member.id)] === "not-going";
                   }).length;
-                  const pendingCount = monthEvents.filter(e => {
+                  const pendingCount = monthEvents.filter((e: BandEvent) => {
                     const att = localAttendance[e.id] || e.attendance;
-                    return att[member.id] === "unknown"; // 只計真正按了「待確認」的，未回應的不計
+                    return att[String(member.id)] === "unknown"; // 只計真正按了「待確認」的，未回應的不計
                   }).length;
                   return (
                     <div key={member.id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:border-amber-200 transition-all">

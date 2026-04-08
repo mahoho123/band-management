@@ -128,13 +128,13 @@ export async function getBandEvents() {
     db.select().from(bandAttendance),
   ]);
   
-  // 將出席記錄按 eventId 分組
-  const attendanceByEvent: Record<number, Record<number, string>> = {};
+  // 將出席記錄按 eventId 分組（使用字串 key 確保 JSON 序列化後一致）
+  const attendanceByEvent: Record<number, Record<string, string>> = {};
   allAttendance.forEach((a) => {
     if (!attendanceByEvent[a.eventId]) {
       attendanceByEvent[a.eventId] = {};
     }
-    attendanceByEvent[a.eventId][a.memberId] = a.status;
+    attendanceByEvent[a.eventId][String(a.memberId)] = a.status;
   });
   
   // 將出席記錄合併到活動中
