@@ -11,6 +11,13 @@ if (ENV.vapidPrivateKey && ENV.vapidPublicKey) {
   );
 }
 
+// Web Push options: urgency=high tells FCM/GCM to deliver immediately even in Doze mode
+// TTL=86400 (24 hours) ensures the message is retried for 24 hours if device is offline
+const PUSH_OPTIONS: webpush.RequestOptions = {
+  urgency: 'high',
+  TTL: 86400,
+};
+
 export interface PushNotificationPayload {
   title: string;
   body: string;
@@ -53,7 +60,8 @@ export async function sendPushNotificationToUser(
               p256dh: subscription.p256dh,
             },
           },
-          notificationPayload
+          notificationPayload,
+          PUSH_OPTIONS
         );
         console.log(`[webpush] Notification sent to user ${userId}`);
       } catch (error: any) {
@@ -109,7 +117,8 @@ export async function sendPushNotificationToAdmins(
               p256dh: subscription.p256dh,
             },
           },
-          notificationPayload
+          notificationPayload,
+          PUSH_OPTIONS
         );
         console.log('[webpush] Notification sent to admin device successfully');
       } catch (error: any) {

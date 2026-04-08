@@ -723,3 +723,13 @@
 - [x] 更新 schema 支援多種通知類型
 - [x] 在 setAttendance/addEvent/updateEvent/deleteEvent 加入 createNotification 呼叫
 - [x] 執行 db:push 更新資料庫 schema
+
+## 功能改善 (103) - Web Push urgency 和 TTL 設定
+- [x] 找出 sendPushNotification 函數
+- [x] 加入 urgency: high
+- [x] 加入 TTL: 86400（24 小時）
+
+## 功能改善 (103) - Web Push urgency 和 TTL 設定
+- [x] 找出 sendPushNotification 函數
+- [x] 加入 urgency: high
+- [x] 加入 TTL: 86400（24 小時）
