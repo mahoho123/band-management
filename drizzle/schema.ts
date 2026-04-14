@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, index, uniqueIndex } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -51,7 +51,10 @@ export const bandEvents = mysqlTable("band_events", {
   isCompleted: int("isCompleted").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  // Index for date-based queries (calendar view)
+  dateIdx: index("events_date_idx").on(table.date),
+}));
 
 export type BandEvent = typeof bandEvents.$inferSelect;
 export type InsertBandEvent = typeof bandEvents.$inferInsert;
@@ -63,7 +66,12 @@ export const bandAttendance = mysqlTable("band_attendance", {
   status: mysqlEnum("status", ["going", "not-going", "unknown"]).default("unknown").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  // Composite unique index for fast lookup and upsert
+  eventMemberIdx: uniqueIndex("event_member_idx").on(table.eventId, table.memberId),
+  // Index for querying all attendance by event
+  eventIdIdx: index("attendance_event_id_idx").on(table.eventId),
+}));
 
 export type BandAttendance = typeof bandAttendance.$inferSelect;
 export type InsertBandAttendance = typeof bandAttendance.$inferInsert;
@@ -101,7 +109,12 @@ export const bandNotifications = mysqlTable("band_notifications", {
   message: text("message").notNull(),
   isRead: int("isRead").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+}, (table) => ({
+  // Index for sorting by createdAt (most common query pattern)
+  createdAtIdx: index("notifications_created_at_idx").on(table.createdAt),
+  // Index for unread notifications filter
+  isReadIdx: index("notifications_is_read_idx").on(table.isRead),
+}));
 
 export type BandNotification = typeof bandNotifications.$inferSelect;
 export type InsertBandNotification = typeof bandNotifications.$inferInsert;
@@ -114,7 +127,10 @@ export const pushSubscriptions = mysqlTable("push_subscriptions", {
   p256dh: varchar("p256dh", { length: 255 }).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  // Index for userId lookup (get all subscriptions for a user)
+  userIdIdx: index("push_subscriptions_user_id_idx").on(table.userId),
+}));
 
 export type PushSubscription = typeof pushSubscriptions.$inferSelect;
 export type InsertPushSubscription = typeof pushSubscriptions.$inferInsert;

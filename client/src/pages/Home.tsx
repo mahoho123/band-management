@@ -341,12 +341,12 @@ export default function Home() {
   useRealtimeSync();
 
   // tRPC queries
-  // refetchInterval 設為 3000ms（3秒），降低伺服器負載
-  // Socket.IO 推送機制會即時通知更新，輪詢只作備份
-  const systemDataQuery = trpc.band.getSystemData.useQuery(undefined, { refetchInterval: 3000, staleTime: 0, refetchOnWindowFocus: true, refetchOnMount: true });
-  const membersQuery = trpc.band.getMembers.useQuery(undefined, { refetchInterval: 3000, staleTime: 0, refetchOnWindowFocus: true, refetchOnMount: true });
-  const eventsQuery = trpc.band.getEvents.useQuery(undefined, { refetchInterval: 3000, staleTime: 0, refetchOnWindowFocus: true, refetchOnMount: true });
-  const holidaysQuery = trpc.band.getHolidays.useQuery(undefined, { refetchInterval: 30000, staleTime: 0, refetchOnWindowFocus: true, refetchOnMount: true });
+  // ref  // refetchInterval 降至 30 秒，依賴 Socket.IO 即時推送來更新資料
+  // staleTime 30s 避免重新窗口焦點時不必要的重新載入
+  const systemDataQuery = trpc.band.getSystemData.useQuery(undefined, { refetchInterval: 30000, staleTime: 30000, refetchOnWindowFocus: false, refetchOnMount: true });
+  const membersQuery = trpc.band.getMembers.useQuery(undefined, { refetchInterval: 30000, staleTime: 30000, refetchOnWindowFocus: false, refetchOnMount: true });
+  const eventsQuery = trpc.band.getEvents.useQuery(undefined, { refetchInterval: 30000, staleTime: 30000, refetchOnWindowFocus: false, refetchOnMount: true });
+  const holidaysQuery = trpc.band.getHolidays.useQuery(undefined, { refetchInterval: 300000, staleTime: 300000, refetchOnWindowFocus: false, refetchOnMount: true });
 
   // tRPC mutations
   const initSystemMutation = trpc.band.initSystem.useMutation();
@@ -623,7 +623,7 @@ export default function Home() {
   const handleMemberLogin = (memberId: number) => {
     const member = membersQuery.data?.find((m) => m.id === memberId);
     if (!member) return;
-    if (!member.password) {
+    if (!member.hasPassword) {
       // First login - show inline set password UI
       setMemberLoginState({
         memberId,
@@ -1339,10 +1339,46 @@ export default function Home() {
   // Loading state
   if (systemDataQuery.isLoading || membersQuery.isLoading || eventsQuery.isLoading || holidaysQuery.isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "linear-gradient(135deg, #F4D03F 0%, #D4A017 100%)" }}>
-        <div className="text-white text-center">
-          <div className="text-4xl mb-4">⏳</div>
-          <p>載入中...</p>
+      <div className="min-h-screen" style={{ background: "linear-gradient(135deg, #FFF8E1 0%, #FFF3CD 100%)" }}>
+        {/* Skeleton Header */}
+        <div className="sticky top-0 z-40 px-3 sm:px-4 py-2 sm:py-3 shadow-sm" style={{ background: "linear-gradient(135deg, #F4D03F 0%, #D4A017 100%)" }}>
+          <div className="flex items-center justify-between max-w-4xl mx-auto">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/30 animate-pulse" />
+              <div className="w-24 h-5 bg-white/30 rounded animate-pulse" />
+            </div>
+            <div className="flex gap-2">
+              <div className="w-16 h-7 bg-white/30 rounded-full animate-pulse" />
+              <div className="w-16 h-7 bg-white/30 rounded-full animate-pulse" />
+            </div>
+          </div>
+        </div>
+        {/* Skeleton Calendar Grid */}
+        <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4">
+          {/* Month navigation skeleton */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-8 h-8 bg-amber-200 rounded-full animate-pulse" />
+            <div className="w-32 h-7 bg-amber-200 rounded animate-pulse" />
+            <div className="w-8 h-8 bg-amber-200 rounded-full animate-pulse" />
+          </div>
+          {/* Day headers */}
+          <div className="grid grid-cols-7 gap-1 mb-2">
+            {['日', '一', '二', '三', '四', '五', '六'].map((d) => (
+              <div key={d} className="text-center text-xs font-medium text-amber-700 py-1">{d}</div>
+            ))}
+          </div>
+          {/* Calendar cells skeleton */}
+          {[0,1,2,3,4].map((row) => (
+            <div key={row} className="grid grid-cols-7 gap-1 mb-1">
+              {[0,1,2,3,4,5,6].map((col) => (
+                <div key={col} className="aspect-square rounded-lg bg-white/60 animate-pulse" style={{ animationDelay: `${(row * 7 + col) * 30}ms` }} />
+              ))}
+            </div>
+          ))}
+        </div>
+        {/* Loading text */}
+        <div className="text-center mt-2">
+          <p className="text-amber-700 text-sm animate-pulse">載入中...</p>
         </div>
       </div>
     );

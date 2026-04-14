@@ -115,17 +115,26 @@ export const bandRouter = router({
       return { success: false, message: "成員密碼錯誤" };
     }),
 
-  // Members - 使用緩存
+  // Members - 使用緩存，Data Shaping：移除密碼明文，改用 hasPassword 標誌
   getMembers: publicProcedure.query(async () => {
-    const cached = getFromCache<BandMember[]>(CACHE_KEYS.MEMBERS);
+    type MemberPublic = { id: number; name: string; instrument: string | null; color: string; hasPassword: boolean };
+    const cached = getFromCache<MemberPublic[]>(CACHE_KEYS.MEMBERS);
     if (cached) {
       return cached;
     }
     const members = await getBandMembers();
-    if (members) {
-      setInCache(CACHE_KEYS.MEMBERS, members);
+    // Strip sensitive/redundant fields: replace password with hasPassword flag, remove createdAt/updatedAt
+    const shaped = members.map(({ id, name, instrument, color, password }) => ({
+      id,
+      name,
+      instrument: instrument ?? null,
+      color,
+      hasPassword: !!password,
+    }));
+    if (shaped) {
+      setInCache(CACHE_KEYS.MEMBERS, shaped);
     }
-    return members;
+    return shaped;
   }),
 
   addMember: publicProcedure

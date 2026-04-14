@@ -746,3 +746,34 @@
 ## 功能改善 (106) - WhatsApp 通知連結改為 adagio.manus.space
 - [x] 搜尋所有 bandmanage-nisjjqwq.manus.space 出現位置
 - [x] 全部改為 adagio.manus.space
+
+## 效能優化 (107) - SQL 索引和查詢優化
+- [ ] 分析 bandEvents/bandAttendance/bandMembers 表的查詢模式
+- [ ] 加入必要的資料庫索引
+- [ ] 優化 JOIN 查詢邏輯
+
+## 效能優化 (108) - API Payload 縮減 (Data Shaping)
+- [ ] 移除 API 回傳的冗餘欄位
+- [ ] 確保只回傳前端需要的資料
+
+## 效能優化 (109) - 完整 Optimistic UI（出席狀態）
+- [ ] 改寫出席狀態切換為即時更新
+- [ ] 加入 Rollback 機制（API 失敗時還原）
+
+## 效能優化 (110) - 減少 Re-render 和 Skeleton Screen
+- [ ] 使用 React.memo/useMemo/useCallback 減少不必要渲染
+- [ ] 加入 Skeleton Screen 載入效果
+
+## 效能優化完成記錄 (107-110)
+- [x] 加入 band_attendance 複合唯一索引 (eventId, memberId)
+- [x] 加入 band_events.date 索引
+- [x] 加入 band_notifications 索引
+- [x] 加入 push_subscriptions.userId 索引
+- [x] setAttendance 改用 INSERT ON DUPLICATE KEY UPDATE（移除 N+1 問題）
+- [x] 執行 db:push 更新資料庫
+- [x] getMembers 移除密碼明文，改用 hasPassword 標記
+- [x] getMembers 移除 createdAt/updatedAt 冗餘欄位
+- [x] 前端改用 hasPassword 判斷首次登入
+- [x] refetchInterval 降至 30 秒，staleTime 30s
+- [x] refetchOnWindowFocus 改為 false，避免切換分頁觸發不必要重新載入
+- [x] 加入 Skeleton Screen 取代簡單載入轉圈

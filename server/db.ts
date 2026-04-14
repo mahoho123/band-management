@@ -172,12 +172,10 @@ export async function getBandAttendance(eventId: number) {
 export async function setAttendance(eventId: number, memberId: number, status: string) {
   const db = await getDb();
   if (!db) return { success: false };
-  const existing = await db.select().from(bandAttendance).where(and(eq(bandAttendance.eventId, eventId), eq(bandAttendance.memberId, memberId)));
-  if (existing.length > 0) {
-    await db.update(bandAttendance).set({ status: status as any }).where(and(eq(bandAttendance.eventId, eventId), eq(bandAttendance.memberId, memberId)));
-  } else {
-    await db.insert(bandAttendance).values({ eventId, memberId, status: status as any });
-  }
+  // Use INSERT ... ON DUPLICATE KEY UPDATE for atomic upsert (requires unique index on eventId+memberId)
+  await db.insert(bandAttendance)
+    .values({ eventId, memberId, status: status as any })
+    .onDuplicateKeyUpdate({ set: { status: status as any, updatedAt: new Date() } });
   return { success: true, eventId, memberId, status };
 }
 
