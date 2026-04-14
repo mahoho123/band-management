@@ -777,3 +777,7 @@
 - [x] refetchInterval 降至 30 秒，staleTime 30s
 - [x] refetchOnWindowFocus 改為 false，避免切換分頁觸發不必要重新載入
 - [x] 加入 Skeleton Screen 取代簡單載入轉圈
+
+## Bug 修復 (108) - Service Worker 腳本評估失敗
+- [x] 找到 service-worker.js 第 171 行有 TypeScript 語法 `c as WindowClient`
+- [x] 移除 TS 語法改為純 JS，SW 可正常載入

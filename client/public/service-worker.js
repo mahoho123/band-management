@@ -168,7 +168,7 @@ self.addEventListener('notificationclick', (event) => {
             return client.focus().then((c) => {
               // 通知頁面跳轉
               if (c && 'navigate' in c) {
-                return (c as WindowClient).navigate(targetUrl);
+                return c.navigate(targetUrl);
               }
             });
           }
