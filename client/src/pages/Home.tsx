@@ -365,8 +365,6 @@ export default function Home() {
   const addHolidayMutation = trpc.band.addHoliday.useMutation();
   const verifyAdminPasswordMutation = trpc.band.verifyAdminPassword.useMutation();
   const verifyMemberPasswordMutation = trpc.band.verifyMemberPassword.useMutation();
-  const updateWhatsAppMutation = trpc.band.updateAdminWhatsAppNumber.useMutation();
-  const testWhatsAppMutation = trpc.band.testWhatsAppNotification.useMutation();
   const utils = trpc.useUtils();
 
   // 從 localStorage 讀取已儲存的登入狀態
@@ -435,8 +433,6 @@ export default function Home() {
   const [regConfirm, setRegConfirm] = useState("");
 
   // Admin WhatsApp Number
-  const [adminWhatsAppNumber, setAdminWhatsAppNumber] = useState<string | null>(null);
-
   // Event form
   const [eventTitle, setEventTitle] = useState("");
   const [eventDate, setEventDate] = useState("");
@@ -526,10 +522,6 @@ export default function Home() {
         setShowLoginModal(true);
       } else {
         setShowLoginModal(false);
-      }
-      // Load admin WhatsApp number
-      if (systemDataQuery.data.adminWhatsAppNumber) {
-        setAdminWhatsAppNumber(systemDataQuery.data.adminWhatsAppNumber);
       }
     }
   }, [systemDataQuery.data, systemDataQuery.isLoading]);
@@ -2851,60 +2843,7 @@ export default function Home() {
             </div>
 
             {/* WhatsApp Number Settings */}
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-5">
-              <div className="flex items-center gap-2 mb-3">
-                <i className="fas fa-whatsapp text-green-500 text-lg" />
-                <h3 className="font-bold text-gray-800">自動 WhatsApp 通知設定</h3>
-              </div>
-              <p className="text-sm text-gray-600 mb-3">設定你的 WhatsApp 號碼，系統會在活動前一日中午 12 點檢查有無待確認出席的成員，並自動發送提醒。</p>
-              <div className="flex gap-2 items-end flex-col sm:flex-row">
-                <div className="flex-1 w-full">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">WhatsApp 號碼（含國家碼）</label>
-                  <input
-                    type="text"
-                    placeholder="例如：+85254029146"
-                    value={adminWhatsAppNumber || ""}
-                    onChange={(e) => setAdminWhatsAppNumber(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
-                  />
-                </div>
-                <button
-                  onClick={() => {
-                    updateWhatsAppMutation.mutate({ whatsAppNumber: adminWhatsAppNumber || null }, {
-                      onSuccess: () => showToast("WhatsApp 號碼已保存", "success"),
-                      onError: () => showToast("保存失敗，請稍後重試", "error"),
-                    });
-                  }}
-                  disabled={updateWhatsAppMutation.isPending}
-                  className="bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-all text-sm font-medium whitespace-nowrap"
-                >
-                  {updateWhatsAppMutation.isPending ? "保存中..." : "保存"}
-                </button>
-              </div>
-              {adminWhatsAppNumber && (
-                <div className="mt-3 pt-3 border-t border-blue-200">
-                  <button
-                    onClick={() => {
-                      testWhatsAppMutation.mutate(undefined, {
-                        onSuccess: (data) => {
-                          if (data.success && data.whatsappLink) {
-                            window.open(data.whatsappLink, '_blank');
-                            showToast("測試訊息已打開 WhatsApp", "success");
-                          } else {
-                            showToast(data.message || "測試失敗", "error");
-                          }
-                        },
-                        onError: () => showToast("測試失敗，請稍後重試", "error"),
-                      });
-                    }}
-                    disabled={testWhatsAppMutation.isPending}
-                    className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white px-3 py-2 rounded-lg transition-all text-sm font-medium"
-                  >
-                    {testWhatsAppMutation.isPending ? "測試中..." : "🧪 測試 WhatsApp 通知"}
-                  </button>
-                </div>
-              )}
-            </div>
+
 
             {/* Month Filter for Attendance Statistics */}
             {/* Month Filter - Same as List View */}

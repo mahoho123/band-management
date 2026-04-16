@@ -782,29 +782,9 @@
 - [x] 找到 service-worker.js 第 171 行有 TypeScript 語法 `c as WindowClient`
 - [x] 移除 TS 語法改為純 JS，SW 可正常載入
 
-## 新功能 (109) - 自動 WhatsApp 通知待確認出席
-- [ ] 在主管設定頁加入「WhatsApp 號碼」欄位
-- [ ] 在資料庫 band_members 表加入 adminWhatsAppNumber 欄位
-- [ ] 實現每日下午 5 點定時檢查邏輯（檢查所有活動是否有待確認成員）
-- [ ] 實現自動 WhatsApp 通知發送（通過 wa.me 連結）
-- [ ] 通知內容包含：待確認活動清單、成員名單、網頁連結
-- [ ] 測試自動通知功能
-- [ ] 保存 checkpoint
-
-## 新功能 (110) - 活動前一日中午自動 WhatsApp 通知待確認出席
-- [x] 在主管設定頁加入「WhatsApp 號碼」欄位
-- [x] 實現後端排程邏輯（每日檢查活動前一日的活動）
-- [x] 檢查是否有待確認成員
-- [x] 生成 WhatsApp 連結和通知訊息
-- [x] 自動發送 WhatsApp 通知給主管
-- [x] 通知內容包含：活動名稱、日期、時間、地點、待確認成員名單
-- [x] 測試自動通知功能
-- [ ] 保存 checkpoint
-
-## 新功能 (111) - 手動測試 WhatsApp 通知按鈕
-- [x] 在主管設定頁加入「測試 WhatsApp 通知」按鈕
-- [x] 實現後端 testWhatsAppNotification API
-- [x] 前端設置按鈕事件監聽器
-- [x] 按鈕點擊時自動打開 WhatsApp
-- [x] 主管可以手動測試通知功能
-- [x] 保存 checkpoint
+## 已移除功能
+- [x] 移除 WhatsApp 自動通知功能（109-111）
+- [x] 移除資料庫中的 adminWhatsAppNumber 欄位
+- [x] 移除後端排程邏輯
+- [x] 移除前端 WhatsApp 設定 UI
+- [x] 保留 Web Push 通知功能

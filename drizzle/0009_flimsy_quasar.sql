@@ -1,0 +1,1 @@
+ALTER TABLE `band_system_data` DROP COLUMN `adminWhatsAppNumber`;

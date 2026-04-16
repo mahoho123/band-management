@@ -92,7 +92,6 @@ export const bandSystemData = mysqlTable("band_system_data", {
   adminPassword: varchar("adminPassword", { length: 255 }).notNull(),
   isSetup: int("isSetup").default(0).notNull(),
   adminSubscription: text("adminSubscription"), // JSON string for admin's push subscription
-  adminWhatsAppNumber: varchar("adminWhatsAppNumber", { length: 20 }), // Admin's WhatsApp number for automatic notifications
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
