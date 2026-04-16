@@ -71,6 +71,39 @@ export const bandRouter = router({
       return result;
     }),
 
+  testWhatsAppNotification: publicProcedure.mutation(async () => {
+    try {
+      const db = await getDb();
+      if (!db) {
+        return { success: false, message: "資料庫連接失敗" };
+      }
+
+      const systemData = await db.select().from(bandSystemData).limit(1);
+      if (!systemData || systemData.length === 0 || !systemData[0].adminWhatsAppNumber) {
+        return { success: false, message: "未設定 WhatsApp 號碼，請先設定" };
+      }
+
+      const adminWhatsAppNumber = systemData[0].adminWhatsAppNumber;
+      const testMessage = `🎵 *慢半拍 - WhatsApp 通知測試*\n\n✅ 系統連接成功！\n\n這是一條測試訊息，用來驗證 WhatsApp 通知功能是否正常運作。\n\n📱 你的 WhatsApp 號碼：${adminWhatsAppNumber}\n🔗 系統連結：https://adagio.manus.space/\n\n如果你收到這條訊息，表示自動通知功能已準備好使用！`;
+
+      const encodedMessage = encodeURIComponent(testMessage);
+      const whatsappLink = `https://wa.me/${adminWhatsAppNumber.replace(/\D/g, '')}?text=${encodedMessage}`;
+
+      return {
+        success: true,
+        message: "測試訊息已生成",
+        whatsappLink,
+        testMessage,
+      };
+    } catch (error) {
+      console.error('[testWhatsAppNotification] Error:', error);
+      return {
+        success: false,
+        message: `錯誤：${error instanceof Error ? error.message : '未知錯誤'}`,
+      };
+    }
+  }),
+
   // Password Verification
   verifyAdminPassword: publicProcedure
     .input(z.object({ password: z.string() }))

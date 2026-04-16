@@ -366,6 +366,7 @@ export default function Home() {
   const verifyAdminPasswordMutation = trpc.band.verifyAdminPassword.useMutation();
   const verifyMemberPasswordMutation = trpc.band.verifyMemberPassword.useMutation();
   const updateWhatsAppMutation = trpc.band.updateAdminWhatsAppNumber.useMutation();
+  const testWhatsAppMutation = trpc.band.testWhatsAppNotification.useMutation();
   const utils = trpc.useUtils();
 
   // 從 localStorage 讀取已儲存的登入狀態
@@ -2880,6 +2881,29 @@ export default function Home() {
                   {updateWhatsAppMutation.isPending ? "保存中..." : "保存"}
                 </button>
               </div>
+              {adminWhatsAppNumber && (
+                <div className="mt-3 pt-3 border-t border-blue-200">
+                  <button
+                    onClick={() => {
+                      testWhatsAppMutation.mutate(undefined, {
+                        onSuccess: (data) => {
+                          if (data.success && data.whatsappLink) {
+                            window.open(data.whatsappLink, '_blank');
+                            showToast("測試訊息已打開 WhatsApp", "success");
+                          } else {
+                            showToast(data.message || "測試失敗", "error");
+                          }
+                        },
+                        onError: () => showToast("測試失敗，請稍後重試", "error"),
+                      });
+                    }}
+                    disabled={testWhatsAppMutation.isPending}
+                    className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white px-3 py-2 rounded-lg transition-all text-sm font-medium"
+                  >
+                    {testWhatsAppMutation.isPending ? "測試中..." : "🧪 測試 WhatsApp 通知"}
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Month Filter for Attendance Statistics */}

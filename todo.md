@@ -800,3 +800,11 @@
 - [x] 通知內容包含：活動名稱、日期、時間、地點、待確認成員名單
 - [x] 測試自動通知功能
 - [ ] 保存 checkpoint
+
+## 新功能 (111) - 手動測試 WhatsApp 通知按鈕
+- [x] 在主管設定頁加入「測試 WhatsApp 通知」按鈕
+- [x] 實現後端 testWhatsAppNotification API
+- [x] 前端設置按鈕事件監聽器
+- [x] 按鈕點擊時自動打開 WhatsApp
+- [x] 主管可以手動測試通知功能
+- [x] 保存 checkpoint
