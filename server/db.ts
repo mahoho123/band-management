@@ -406,3 +406,36 @@ export async function getAdminPushSubscription() {
     return [];
   }
 }
+
+// Admin WhatsApp Number queries
+export async function updateAdminWhatsAppNumber(whatsAppNumber: string | null) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  try {
+    const existing = await db.select().from(bandSystemData).limit(1);
+    
+    if (existing.length > 0) {
+      await db
+        .update(bandSystemData)
+        .set({ 
+          adminWhatsAppNumber: whatsAppNumber,
+          updatedAt: new Date()
+        })
+        .where(eq(bandSystemData.id, existing[0].id));
+      
+      const updated = await db
+        .select()
+        .from(bandSystemData)
+        .where(eq(bandSystemData.id, existing[0].id))
+        .limit(1);
+      
+      return updated.length > 0 ? updated[0] : null;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error("[updateAdminWhatsAppNumber] Error:", error);
+    throw error;
+  }
+}

@@ -29,6 +29,7 @@ import {
   deletePushSubscription,
   updateAdminPushSubscription,
   getAdminPushSubscription,
+  updateAdminWhatsAppNumber,
 } from "../db";
 
 export const bandRouter = router({
@@ -52,6 +53,17 @@ export const bandRouter = router({
     .input(z.object({ adminPassword: z.string() }))
     .mutation(async ({ input }) => {
       const result = await updateBandSystemData(input.adminPassword);
+      const io = getIO();
+      if (io) {
+        io.sockets.emit("system:updated");
+      }
+      return result;
+    }),
+
+  updateAdminWhatsAppNumber: publicProcedure
+    .input(z.object({ whatsAppNumber: z.string().nullable() }))
+    .mutation(async ({ input }) => {
+      const result = await updateAdminWhatsAppNumber(input.whatsAppNumber);
       const io = getIO();
       if (io) {
         io.sockets.emit("system:updated");
