@@ -388,6 +388,10 @@ function formatTimeObjectTo12(
     morning: "上午",
     afternoon: "下午",
     evening: "晚上",
+    上午: "上午",
+    下午: "下午",
+    晚上: "晚上",
+    待定: "待定",
   };
 
   const chinesePeriod = periodMap[timeObj.period] || timeObj.period;
