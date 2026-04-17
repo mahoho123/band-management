@@ -1,0 +1,1 @@
+ALTER TABLE `band_events` MODIFY COLUMN `timeSlot` enum('pending','morning','afternoon','evening');

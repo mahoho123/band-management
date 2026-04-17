@@ -456,6 +456,7 @@ export default function Home() {
   const [endAmpm, setEndAmpm] = useState("PM");
   const [dateHolidayWarning, setDateHolidayWarning] = useState("");
   const [eventModalMode, setEventModalMode] = useState<"add" | "edit" | "view">("view");
+  const [eventTimeSlot, setEventTimeSlot] = useState<"pending" | "morning" | "afternoon" | "evening" | null>(null);
   // Repeat event states - custom date selection
   const [extraRepeatDates, setExtraRepeatDates] = useState<string[]>([]); // additional dates beyond the main date
   const [repeatEnabled, setRepeatEnabled] = useState(false);
@@ -800,10 +801,20 @@ export default function Home() {
     if (!eventTitle.trim()) return showToast("請輸入活動名稱", "error");
     if (!eventDate) return showToast("請選擇日期", "error");
 
-    const startTime = parseTime12To24(startHour, startMinute, startAmpm);
-    const endTime = parseTime12To24(endHour, endMinute, endAmpm);
+    // Allow either specific time or time slot
+    const hasSpecificTime = startHour && startMinute && endHour && endMinute;
+    if (!hasSpecificTime && !eventTimeSlot) {
+      return showToast("請填入具體時間或選擇時間段", "error");
+    }
 
-    if (startTime >= endTime) return showToast("開始時間必須早於結束時間", "error");
+    let startTime: string | null = null;
+    let endTime: string | null = null;
+
+    if (hasSpecificTime) {
+      startTime = parseTime12To24(startHour, startMinute, startAmpm);
+      endTime = parseTime12To24(endHour, endMinute, endAmpm);
+      if (startTime >= endTime) return showToast("開始時間必須早於結束時間", "error");
+    }
 
     const dateHoliday = hkHolidays.find((h) => h.date === eventDate);
     if (dateHoliday && !dateHolidayWarning) {
@@ -851,6 +862,7 @@ export default function Home() {
               date,
               startTime,
               endTime,
+              timeSlot: eventTimeSlot || undefined,
               location: eventLocation,
               type: eventType,
               notes: eventNotes,
@@ -1824,6 +1836,33 @@ export default function Home() {
                         </select>
                       </div>
                     </div>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-base sm:text-lg font-medium text-gray-700 mb-2">或選擇時間段（如未填具體時間）</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {(['pending', 'morning', 'afternoon', 'evening'] as const).map((slot) => {
+                      const labels = {
+                        pending: '待定',
+                        morning: '上午',
+                        afternoon: '下午',
+                        evening: '晚上'
+                      };
+                      return (
+                        <button
+                          key={slot}
+                          type="button"
+                          onClick={() => setEventTimeSlot(eventTimeSlot === slot ? null : slot)}
+                          className={`px-3 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base ${
+                            eventTimeSlot === slot
+                              ? 'bg-blue-500 text-white'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                        >
+                          {labels[slot]}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
                 <div>

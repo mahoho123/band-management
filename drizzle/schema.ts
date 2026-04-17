@@ -45,7 +45,7 @@ export const bandEvents = mysqlTable("band_events", {
   date: varchar("date", { length: 10 }).notNull(),
   startTime: varchar("startTime", { length: 5 }),
   endTime: varchar("endTime", { length: 5 }),
-  timeSlot: varchar("timeSlot", { length: 10 }),
+  timeSlot: mysqlEnum("timeSlot", ["pending", "morning", "afternoon", "evening"]),
   location: varchar("location", { length: 255 }).notNull(),
   type: mysqlEnum("type", ["rehearsal", "performance", "meeting", "other"]).notNull(),
   notes: text("notes"),
@@ -58,9 +58,10 @@ export const bandEvents = mysqlTable("band_events", {
 }));
 
 export type BandEvent = Omit<typeof bandEvents.$inferSelect, 'startTime' | 'endTime'> & {
-  startTime: string | null;
-  endTime: string | null;
-};
+    startTime: string | null;
+    endTime: string | null;
+    timeSlot: 'pending' | 'morning' | 'afternoon' | 'evening' | null;
+  };
 export type InsertBandEvent = typeof bandEvents.$inferInsert;
 
 // Time slot options: 'morning', 'afternoon', 'evening' or null if specific time is set
