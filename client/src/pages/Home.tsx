@@ -1064,6 +1064,19 @@ export default function Home() {
       startTime = { hour: "--", minute: "--", period: startAmpm };
       endTime = { hour: "--", minute: "--", period: endAmpm };
       console.log("[handleSaveEvent] TIME SLOT startTime:", startTime, "endTime:", endTime);
+      
+      // Validate time slot order: start period must be <= end period
+      const periodOrder: Record<string, number> = {
+        "morning": 1, "上午": 1, "AM": 1,
+        "afternoon": 2, "下午": 2, "PM": 2,
+        "evening": 3, "晚上": 3,
+        "pending": 0, "待定": 0
+      };
+      const startOrder = periodOrder[startAmpm] || 0;
+      const endOrder = periodOrder[endAmpm] || 0;
+      if (startOrder > endOrder) {
+        return showToast("開始時段必須早於或等於結束時段", "error");
+      }
     } else if (hasSpecificTime) {
       console.log("[handleSaveEvent] SPECIFIC TIME MODE");
       // Build time objects with period information
