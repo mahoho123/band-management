@@ -633,12 +633,12 @@ export default function Home() {
   const [eventType, setEventType] = useState<BandEvent["type"]>("rehearsal");
   const [eventLocation, setEventLocation] = useState("");
   const [eventNotes, setEventNotes] = useState("");
-  const [startHour, setStartHour] = useState("7");
-  const [startMinute, setStartMinute] = useState("00");
-  const [startAmpm, setStartAmpm] = useState(""); // Empty means not selected
-  const [endHour, setEndHour] = useState("10");
-  const [endMinute, setEndMinute] = useState("00");
-  const [endAmpm, setEndAmpm] = useState(""); // Empty means not selected
+  const [startHour, setStartHour] = useState("");
+  const [startMinute, setStartMinute] = useState("");
+  const [startAmpm, setStartAmpm] = useState("pending"); // Default to pending
+  const [endHour, setEndHour] = useState("");
+  const [endMinute, setEndMinute] = useState("");
+  const [endAmpm, setEndAmpm] = useState("pending"); // Default to pending
   const [dateHolidayWarning, setDateHolidayWarning] = useState("");
   const [eventModalMode, setEventModalMode] = useState<"add" | "edit" | "view">(
     "view"
@@ -981,12 +981,12 @@ export default function Home() {
     setEventType("rehearsal");
     setEventLocation("");
     setEventNotes("");
-    setStartHour("7");
-    setStartMinute("00");
-    setStartAmpm("PM");
-    setEndHour("10");
-    setEndMinute("00");
-    setEndAmpm("PM");
+    setStartHour("");
+    setStartMinute("");
+    setStartAmpm("pending");
+    setEndHour("");
+    setEndMinute("");
+    setEndAmpm("pending");
     setDateHolidayWarning("");
     setSelectedEventId(null);
     setEventModalMode("add");
@@ -1021,8 +1021,14 @@ export default function Home() {
       typeof event.startTime === "object" &&
       "hour" in event.startTime
     ) {
-      setStartHour(event.startTime.hour);
-      setStartMinute(event.startTime.minute);
+      // For time slot mode (hour/minute are "--"), keep them empty in form
+      if (event.startTime.hour === "--" || event.startTime.hour === "") {
+        setStartHour("");
+        setStartMinute("");
+      } else {
+        setStartHour(event.startTime.hour);
+        setStartMinute(event.startTime.minute);
+      }
       setStartAmpm(event.startTime.period);
     }
     if (
@@ -1030,8 +1036,14 @@ export default function Home() {
       typeof event.endTime === "object" &&
       "hour" in event.endTime
     ) {
-      setEndHour(event.endTime.hour);
-      setEndMinute(event.endTime.minute);
+      // For time slot mode (hour/minute are "--"), keep them empty in form
+      if (event.endTime.hour === "--" || event.endTime.hour === "") {
+        setEndHour("");
+        setEndMinute("");
+      } else {
+        setEndHour(event.endTime.hour);
+        setEndMinute(event.endTime.minute);
+      }
       setEndAmpm(event.endTime.period);
     }
     checkDateHolidayFor(event.date);
@@ -1048,22 +1060,28 @@ export default function Home() {
     if (!eventTitle.trim()) return showToast("請輸入活動名稱", "error");
     if (!eventDate) return showToast("請選擇日期", "error");
 
-    // Determine mode: prioritize time slot if selected, otherwise use specific time
-    const hasTimeSlot = startAmpm && endAmpm; // Any time slot selected
+    // Determine mode: check if user filled in specific times
+    // If both hour and minute are filled for both start and end, it's specific time mode
+    // Otherwise, it's time slot mode (use the selected period)
     const hasSpecificTime =
       startHour &&
+      startHour !== "" &&
       startHour !== "--" &&
       startMinute &&
+      startMinute !== "" &&
       startMinute !== "--" &&
       endHour &&
+      endHour !== "" &&
       endHour !== "--" &&
       endMinute &&
+      endMinute !== "" &&
       endMinute !== "--";
 
-    // Only allow saving if: 1) has time slot, or 2) has specific time
-    if (!hasTimeSlot && !hasSpecificTime) {
-      return showToast("請填入具體時間或選擇時間段", "error");
-    }
+    // If not in specific time mode, it's time slot mode (always has a period selected)
+    const hasTimeSlot = !hasSpecificTime;
+
+    // Always allow saving (either specific time or time slot mode)
+    // No need for additional validation here
 
     let startTime: { hour: string; minute: string; period: string } | null =
       null;
