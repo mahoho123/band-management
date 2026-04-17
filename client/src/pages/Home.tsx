@@ -305,10 +305,13 @@ function formatTime12Full(time24: string | null): string {
 }
 
 function parseTime12To24(hour: string, minute: string, ampm: string): string {
-  // Handle special time slots
+  // Handle special time slots - convert to 24-hour format
   if (ampm === "pending") return "pending";
-  if (ampm === "evening") return "evening";
+  if (ampm === "morning") return "09:00"; // Morning default: 09:00
+  if (ampm === "afternoon") return "14:00"; // Afternoon default: 14:00
+  if (ampm === "evening") return "19:00"; // Evening default: 19:00
   
+  // Handle regular AM/PM times
   let h = parseInt(hour);
   if (ampm === "PM" && h !== 12) h += 12;
   if (ampm === "AM" && h === 12) h = 0;
