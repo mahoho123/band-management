@@ -821,7 +821,12 @@ export default function Home() {
     if (hasSpecificTime) {
       startTime = parseTime12To24(startHour, startMinute, startAmpm);
       endTime = parseTime12To24(endHour, endMinute, endAmpm);
-      if (startTime >= endTime) return showToast("開始時間必須早於結束時間", "error");
+      // Convert time strings to minutes for proper numeric comparison
+      const [startH, startM] = startTime.split(":").map(Number);
+      const [endH, endM] = endTime.split(":").map(Number);
+      const startMinutes = startH * 60 + startM;
+      const endMinutes = endH * 60 + endM;
+      if (startMinutes >= endMinutes) return showToast("開始時間必須早於結束時間", "error");
     }
 
     const dateHoliday = hkHolidays.find((h) => h.date === eventDate);
