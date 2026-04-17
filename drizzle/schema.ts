@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, index, uniqueIndex } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, index, uniqueIndex, json } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -43,8 +43,8 @@ export const bandEvents = mysqlTable("band_events", {
   id: int("id").autoincrement().primaryKey(),
   title: varchar("title", { length: 255 }).notNull(),
   date: varchar("date", { length: 10 }).notNull(),
-  startTime: varchar("startTime", { length: 5 }),
-  endTime: varchar("endTime", { length: 5 }),
+  startTime: json("startTime").$type<{ hour: string; minute: string; period: string } | null>(),
+  endTime: json("endTime").$type<{ hour: string; minute: string; period: string } | null>(),
   timeSlot: mysqlEnum("timeSlot", ["pending", "morning", "afternoon", "evening"]),
   location: varchar("location", { length: 255 }).notNull(),
   type: mysqlEnum("type", ["rehearsal", "performance", "meeting", "other"]).notNull(),
@@ -58,8 +58,8 @@ export const bandEvents = mysqlTable("band_events", {
 }));
 
 export type BandEvent = Omit<typeof bandEvents.$inferSelect, 'startTime' | 'endTime'> & {
-    startTime: string | null;
-    endTime: string | null;
+    startTime: { hour: string; minute: string; period: string } | null;
+    endTime: { hour: string; minute: string; period: string } | null;
     timeSlot: 'pending' | 'morning' | 'afternoon' | 'evening' | null;
   };
 export type InsertBandEvent = typeof bandEvents.$inferInsert;

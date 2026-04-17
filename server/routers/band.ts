@@ -210,8 +210,16 @@ export const bandRouter = router({
       z.object({
         title: z.string(),
         date: z.string(),
-        startTime: z.string().optional().nullable(),
-        endTime: z.string().optional().nullable(),
+        startTime: z.object({
+          hour: z.string(),
+          minute: z.string(),
+          period: z.string(),
+        }).optional().nullable(),
+        endTime: z.object({
+          hour: z.string(),
+          minute: z.string(),
+          period: z.string(),
+        }).optional().nullable(),
         timeSlot: z.enum(["pending", "morning", "afternoon", "evening"]).optional().nullable(),
         location: z.string(),
         type: z.enum(["rehearsal", "performance", "meeting", "other"]),
@@ -253,8 +261,16 @@ export const bandRouter = router({
         id: z.number(),
         title: z.string().optional(),
         date: z.string().optional(),
-        startTime: z.string().optional().nullable(),
-        endTime: z.string().optional().nullable(),
+        startTime: z.object({
+          hour: z.string(),
+          minute: z.string(),
+          period: z.string(),
+        }).optional().nullable(),
+        endTime: z.object({
+          hour: z.string(),
+          minute: z.string(),
+          period: z.string(),
+        }).optional().nullable(),
         timeSlot: z.enum(["pending", "morning", "afternoon", "evening"]).optional().nullable(),
         location: z.string().optional(),
         type: z.enum(["rehearsal", "performance", "meeting", "other"]).optional(),
