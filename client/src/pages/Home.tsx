@@ -1734,7 +1734,9 @@ export default function Home() {
                 {/* Display time: show single period if start equals end, otherwise show range */}
                 <div className="text-xs sm:text-sm md:text-base text-gray-600 px-1.5 sm:px-2">
                   ⏰{" "}
-                  {typeof evt.startTime === "object" && typeof evt.endTime === "object" && evt.startTime && evt.endTime && evt.startTime.period === evt.endTime.period
+                  {typeof evt.startTime === "object" && typeof evt.endTime === "object" && evt.startTime && evt.endTime && 
+                   (evt.startTime.hour === "--" || !evt.startTime.hour) && (evt.endTime.hour === "--" || !evt.endTime.hour) &&
+                   evt.startTime.period === evt.endTime.period
                     ? formatTimeObjectTo12(evt.startTime)
                     : `${typeof evt.startTime === "object"
                         ? formatTimeObjectTo12(evt.startTime)
