@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 export interface TimeSelectorState {
-  mode: 'specific' | 'slot'; // Must choose one mode
-  // Mode A: Specific Time
-  startTime?: string; // HH:mm format, required if mode='specific'
-  startAmpm?: 'AM' | 'PM'; // required if mode='specific'
-  endTime?: string; // HH:mm format, required if mode='specific'
-  endAmpm?: 'AM' | 'PM'; // required if mode='specific'
-  // Mode B: Time Slot
-  timeSlot?: 'pending' | 'morning' | 'afternoon' | 'evening'; // required if mode='slot'
+  mode: 'specific' | 'slot';
+  // Specific time mode (optional)
+  startTime?: string; // HH:mm format
+  startAmpm?: 'AM' | 'PM';
+  endTime?: string; // HH:mm format
+  endAmpm?: 'AM' | 'PM';
+  // Slot mode (required when mode is 'slot')
+  timeSlot?: 'pending' | 'morning' | 'afternoon' | 'evening';
 }
 
 interface TimeSelectorProps {
@@ -17,46 +17,31 @@ interface TimeSelectorProps {
 }
 
 export const TimeSelector: React.FC<TimeSelectorProps> = ({ value, onChange }) => {
-  const mode = value.mode || 'slot'; // default to slot mode
-
   const handleModeChange = (newMode: 'specific' | 'slot') => {
     onChange({
-      mode: newMode,
-      // Clear the other mode's data
-      ...(newMode === 'specific' ? { timeSlot: undefined } : {
-        startTime: undefined,
-        startAmpm: undefined,
-        endTime: undefined,
-        endAmpm: undefined
-      })
+      ...value,
+      mode: newMode
     });
   };
 
-  const handleSpecificTimeChange = (field: 'startTime' | 'startAmpm' | 'endTime' | 'endAmpm', newValue: string) => {
+  const handleTimeChange = (field: 'startTime' | 'startAmpm' | 'endTime' | 'endAmpm', newValue: string) => {
     onChange({
       ...value,
-      [field]: newValue
+      [field]: newValue || undefined
     });
   };
 
-  const handleTimeSlotChange = (slot: 'pending' | 'morning' | 'afternoon' | 'evening') => {
+  const handleSlotChange = (slot: 'pending' | 'morning' | 'afternoon' | 'evening') => {
     onChange({
       ...value,
+      mode: 'slot',
       timeSlot: slot
     });
   };
 
-  const timeSlotLabels = {
-    pending: '待定',
-    morning: '上午',
-    afternoon: '下午',
-    evening: '晚上'
-  };
-
-  const isSpecificTimeValid = mode === 'specific' && 
-    value.startTime && value.startAmpm && value.endTime && value.endAmpm;
-  
-  const isSlotTimeValid = mode === 'slot' && value.timeSlot;
+  const isSpecificTimeValid = value.startTime && value.startAmpm && value.endTime && value.endAmpm;
+  const isSlotValid = value.mode === 'slot' && value.timeSlot;
+  const isValid = isSpecificTimeValid || isSlotValid;
 
   return (
     <div className="space-y-4">
@@ -65,10 +50,10 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({ value, onChange }) =
         <button
           type="button"
           onClick={() => handleModeChange('specific')}
-          className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
-            mode === 'specific'
+          className={`flex-1 px-3 py-2 rounded-lg font-medium transition-colors text-sm ${
+            value.mode === 'specific'
               ? 'bg-blue-500 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
         >
           填具體時間
@@ -76,148 +61,152 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({ value, onChange }) =
         <button
           type="button"
           onClick={() => handleModeChange('slot')}
-          className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
-            mode === 'slot'
+          className={`flex-1 px-3 py-2 rounded-lg font-medium transition-colors text-sm ${
+            value.mode === 'slot'
               ? 'bg-blue-500 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
         >
           選時間段
         </button>
       </div>
 
-      {/* Mode A: Specific Time */}
-      {mode === 'specific' && (
-        <div className="space-y-3 border border-blue-300 rounded-lg p-4 bg-blue-50">
-          <p className="text-sm font-medium text-gray-700">開始時間（必填）</p>
-          <div className="flex gap-2 items-center">
-            <input
-              type="number"
-              min="1"
-              max="12"
-              value={value.startTime ? parseInt(value.startTime.split(':')[0]) % 12 || 12 : ''}
-              onChange={(e) => {
-                const hour = parseInt(e.target.value) || 0;
-                const minute = value.startTime ? value.startTime.split(':')[1] : '00';
-                handleSpecificTimeChange('startTime', `${hour}:${minute}`);
-              }}
-              placeholder="時"
-              className="w-16 px-2 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <span className="text-gray-700">時</span>
-            <input
-              type="number"
-              min="0"
-              max="59"
-              value={value.startTime ? value.startTime.split(':')[1] : ''}
-              onChange={(e) => {
-                const hour = value.startTime ? value.startTime.split(':')[0] : '1';
-                const minute = String(parseInt(e.target.value) || 0).padStart(2, '0');
-                handleSpecificTimeChange('startTime', `${hour}:${minute}`);
-              }}
-              placeholder="分"
-              className="w-16 px-2 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <span className="text-gray-700">分</span>
-            <select
-              value={value.startAmpm || 'AM'}
-              onChange={(e) => handleSpecificTimeChange('startAmpm', e.target.value as 'AM' | 'PM')}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="AM">上午</option>
-              <option value="PM">下午</option>
-            </select>
-          </div>
-
-          <p className="text-sm font-medium text-gray-700 mt-3">結束時間（必填）</p>
-          <div className="flex gap-2 items-center">
-            <input
-              type="number"
-              min="1"
-              max="12"
-              value={value.endTime ? parseInt(value.endTime.split(':')[0]) % 12 || 12 : ''}
-              onChange={(e) => {
-                const hour = parseInt(e.target.value) || 0;
-                const minute = value.endTime ? value.endTime.split(':')[1] : '00';
-                handleSpecificTimeChange('endTime', `${hour}:${minute}`);
-              }}
-              placeholder="時"
-              className="w-16 px-2 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <span className="text-gray-700">時</span>
-            <input
-              type="number"
-              min="0"
-              max="59"
-              value={value.endTime ? value.endTime.split(':')[1] : ''}
-              onChange={(e) => {
-                const hour = value.endTime ? value.endTime.split(':')[0] : '1';
-                const minute = String(parseInt(e.target.value) || 0).padStart(2, '0');
-                handleSpecificTimeChange('endTime', `${hour}:${minute}`);
-              }}
-              placeholder="分"
-              className="w-16 px-2 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <span className="text-gray-700">分</span>
-            <select
-              value={value.endAmpm || 'AM'}
-              onChange={(e) => handleSpecificTimeChange('endAmpm', e.target.value as 'AM' | 'PM')}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="AM">上午</option>
-              <option value="PM">下午</option>
-            </select>
-          </div>
-
-          {!isSpecificTimeValid && (
-            <p className="text-xs text-red-600 mt-2">⚠️ 開始時間和結束時間都必須填寫</p>
-          )}
-        </div>
-      )}
-
-      {/* Mode B: Time Slot */}
-      {mode === 'slot' && (
-        <div className="space-y-3 border border-blue-300 rounded-lg p-4 bg-blue-50">
-          <p className="text-sm font-medium text-gray-700">選擇時間段（必選其一）</p>
-          <div className="grid grid-cols-2 gap-2">
-            {(Object.keys(timeSlotLabels) as Array<'pending' | 'morning' | 'afternoon' | 'evening'>).map((slot) => (
-              <button
-                key={slot}
-                type="button"
-                onClick={() => handleTimeSlotChange(slot)}
-                className={`px-4 py-3 rounded-lg font-medium transition-colors ${
-                  value.timeSlot === slot
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                }`}
+      {/* Specific Time Mode */}
+      {value.mode === 'specific' && (
+        <div className="space-y-3">
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-gray-700">開始時間</p>
+            <div className="flex gap-2 items-center">
+              <select
+                value={value.startTime ? parseInt(value.startTime.split(':')[0]) % 12 || 12 : ''}
+                onChange={(e) => {
+                  const hour = e.target.value;
+                  const minute = value.startTime ? value.startTime.split(':')[1] : '00';
+                  handleTimeChange('startTime', hour ? `${hour}:${minute}` : '');
+                }}
+                className="px-2 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                {timeSlotLabels[slot]}
-              </button>
-            ))}
+                <option value="">--</option>
+                {[1,2,3,4,5,6,7,8,9,10,11,12].map(h => <option key={h} value={h}>{String(h).padStart(2, '0')}</option>)}
+              </select>
+              <span className="text-gray-700">時</span>
+              <select
+                value={value.startTime ? value.startTime.split(':')[1] : ''}
+                onChange={(e) => {
+                  const hour = value.startTime ? value.startTime.split(':')[0] : '';
+                  const minute = e.target.value;
+                  handleTimeChange('startTime', hour && minute ? `${hour}:${minute}` : '');
+                }}
+                className="px-2 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">--</option>
+                {[0,15,30,45].map(m => <option key={m} value={String(m).padStart(2, '0')}>{String(m).padStart(2, '0')}</option>)}
+              </select>
+              <span className="text-gray-700">分</span>
+              <select
+                value={value.startAmpm || ''}
+                onChange={(e) => handleTimeChange('startAmpm', e.target.value as 'AM' | 'PM')}
+                className="px-2 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">--</option>
+                <option value="AM">上午</option>
+                <option value="PM">下午</option>
+              </select>
+            </div>
           </div>
 
-          {!isSlotTimeValid && (
-            <p className="text-xs text-red-600 mt-2">⚠️ 必須選擇一個時間段</p>
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-gray-700">結束時間</p>
+            <div className="flex gap-2 items-center">
+              <select
+                value={value.endTime ? parseInt(value.endTime.split(':')[0]) % 12 || 12 : ''}
+                onChange={(e) => {
+                  const hour = e.target.value;
+                  const minute = value.endTime ? value.endTime.split(':')[1] : '00';
+                  handleTimeChange('endTime', hour ? `${hour}:${minute}` : '');
+                }}
+                className="px-2 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">--</option>
+                {[1,2,3,4,5,6,7,8,9,10,11,12].map(h => <option key={h} value={h}>{String(h).padStart(2, '0')}</option>)}
+              </select>
+              <span className="text-gray-700">時</span>
+              <select
+                value={value.endTime ? value.endTime.split(':')[1] : ''}
+                onChange={(e) => {
+                  const hour = value.endTime ? value.endTime.split(':')[0] : '';
+                  const minute = e.target.value;
+                  handleTimeChange('endTime', hour && minute ? `${hour}:${minute}` : '');
+                }}
+                className="px-2 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">--</option>
+                {[0,15,30,45].map(m => <option key={m} value={String(m).padStart(2, '0')}>{String(m).padStart(2, '0')}</option>)}
+              </select>
+              <span className="text-gray-700">分</span>
+              <select
+                value={value.endAmpm || ''}
+                onChange={(e) => handleTimeChange('endAmpm', e.target.value as 'AM' | 'PM')}
+                className="px-2 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">--</option>
+                <option value="AM">上午</option>
+                <option value="PM">下午</option>
+              </select>
+            </div>
+          </div>
+
+          {isSpecificTimeValid && (
+            <div className="p-2 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
+              ✓ 時間已設定
+            </div>
           )}
         </div>
       )}
 
-      {/* Validation Status */}
-      <div className={`p-3 rounded-lg text-sm ${
-        (mode === 'specific' && isSpecificTimeValid) || (mode === 'slot' && isSlotTimeValid)
-          ? 'bg-green-50 border border-green-200 text-green-700'
-          : 'bg-yellow-50 border border-yellow-200 text-yellow-700'
-      }`}>
-        {mode === 'specific' && isSpecificTimeValid && (
-          <p>✓ 具體時間已設定：{value.startTime} {value.startAmpm} - {value.endTime} {value.endAmpm}</p>
-        )}
-        {mode === 'slot' && isSlotTimeValid && (
-          <p>✓ 時間段已設定：{timeSlotLabels[value.timeSlot!]}</p>
-        )}
-        {!((mode === 'specific' && isSpecificTimeValid) || (mode === 'slot' && isSlotTimeValid)) && (
-          <p>⚠️ 請完成時間設定</p>
-        )}
-      </div>
+      {/* Time Slot Mode */}
+      {value.mode === 'slot' && (
+        <div className="space-y-3">
+          <p className="text-sm font-medium text-gray-700">選擇時間段（必選其一）</p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {(['pending', 'morning', 'afternoon', 'evening'] as const).map((slot) => {
+              const labels = {
+                pending: '待定',
+                morning: '上午',
+                afternoon: '下午',
+                evening: '晚上'
+              };
+              return (
+                <button
+                  key={slot}
+                  type="button"
+                  onClick={() => handleSlotChange(slot)}
+                  className={`px-3 py-2 rounded-lg font-medium transition-colors text-sm ${
+                    value.timeSlot === slot
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {labels[slot]}
+                </button>
+              );
+            })}
+          </div>
+
+          {isSlotValid && (
+            <div className="p-2 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
+              ✓ 時間段已選定：{value.timeSlot === 'pending' ? '待定' : value.timeSlot === 'morning' ? '上午' : value.timeSlot === 'afternoon' ? '下午' : '晚上'}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Overall Validation Status */}
+      {!isValid && (
+        <div className="p-2 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-700">
+          ⚠️ 請完成時間設定
+        </div>
+      )}
     </div>
   );
 };
