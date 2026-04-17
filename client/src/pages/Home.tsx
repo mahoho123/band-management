@@ -453,8 +453,10 @@ export default function Home() {
   const [eventLocation, setEventLocation] = useState("");
   const [eventNotes, setEventNotes] = useState("");
   const [timeSelectorState, setTimeSelectorState] = useState<TimeSelectorState>({
-    mode: 'slot',
-    timeSlot: 'morning'
+    startTime: '',
+    startAmpm: 'PM',
+    endTime: '',
+    endAmpm: 'PM'
   });
   const [dateHolidayWarning, setDateHolidayWarning] = useState("");
   const [eventModalMode, setEventModalMode] = useState<"add" | "edit" | "view">("view");
@@ -745,8 +747,10 @@ export default function Home() {
     setEventLocation("");
     setEventNotes("");
     setTimeSelectorState({
-      mode: 'slot',
-      timeSlot: 'morning'
+      startTime: '',
+      startAmpm: 'PM',
+      endTime: '',
+      endAmpm: 'PM'
     });
     setDateHolidayWarning("");
     setSelectedEventId(null);
@@ -782,21 +786,17 @@ export default function Home() {
       const [startH, startM] = event.startTime.split(":");
       const [endH, endM] = event.endTime.split(":");
       setTimeSelectorState({
-        mode: 'specific',
         startTime: `${String(parseInt(startH) % 12 || 12).padStart(2, '0')}:${startM}`,
         startAmpm: parseInt(startH) >= 12 ? "PM" : "AM",
         endTime: `${String(parseInt(endH) % 12 || 12).padStart(2, '0')}:${endM}`,
         endAmpm: parseInt(endH) >= 12 ? "PM" : "AM"
       });
-    } else if (event.timeSlot) {
-      setTimeSelectorState({
-        mode: 'slot',
-        timeSlot: event.timeSlot as 'pending' | 'morning' | 'afternoon' | 'evening'
-      });
     } else {
       setTimeSelectorState({
-        mode: 'slot',
-        timeSlot: 'morning'
+        startTime: '',
+        startAmpm: 'PM',
+        endTime: '',
+        endAmpm: 'PM'
       });
     }
     
@@ -815,27 +815,16 @@ export default function Home() {
     if (!eventDate) return showToast("請選擇日期", "error");
 
     // Validate time selector state
-    const isSpecificTimeValid = timeSelectorState.mode === 'specific' && 
-      timeSelectorState.startTime && timeSelectorState.startAmpm && 
-      timeSelectorState.endTime && timeSelectorState.endAmpm;
-    
-    const isSlotTimeValid = timeSelectorState.mode === 'slot' && timeSelectorState.timeSlot;
-
-    if (!isSpecificTimeValid && !isSlotTimeValid) {
-      return showToast("請完成時間設定", "error");
+    if (!timeSelectorState.startTime || !timeSelectorState.startAmpm || !timeSelectorState.endTime || !timeSelectorState.endAmpm) {
+      return showToast("請填寫開始時間和結束時間", "error");
     }
 
     let startTime: string | null = null;
     let endTime: string | null = null;
-    let timeSlot: 'pending' | 'morning' | 'afternoon' | 'evening' | undefined = undefined;
 
-    if (timeSelectorState.mode === 'specific' && isSpecificTimeValid) {
-      startTime = parseTime12To24(timeSelectorState.startTime!, timeSelectorState.startTime!.split(':')[1], timeSelectorState.startAmpm!);
-      endTime = parseTime12To24(timeSelectorState.endTime!, timeSelectorState.endTime!.split(':')[1], timeSelectorState.endAmpm!);
-      if (startTime >= endTime) return showToast("開始時間必須早於結束時間", "error");
-    } else if (timeSelectorState.mode === 'slot' && isSlotTimeValid) {
-      timeSlot = timeSelectorState.timeSlot as 'pending' | 'morning' | 'afternoon' | 'evening';
-    }
+    startTime = parseTime12To24(timeSelectorState.startTime, timeSelectorState.startTime.split(':')[1], timeSelectorState.startAmpm);
+    endTime = parseTime12To24(timeSelectorState.endTime, timeSelectorState.endTime.split(':')[1], timeSelectorState.endAmpm);
+    if (startTime >= endTime) return showToast("開始時間必須早於結束時間", "error");
 
     const dateHoliday = hkHolidays.find((h) => h.date === eventDate);
     if (dateHoliday && !dateHolidayWarning) {
@@ -883,7 +872,6 @@ export default function Home() {
               date,
               startTime,
               endTime,
-              timeSlot,
               location: eventLocation,
               type: eventType,
               notes: eventNotes,
