@@ -104,12 +104,9 @@ async function startServer() {
     })
   );
   
-  const preferredPort = parseInt(process.env.PORT || "3000");
-  const port = await findAvailablePort(preferredPort);
-
-  if (port !== preferredPort) {
-    console.log(`Port ${preferredPort} is busy, using port ${port} instead`);
-  }
+  // Use fixed port 3000 for Socket.IO compatibility
+  // The gateway/proxy will handle port routing
+  const port = 3000;
 
   // development mode uses Vite, production mode uses static files
   // Port is determined first so Vite can configure HMR with the correct port

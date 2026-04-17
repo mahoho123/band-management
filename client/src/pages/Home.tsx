@@ -50,8 +50,9 @@ interface BandEvent {
   id: number;
   title: string;
   date: string;
-  startTime: string;
-  endTime: string;
+  startTime: string | null;
+  endTime: string | null;
+  timeSlot?: string | null; // 'morning', 'afternoon', 'evening'
   location: string;
   type: "rehearsal" | "performance" | "meeting" | "other";
   notes?: string | null;
@@ -267,6 +268,9 @@ function isEventEnded(event: BandEvent): boolean {
   if (event.date < todayStr) return true;
   if (event.date > todayStr) return false;
   
+  // If no specific end time, can't determine if ended
+  if (!event.endTime) return false;
+  
   const nowTime = `${String(hkNow.getHours()).padStart(2, "0")}:${String(hkNow.getMinutes()).padStart(2, "0")}`;
   return nowTime > event.endTime;
 }
@@ -276,6 +280,10 @@ function getEventStatus(event: BandEvent): "upcoming" | "ongoing" | "completed" 
   const todayStr = formatDateStr(hkNow);
   if (event.date < todayStr) return "completed";
   if (event.date > todayStr) return "upcoming";
+  
+  // If no specific time, can't determine status
+  if (!event.startTime || !event.endTime) return "upcoming";
+  
   const nowTime = `${String(hkNow.getHours()).padStart(2, "0")}:${String(hkNow.getMinutes()).padStart(2, "0")}`;
   if (nowTime >= event.startTime && nowTime <= event.endTime) return "ongoing";
   if (nowTime > event.endTime) return "completed";
@@ -287,8 +295,8 @@ function formatDate(dateStr: string): string {
   return `${year}年${parseInt(month)}月${parseInt(day)}日`;
 }
 
-function formatTime12Full(time24: string): string {
-  if (!time24) return "";
+function formatTime12Full(time24: string | null): string {
+  if (!time24) return "待定";
   const [hours, minutes] = time24.split(":").map(Number);
   const ampm = hours >= 12 ? "下午" : "上午";
   const hours12 = hours % 12 || 12;
@@ -767,14 +775,16 @@ export default function Home() {
     setEventType(event.type);
     setEventLocation(event.location);
     setEventNotes(event.notes || "");
-    const [startH, startM] = event.startTime.split(":");
-    const [endH, endM] = event.endTime.split(":");
-    setStartHour(String(parseInt(startH) % 12 || 12));
-    setStartMinute(startM);
-    setStartAmpm(parseInt(startH) >= 12 ? "PM" : "AM");
-    setEndHour(String(parseInt(endH) % 12 || 12));
-    setEndMinute(endM);
-    setEndAmpm(parseInt(endH) >= 12 ? "PM" : "AM");
+    if (event.startTime && event.endTime) {
+      const [startH, startM] = event.startTime.split(":");
+      const [endH, endM] = event.endTime.split(":");
+      setStartHour(String(parseInt(startH) % 12 || 12));
+      setStartMinute(startM);
+      setStartAmpm(parseInt(startH) >= 12 ? "PM" : "AM");
+      setEndHour(String(parseInt(endH) % 12 || 12));
+      setEndMinute(endM);
+      setEndAmpm(parseInt(endH) >= 12 ? "PM" : "AM");
+    }
     checkDateHolidayFor(event.date);
     setShowEventModal(true);
   };
@@ -1122,7 +1132,7 @@ export default function Home() {
         const [y, m] = e.date.split("-").map(Number);
         return y === year && m === month + 1;
       })
-      .sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime));
+      .sort((a, b) => a.date.localeCompare(b.date) || (a.startTime || "").localeCompare(b.startTime || ""));
     
     const monthLabel = `${year}年${month + 1}月`;
     let msg = `\uD83C\uDFB5 【${monthLabel}活動通知】\n\n`;
@@ -1205,7 +1215,7 @@ export default function Home() {
       const holidays = hkHolidays.filter((h) => h.date === dateStr);
       const dayEvents = (eventsQuery.data || [])
         .filter((e) => e.date === dateStr)
-        .sort((a, b) => a.startTime.localeCompare(b.startTime));
+        .sort((a, b) => (a.startTime || "").localeCompare(b.startTime || ""));
 
       cells.push(
         <div
