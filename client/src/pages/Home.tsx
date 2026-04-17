@@ -278,6 +278,12 @@ function isEventEnded(event: BandEvent): boolean {
   // If no specific end time, can't determine if ended
   if (!event.endTime) return false;
 
+  // If time is in time slot mode (hour/minute are "--"), can't determine exact end time
+  // So assume it hasn't ended yet on the event date
+  if (event.endTime.hour === "--" && event.endTime.minute === "--") {
+    return false;
+  }
+
   const nowTime = `${String(hkNow.getHours()).padStart(2, "0")}:${String(hkNow.getMinutes()).padStart(2, "0")}`;
   const endTime24 =
     typeof event.endTime === "object"
@@ -303,6 +309,12 @@ function hasEventStartTimePassed(event: BandEvent): boolean {
 
   // If no specific start time, assume it hasn't passed
   if (!event.startTime) return false;
+
+  // If time is in time slot mode (hour/minute are "--"), don't lock based on time
+  // Allow editing as long as the date hasn't passed
+  if (event.startTime.hour === "--" && event.startTime.minute === "--") {
+    return false; // Time slot events are always editable on their date
+  }
 
   const nowTime = `${String(hkNow.getHours()).padStart(2, "0")}:${String(hkNow.getMinutes()).padStart(2, "0")}`;
   const startTime24 =
@@ -1051,6 +1063,10 @@ export default function Home() {
       const endMinutes = endH * 60 + endM;
       if (startMinutes >= endMinutes)
         return showToast("開始時間必須早於結束時間", "error");
+    } else if (hasTimeSlot) {
+      // Time slot mode: save period with empty hour/minute
+      startTime = { hour: "--", minute: "--", period: startAmpm };
+      endTime = { hour: "--", minute: "--", period: endAmpm };
     }
 
     const dateHoliday = hkHolidays.find(h => h.date === eventDate);
