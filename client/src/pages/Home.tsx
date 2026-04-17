@@ -380,6 +380,9 @@ function formatTimeObjectTo12(
 ): string {
   if (!timeObj) return "待定";
 
+  // Debug log
+  console.log("[formatTimeObjectTo12] timeObj:", timeObj);
+
   // Map period to Chinese
   const periodMap: Record<string, string> = {
     AM: "上午",
@@ -395,9 +398,13 @@ function formatTimeObjectTo12(
   };
 
   const chinesePeriod = periodMap[timeObj.period] || timeObj.period;
+  console.log("[formatTimeObjectTo12] chinesePeriod:", chinesePeriod);
 
   // If hour and minute are both --, return the time slot (period) name
-  if (timeObj.hour === "--" && timeObj.minute === "--") return chinesePeriod;
+  if (timeObj.hour === "--" && timeObj.minute === "--") {
+    console.log("[formatTimeObjectTo12] TIME SLOT MODE - Returning:", chinesePeriod);
+    return chinesePeriod;
+  }
 
   // If only one is --, still show the period and available time
   if (timeObj.hour === "--" || timeObj.minute === "--") return chinesePeriod;
@@ -628,10 +635,10 @@ export default function Home() {
   const [eventNotes, setEventNotes] = useState("");
   const [startHour, setStartHour] = useState("7");
   const [startMinute, setStartMinute] = useState("00");
-  const [startAmpm, setStartAmpm] = useState("PM");
+  const [startAmpm, setStartAmpm] = useState(""); // Empty means not selected
   const [endHour, setEndHour] = useState("10");
   const [endMinute, setEndMinute] = useState("00");
-  const [endAmpm, setEndAmpm] = useState("PM");
+  const [endAmpm, setEndAmpm] = useState(""); // Empty means not selected
   const [dateHolidayWarning, setDateHolidayWarning] = useState("");
   const [eventModalMode, setEventModalMode] = useState<"add" | "edit" | "view">(
     "view"
@@ -1063,6 +1070,7 @@ export default function Home() {
     let endTime: { hour: string; minute: string; period: string } | null = null;
 
     if (hasSpecificTime) {
+      console.log("[handleSaveEvent] SPECIFIC TIME MODE");
       // Build time objects with period information
       startTime = { hour: startHour, minute: startMinute, period: startAmpm };
       endTime = { hour: endHour, minute: endMinute, period: endAmpm };
@@ -1079,9 +1087,11 @@ export default function Home() {
           return showToast("開始時間必須早於結束時間", "error");
       }
     } else if (hasTimeSlot) {
+      console.log("[handleSaveEvent] TIME SLOT MODE - startAmpm:", startAmpm, "endAmpm:", endAmpm);
       // Time slot mode: save period with empty hour/minute
       startTime = { hour: "--", minute: "--", period: startAmpm };
       endTime = { hour: "--", minute: "--", period: endAmpm };
+      console.log("[handleSaveEvent] TIME SLOT startTime:", startTime, "endTime:", endTime);
     }
 
     const dateHoliday = hkHolidays.find(h => h.date === eventDate);
@@ -1439,6 +1449,7 @@ export default function Home() {
       .join(", ");
 
     const dateStr = formatDate(event.date);
+    console.log("[Calendar Card] event.startTime type:", typeof event.startTime, "value:", event.startTime);
     const startTime =
       typeof event.startTime === "object"
         ? formatTimeObjectTo12(event.startTime)
@@ -1447,6 +1458,7 @@ export default function Home() {
       typeof event.endTime === "object"
         ? formatTimeObjectTo12(event.endTime)
         : formatTime12Full(event.endTime);
+    console.log("[Calendar Card] startTime display:", startTime, "endTime display:", endTime);
     const typeLabel = TYPE_CONFIG[event.type]?.text || event.type;
     const [, , day] = event.date.split("-").map(Number);
     const weekDay = [
