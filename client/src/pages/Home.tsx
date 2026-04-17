@@ -413,9 +413,9 @@ function parseTime12To24(hour: string, minute: string, ampm: string): string {
 
   // Handle time slot mode (when hour/minute are empty)
   if (ampm === "pending") return "pending";
-  if (ampm === "morning") return "09:00"; // Morning default: 09:00
-  if (ampm === "afternoon") return "14:00"; // Afternoon default: 14:00
-  if (ampm === "evening") return "19:00"; // Evening default: 19:00
+  if (ampm === "morning" || ampm === "上午") return "09:00"; // Morning default: 09:00
+  if (ampm === "afternoon" || ampm === "下午") return "14:00"; // Afternoon default: 14:00
+  if (ampm === "evening" || ampm === "晚上") return "19:00"; // Evening default: 19:00
 
   // Fallback for AM/PM without hour/minute
   return "00:00";
