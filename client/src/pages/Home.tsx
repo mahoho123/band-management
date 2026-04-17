@@ -303,7 +303,7 @@ function hasEventStartTimePassed(event: BandEvent): boolean {
 
   // If event date is in the past, start time has passed
   if (event.date < todayStr) return true;
-  
+
   // If event date is in the future, start time hasn't passed
   if (event.date > todayStr) return false;
 
@@ -378,27 +378,25 @@ function formatTimeObjectTo12(
   timeObj: { hour: string; minute: string; period: string } | null
 ): string {
   if (!timeObj) return "待定";
-  
+
   // Map period to Chinese
   const periodMap: Record<string, string> = {
-    "AM": "上午",
-    "PM": "下午",
-    "pending": "待定",
-    "morning": "上午",
-    "afternoon": "下午",
-    "evening": "晚上",
+    AM: "上午",
+    PM: "下午",
+    pending: "待定",
+    morning: "上午",
+    afternoon: "下午",
+    evening: "晚上",
   };
-  
+
   const chinesePeriod = periodMap[timeObj.period] || timeObj.period;
-  
+
   // If hour and minute are both --, return the time slot (period) name
-  if (timeObj.hour === "--" && timeObj.minute === "--")
-    return chinesePeriod;
-  
+  if (timeObj.hour === "--" && timeObj.minute === "--") return chinesePeriod;
+
   // If only one is --, still show the period and available time
-  if (timeObj.hour === "--" || timeObj.minute === "--")
-    return chinesePeriod;
-  
+  if (timeObj.hour === "--" || timeObj.minute === "--") return chinesePeriod;
+
   return `${chinesePeriod} ${timeObj.hour}:${String(parseInt(timeObj.minute)).padStart(2, "0")}`;
 }
 
@@ -1038,9 +1036,19 @@ export default function Home() {
     if (!eventTitle.trim()) return showToast("請輸入活動名稱", "error");
     if (!eventDate) return showToast("請選擇日期", "error");
 
-    // Allow either specific time or time slot
-    const hasSpecificTime = startHour && startMinute && endHour && endMinute;
-    const hasTimeSlot = startAmpm && endAmpm; // Both start and end time slots must be selected
+    // Allow either specific time or any time slot
+    const hasSpecificTime =
+      startHour &&
+      startHour !== "--" &&
+      startMinute &&
+      startMinute !== "--" &&
+      endHour &&
+      endHour !== "--" &&
+      endMinute &&
+      endMinute !== "--";
+    const hasTimeSlot = startAmpm && endAmpm; // Any time slot selected
+
+    // Only allow saving if: 1) has specific time, or 2) has time slot
     if (!hasSpecificTime && !hasTimeSlot) {
       return showToast("請填入具體時間或選擇時間段", "error");
     }
@@ -1057,12 +1065,14 @@ export default function Home() {
       // Validate that start time is before end time using 24-hour conversion
       const start24 = parseTime12To24(startHour, startMinute, startAmpm);
       const end24 = parseTime12To24(endHour, endMinute, endAmpm);
-      const [startH, startM] = start24.split(":").map(Number);
-      const [endH, endM] = end24.split(":").map(Number);
-      const startMinutes = startH * 60 + startM;
-      const endMinutes = endH * 60 + endM;
-      if (startMinutes >= endMinutes)
-        return showToast("開始時間必須早於結束時間", "error");
+      if (start24 !== "pending" && end24 !== "pending") {
+        const [startH, startM] = start24.split(":").map(Number);
+        const [endH, endM] = end24.split(":").map(Number);
+        const startMinutes = startH * 60 + startM;
+        const endMinutes = endH * 60 + endM;
+        if (startMinutes >= endMinutes)
+          return showToast("開始時間必須早於結束時間", "error");
+      }
     } else if (hasTimeSlot) {
       // Time slot mode: save period with empty hour/minute
       startTime = { hour: "--", minute: "--", period: startAmpm };
