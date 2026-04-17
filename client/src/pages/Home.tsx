@@ -1290,8 +1290,11 @@ export default function Home() {
                 >
                   {TYPE_CONFIG[evt.type].emoji} {evt.title}
                 </div>
+                {/* Display time: show only time slot if specific time is empty */}
                 <div className="text-xs sm:text-sm md:text-base text-gray-600 px-1.5 sm:px-2">
-                  ⏰ {formatTime12Full(evt.startTime)} - {formatTime12Full(evt.endTime)}
+                  ⏰ {(!evt.startTime || evt.startTime === "--") && (!evt.endTime || evt.endTime === "--") 
+                    ? `${evt.startTimeSlot || "待定"}`
+                    : `${formatTime12Full(evt.startTime)} - ${formatTime12Full(evt.endTime)}`}
                 </div>
 
                 {evt.location && (
