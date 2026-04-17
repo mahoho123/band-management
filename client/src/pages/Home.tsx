@@ -1812,7 +1812,6 @@ export default function Home() {
                       <div className="flex flex-col items-center flex-shrink-0">
                         <label className="text-xs sm:text-sm text-gray-500 mb-0.5">時段</label>
                         <select value={startAmpm} onChange={(e) => setStartAmpm(e.target.value)} className="time-select w-16 sm:w-20 bg-amber-50 font-medium text-sm sm:text-base">
-                          <option value="">--</option>
                           <option value="pending">待定</option>
                           <option value="AM">上午</option>
                           <option value="PM">下午</option>
@@ -1842,7 +1841,6 @@ export default function Home() {
                       <div className="flex flex-col items-center flex-shrink-0">
                         <label className="text-xs sm:text-sm text-gray-500 mb-0.5">時段</label>
                         <select value={endAmpm} onChange={(e) => setEndAmpm(e.target.value)} className="time-select w-16 sm:w-20 bg-amber-50 font-medium text-sm sm:text-base">
-                          <option value="">--</option>
                           <option value="pending">待定</option>
                           <option value="AM">上午</option>
                           <option value="PM">下午</option>
