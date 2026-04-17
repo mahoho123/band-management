@@ -1048,7 +1048,8 @@ export default function Home() {
     if (!eventTitle.trim()) return showToast("請輸入活動名稱", "error");
     if (!eventDate) return showToast("請選擇日期", "error");
 
-    // Allow either specific time or any time slot
+    // Determine mode: prioritize time slot if selected, otherwise use specific time
+    const hasTimeSlot = startAmpm && endAmpm; // Any time slot selected
     const hasSpecificTime =
       startHour &&
       startHour !== "--" &&
@@ -1058,10 +1059,9 @@ export default function Home() {
       endHour !== "--" &&
       endMinute &&
       endMinute !== "--";
-    const hasTimeSlot = startAmpm && endAmpm; // Any time slot selected
 
-    // Only allow saving if: 1) has specific time, or 2) has time slot
-    if (!hasSpecificTime && !hasTimeSlot) {
+    // Only allow saving if: 1) has time slot, or 2) has specific time
+    if (!hasTimeSlot && !hasSpecificTime) {
       return showToast("請填入具體時間或選擇時間段", "error");
     }
 
@@ -1069,7 +1069,14 @@ export default function Home() {
       null;
     let endTime: { hour: string; minute: string; period: string } | null = null;
 
-    if (hasSpecificTime) {
+    // Prioritize time slot mode if time slot is selected
+    if (hasTimeSlot) {
+      console.log("[handleSaveEvent] TIME SLOT MODE - startAmpm:", startAmpm, "endAmpm:", endAmpm);
+      // Time slot mode: save period with empty hour/minute
+      startTime = { hour: "--", minute: "--", period: startAmpm };
+      endTime = { hour: "--", minute: "--", period: endAmpm };
+      console.log("[handleSaveEvent] TIME SLOT startTime:", startTime, "endTime:", endTime);
+    } else if (hasSpecificTime) {
       console.log("[handleSaveEvent] SPECIFIC TIME MODE");
       // Build time objects with period information
       startTime = { hour: startHour, minute: startMinute, period: startAmpm };
@@ -1078,7 +1085,7 @@ export default function Home() {
       // Validate that start time is before end time using 24-hour conversion
       const start24 = parseTime12To24(startHour, startMinute, startAmpm);
       const end24 = parseTime12To24(endHour, endMinute, endAmpm);
-      if (start24 !== "pending" && end24 !== "pending") {
+      if (start24 && end24) {
         const [startH, startM] = start24.split(":").map(Number);
         const [endH, endM] = end24.split(":").map(Number);
         const startMinutes = startH * 60 + startM;
@@ -1086,12 +1093,6 @@ export default function Home() {
         if (startMinutes >= endMinutes)
           return showToast("開始時間必須早於結束時間", "error");
       }
-    } else if (hasTimeSlot) {
-      console.log("[handleSaveEvent] TIME SLOT MODE - startAmpm:", startAmpm, "endAmpm:", endAmpm);
-      // Time slot mode: save period with empty hour/minute
-      startTime = { hour: "--", minute: "--", period: startAmpm };
-      endTime = { hour: "--", minute: "--", period: endAmpm };
-      console.log("[handleSaveEvent] TIME SLOT startTime:", startTime, "endTime:", endTime);
     }
 
     const dateHoliday = hkHolidays.find(h => h.date === eventDate);
