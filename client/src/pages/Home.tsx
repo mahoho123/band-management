@@ -1790,66 +1790,31 @@ export default function Home() {
                     </select>
                   </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <div>
-                    <label className="block text-sm sm:text-base md:text-lg font-medium text-gray-700 mb-2 sm:mb-3">開始時間 <span className="text-red-500">*</span></label>
-                    <div className="flex items-center gap-1 sm:gap-1.5 bg-gray-50 p-1.5 sm:p-2 rounded-lg sm:rounded-xl border border-gray-200 overflow-x-auto">
-                      <div className="flex flex-col items-center flex-shrink-0">
-                        <label className="text-xs text-gray-500 mb-0.5">時</label>
-                        <select value={startHour} onChange={(e) => setStartHour(e.target.value)} className="time-select w-14 sm:w-16 text-sm sm:text-base">
-                          <option value="">--</option>
-                          {[1,2,3,4,5,6,7,8,9,10,11,12].map(h => <option key={h} value={h}>{String(h).padStart(2, '0')}</option>)}
-                        </select>
-                      </div>
-                      <span className="text-gray-400 pt-3 sm:pt-5 text-sm sm:text-lg flex-shrink-0">:</span>
-                      <div className="flex flex-col items-center flex-shrink-0">
-                        <label className="text-xs sm:text-sm text-gray-500 mb-0.5">分</label>
-                        <select value={startMinute} onChange={(e) => setStartMinute(e.target.value)} className="time-select w-14 sm:w-16 text-sm sm:text-base">
-                          <option value="">--</option>
-                          {minuteOptions.map(m => <option key={m} value={m}>{m}</option>)}
-                        </select>
-                      </div>
-                      <div className="flex flex-col items-center flex-shrink-0">
-                        <label className="text-xs sm:text-sm text-gray-500 mb-0.5">時段</label>
-                        <select value={startAmpm} onChange={(e) => setStartAmpm(e.target.value)} className="time-select w-16 sm:w-20 bg-amber-50 font-medium text-sm sm:text-base">
-                          <option value="">--</option>
-                          <option value="pending">待定</option>
-                          <option value="AM">上午</option>
-                          <option value="PM">下午</option>
-                          <option value="evening">晚上</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm sm:text-base md:text-lg font-medium text-gray-700 mb-2 sm:mb-3">結束時間 <span className="text-red-500">*</span></label>
-                    <div className="flex items-center gap-1 sm:gap-1.5 bg-gray-50 p-1.5 sm:p-2 rounded-lg sm:rounded-xl border border-gray-200 overflow-x-auto">
-                      <div className="flex flex-col items-center flex-shrink-0">
-                        <label className="text-xs text-gray-500 mb-0.5">時</label>
-                        <select value={endHour} onChange={(e) => setEndHour(e.target.value)} className="time-select w-14 sm:w-16 text-sm sm:text-base">
-                          <option value="">--</option>
-                          {[1,2,3,4,5,6,7,8,9,10,11,12].map(h => <option key={h} value={h}>{String(h).padStart(2, '0')}</option>)}
-                        </select>
-                      </div>
-                      <span className="text-gray-400 pt-3 sm:pt-5 text-sm sm:text-lg flex-shrink-0">:</span>
-                      <div className="flex flex-col items-center flex-shrink-0">
-                        <label className="text-xs sm:text-sm text-gray-500 mb-0.5">分</label>
-                        <select value={endMinute} onChange={(e) => setEndMinute(e.target.value)} className="time-select w-14 sm:w-16 text-sm sm:text-base">
-                          <option value="">--</option>
-                          {minuteOptions.map(m => <option key={m} value={m}>{m}</option>)}
-                        </select>
-                      </div>
-                      <div className="flex flex-col items-center flex-shrink-0">
-                        <label className="text-xs sm:text-sm text-gray-500 mb-0.5">時段</label>
-                        <select value={endAmpm} onChange={(e) => setEndAmpm(e.target.value)} className="time-select w-16 sm:w-20 bg-amber-50 font-medium text-sm sm:text-base">
-                          <option value="">--</option>
-                          <option value="pending">待定</option>
-                          <option value="AM">上午</option>
-                          <option value="PM">下午</option>
-                          <option value="evening">晚上</option>
-                        </select>
-                      </div>
-                    </div>
+                <div>
+                  <label className="block text-base sm:text-lg font-medium text-gray-700 mb-3">時段 <span className="text-red-500">*</span></label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {(['pending', 'morning', 'afternoon', 'evening'] as const).map((slot) => {
+                      const labels = {
+                        pending: '待定',
+                        morning: '上午',
+                        afternoon: '下午',
+                        evening: '晚上'
+                      };
+                      return (
+                        <button
+                          key={slot}
+                          type="button"
+                          onClick={() => setEventTimeSlot(eventTimeSlot === slot ? null : slot)}
+                          className={`px-3 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base ${
+                            eventTimeSlot === slot
+                              ? 'bg-blue-500 text-white'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                        >
+                          {labels[slot]}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
