@@ -429,7 +429,9 @@ export const bandRouter = router({
             const logoUrl = '/logo.png'; // Use local logo file
             
             // Format event details for notification
-            const eventDetails = `📅 ${event.date}\n🕐 ${event.startTime} - ${event.endTime}\n📍 ${event.location}`;
+            const startTimeStr = formatTimeObjectTo12(event.startTime);
+            const endTimeStr = formatTimeObjectTo12(event.endTime);
+            const eventDetails = `📅 ${event.date}\n🕐 ${startTimeStr} - ${endTimeStr}\n📍 ${event.location}`;
             const notificationBody = `${member.name}\n${statusText}\n\n${event.title}\n${eventDetails}`;
             
             // Write to band_notifications table
