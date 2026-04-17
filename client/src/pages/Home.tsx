@@ -308,25 +308,15 @@ function hasEventStartTimePassed(event: BandEvent): boolean {
   // If event date is in the future, start time hasn't passed
   if (event.date > todayStr) return false;
 
-  // If no specific start time, assume it hasn't passed
-  if (!event.startTime) return false;
-
-  // If time is in time slot mode (hour/minute are "--"), don't lock based on time
-  // Allow editing as long as the date hasn't passed
-  if (event.startTime.hour === "--" && event.startTime.minute === "--") {
-    return false; // Time slot events are always editable on their date
+  // 關鍵修正：如果是今天且沒有具體時分，判定為未結束
+  if (!event.endTime || (event.endTime.hour === "--" && event.endTime.minute === "--")) {
+    return false; 
   }
 
+  // 只有有具體時間時才做 24 小時比對
   const nowTime = `${String(hkNow.getHours()).padStart(2, "0")}:${String(hkNow.getMinutes()).padStart(2, "0")}`;
-  const startTime24 =
-    typeof event.startTime === "object"
-      ? parseTime12To24(
-          event.startTime.hour,
-          event.startTime.minute,
-          event.startTime.period
-        )
-      : (event.startTime as any);
-  return nowTime > startTime24;
+  const endTime24 = parseTime12To24(event.endTime.hour, event.endTime.minute, event.endTime.period);
+  return nowTime > endTime24;
 }
 
 function getEventStatus(
@@ -375,41 +365,21 @@ function formatTime12Full(time24: string | null | any): string {
   return `${ampm} ${hours12}:${String(minutes).padStart(2, "0")}`;
 }
 
-function formatTimeObjectTo12(
-  timeObj: { hour: string; minute: string; period: string } | null
-): string {
-  if (!timeObj) return "待定";
-
-  // Debug log
-  console.log("[formatTimeObjectTo12] timeObj:", timeObj);
-
-  // Map period to Chinese
-  const periodMap: Record<string, string> = {
-    AM: "上午",
-    PM: "下午",
-    pending: "待定",
-    morning: "上午",
-    afternoon: "下午",
-    evening: "晚上",
-    上午: "上午",
-    下午: "下午",
-    晚上: "晚上",
-    待定: "待定",
+function formatTimeObjectTo12(timeObj: any): string {
+  if (!timeObj || timeObj.period === "pending") return "待定";
+  
+  const periodMap: any = {
+    morning: "上午", afternoon: "下午", evening: "晚上",
+    上午: "上午", 下午: "下午", 晚上: "晚上"
   };
-
   const chinesePeriod = periodMap[timeObj.period] || timeObj.period;
-  console.log("[formatTimeObjectTo12] chinesePeriod:", chinesePeriod);
 
-  // If hour and minute are both --, return the time slot (period) name
-  if (timeObj.hour === "--" && timeObj.minute === "--") {
-    console.log("[formatTimeObjectTo12] TIME SLOT MODE - Returning:", chinesePeriod);
-    return chinesePeriod;
+  // 修正：只要有時段就顯示時段，不再回傳「待定」
+  if (timeObj.hour === "--" || !timeObj.hour) {
+    return chinesePeriod; 
   }
 
-  // If only one is --, still show the period and available time
-  if (timeObj.hour === "--" || timeObj.minute === "--") return chinesePeriod;
-
-  return `${chinesePeriod} ${timeObj.hour}:${String(parseInt(timeObj.minute)).padStart(2, "0")}`;
+  return `${chinesePeriod} ${timeObj.hour}:${String(timeObj.minute).padStart(2, "0")}`;
 }
 
 function parseTime12To24(hour: string, minute: string, ampm: string): string {
