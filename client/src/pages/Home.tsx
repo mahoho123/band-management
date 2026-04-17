@@ -305,6 +305,10 @@ function formatTime12Full(time24: string | null): string {
 }
 
 function parseTime12To24(hour: string, minute: string, ampm: string): string {
+  // Handle special time slots
+  if (ampm === "pending") return "pending";
+  if (ampm === "evening") return "evening";
+  
   let h = parseInt(hour);
   if (ampm === "PM" && h !== 12) h += 12;
   if (ampm === "AM" && h === 12) h = 0;
@@ -1793,6 +1797,7 @@ export default function Home() {
                       <div className="flex flex-col items-center flex-shrink-0">
                         <label className="text-xs text-gray-500 mb-0.5">時</label>
                         <select value={startHour} onChange={(e) => setStartHour(e.target.value)} className="time-select w-14 sm:w-16 text-sm sm:text-base">
+                          <option value="">--</option>
                           {[1,2,3,4,5,6,7,8,9,10,11,12].map(h => <option key={h} value={h}>{String(h).padStart(2, '0')}</option>)}
                         </select>
                       </div>
@@ -1800,14 +1805,18 @@ export default function Home() {
                       <div className="flex flex-col items-center flex-shrink-0">
                         <label className="text-xs sm:text-sm text-gray-500 mb-0.5">分</label>
                         <select value={startMinute} onChange={(e) => setStartMinute(e.target.value)} className="time-select w-14 sm:w-16 text-sm sm:text-base">
+                          <option value="">--</option>
                           {minuteOptions.map(m => <option key={m} value={m}>{m}</option>)}
                         </select>
                       </div>
                       <div className="flex flex-col items-center flex-shrink-0">
                         <label className="text-xs sm:text-sm text-gray-500 mb-0.5">時段</label>
                         <select value={startAmpm} onChange={(e) => setStartAmpm(e.target.value)} className="time-select w-16 sm:w-20 bg-amber-50 font-medium text-sm sm:text-base">
+                          <option value="">--</option>
+                          <option value="pending">待定</option>
                           <option value="AM">上午</option>
                           <option value="PM">下午</option>
+                          <option value="evening">晚上</option>
                         </select>
                       </div>
                     </div>
@@ -1818,6 +1827,7 @@ export default function Home() {
                       <div className="flex flex-col items-center flex-shrink-0">
                         <label className="text-xs text-gray-500 mb-0.5">時</label>
                         <select value={endHour} onChange={(e) => setEndHour(e.target.value)} className="time-select w-14 sm:w-16 text-sm sm:text-base">
+                          <option value="">--</option>
                           {[1,2,3,4,5,6,7,8,9,10,11,12].map(h => <option key={h} value={h}>{String(h).padStart(2, '0')}</option>)}
                         </select>
                       </div>
@@ -1825,14 +1835,18 @@ export default function Home() {
                       <div className="flex flex-col items-center flex-shrink-0">
                         <label className="text-xs sm:text-sm text-gray-500 mb-0.5">分</label>
                         <select value={endMinute} onChange={(e) => setEndMinute(e.target.value)} className="time-select w-14 sm:w-16 text-sm sm:text-base">
+                          <option value="">--</option>
                           {minuteOptions.map(m => <option key={m} value={m}>{m}</option>)}
                         </select>
                       </div>
                       <div className="flex flex-col items-center flex-shrink-0">
                         <label className="text-xs sm:text-sm text-gray-500 mb-0.5">時段</label>
                         <select value={endAmpm} onChange={(e) => setEndAmpm(e.target.value)} className="time-select w-16 sm:w-20 bg-amber-50 font-medium text-sm sm:text-base">
+                          <option value="">--</option>
+                          <option value="pending">待定</option>
                           <option value="AM">上午</option>
                           <option value="PM">下午</option>
+                          <option value="evening">晚上</option>
                         </select>
                       </div>
                     </div>
