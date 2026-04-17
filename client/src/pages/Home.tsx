@@ -278,13 +278,12 @@ function isEventEnded(event: BandEvent): boolean {
   // If no specific end time, can't determine if ended
   if (!event.endTime) return false;
 
-  // If time is in time slot mode (hour/minute are "--"), can't determine exact end time
-  // So assume it hasn't ended yet on the event date
-  if (event.endTime.hour === "--" && event.endTime.minute === "--") {
-    return false;
-  }
-
+  // Use Hong Kong time for comparison
   const nowTime = `${String(hkNow.getHours()).padStart(2, "0")}:${String(hkNow.getMinutes()).padStart(2, "0")}`;
+  
+  // Get end time in 24-hour format
+  // This works for both specific time mode and time slot mode
+  // In time slot mode, parseTime12To24 returns default times (09:00, 14:00, 19:00)
   const endTime24 =
     typeof event.endTime === "object"
       ? parseTime12To24(
@@ -293,6 +292,8 @@ function isEventEnded(event: BandEvent): boolean {
           event.endTime.period
         )
       : (event.endTime as any);
+  
+  // Event is ended only if current time > end time
   return nowTime > endTime24;
 }
 
