@@ -793,10 +793,12 @@
 ## 新功能 (112) - 時間可選的活動新增
 - [x] 更新資料庫 schema，支持可選的開始和結束時間
 - [x] 更新後端 API 處理可選時間
-- [x] 修復 TypeScript 類型定義
+- [x] 修複 TypeScript 類型定義
 - [x] 更新前端 BandEvent interface
-- [x] 修復所有 null 檢查
-- [ ] 更新前端 UI，加入「時間可選」模式
+- [x] 修複所有 null 檢查
+- [x] 建立 TimeSelector 組件
+- [x] 在 Home.tsx 中加入 TimeSelector import
+- [ ] 在新增活動表單中整合 TimeSelector
 - [ ] 允許用戶選擇上/下午而不填具體時間
 - [ ] 顯示時間為「待定」或「上午/下午」
 - [ ] 測試時間可選功能
