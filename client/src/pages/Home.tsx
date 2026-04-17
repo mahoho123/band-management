@@ -1730,19 +1730,16 @@ export default function Home() {
                 >
                   {TYPE_CONFIG[evt.type].emoji} {evt.title}
                 </div>
-                {/* Display time: show only time slot if specific time is empty */}
+                {/* Display time: always use formatTimeObjectTo12 for proper time slot handling */}
                 <div className="text-xs sm:text-sm md:text-base text-gray-600 px-1.5 sm:px-2">
                   ⏰{" "}
-                  {(!evt.startTime ||
-                    (typeof evt.startTime === "object" &&
-                      evt.startTime.hour === "--" &&
-                      evt.startTime.minute === "--")) &&
-                  (!evt.endTime ||
-                    (typeof evt.endTime === "object" &&
-                      evt.endTime.hour === "--" &&
-                      evt.endTime.minute === "--"))
-                    ? `${evt.timeSlot || "待定"}`
-                    : `${formatTimeObjectTo12(evt.startTime)} - ${formatTimeObjectTo12(evt.endTime)}`}
+                  {typeof evt.startTime === "object"
+                    ? formatTimeObjectTo12(evt.startTime)
+                    : formatTime12Full(evt.startTime)}{" "}
+                  -{" "}
+                  {typeof evt.endTime === "object"
+                    ? formatTimeObjectTo12(evt.endTime)
+                    : formatTime12Full(evt.endTime)}
                 </div>
 
                 {evt.location && (
