@@ -340,9 +340,22 @@ function formatTimeObjectTo12(
   timeObj: { hour: string; minute: string; period: string } | null
 ): string {
   if (!timeObj) return "待定";
+  
+  // Map period to Chinese
+  const periodMap: Record<string, string> = {
+    "AM": "上午",
+    "PM": "下午",
+    "pending": "待定",
+    "morning": "上午",
+    "afternoon": "下午",
+    "evening": "晚上",
+  };
+  
+  const chinesePeriod = periodMap[timeObj.period] || timeObj.period;
+  
   if (timeObj.hour === "--" || timeObj.minute === "--")
-    return timeObj.period || "待定";
-  return `${timeObj.period} ${timeObj.hour}:${String(parseInt(timeObj.minute)).padStart(2, "0")}`;
+    return chinesePeriod;
+  return `${chinesePeriod} ${timeObj.hour}:${String(parseInt(timeObj.minute)).padStart(2, "0")}`;
 }
 
 function parseTime12To24(hour: string, minute: string, ampm: string): string {
