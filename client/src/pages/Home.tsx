@@ -305,17 +305,22 @@ function formatTime12Full(time24: string | null): string {
 }
 
 function parseTime12To24(hour: string, minute: string, ampm: string): string {
-  // Handle special time slots - convert to 24-hour format
+  // If hour and minute are provided, use them (specific time mode)
+  if (hour && hour !== "--" && minute && minute !== "--") {
+    let h = parseInt(hour);
+    if (ampm === "PM" && h !== 12) h += 12;
+    if (ampm === "AM" && h === 12) h = 0;
+    return `${String(h).padStart(2, "0")}:${minute}`;
+  }
+  
+  // Handle time slot mode (when hour/minute are empty)
   if (ampm === "pending") return "pending";
   if (ampm === "morning") return "09:00"; // Morning default: 09:00
   if (ampm === "afternoon") return "14:00"; // Afternoon default: 14:00
   if (ampm === "evening") return "19:00"; // Evening default: 19:00
   
-  // Handle regular AM/PM times
-  let h = parseInt(hour);
-  if (ampm === "PM" && h !== 12) h += 12;
-  if (ampm === "AM" && h === 12) h = 0;
-  return `${String(h).padStart(2, "0")}:${minute}`;
+  // Fallback for AM/PM without hour/minute
+  return "00:00";
 }
 
 const TYPE_CONFIG = {
@@ -1301,7 +1306,7 @@ export default function Home() {
                 {/* Display time: show only time slot if specific time is empty */}
                 <div className="text-xs sm:text-sm md:text-base text-gray-600 px-1.5 sm:px-2">
                   ⏰ {(!evt.startTime || evt.startTime === "--") && (!evt.endTime || evt.endTime === "--") 
-                    ? `${evt.startTimeSlot || "待定"}`
+                    ? `${evt.timeSlot || "待定"}`
                     : `${formatTime12Full(evt.startTime)} - ${formatTime12Full(evt.endTime)}`}
                 </div>
 
