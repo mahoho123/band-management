@@ -807,7 +807,8 @@ export default function Home() {
 
     // Allow either specific time or time slot
     const hasSpecificTime = startHour && startMinute && endHour && endMinute;
-    if (!hasSpecificTime && !eventTimeSlot) {
+    const hasTimeSlot = startAmpm && endAmpm; // Both start and end time slots must be selected
+    if (!hasSpecificTime && !hasTimeSlot) {
       return showToast("請填入具體時間或選擇時間段", "error");
     }
 
