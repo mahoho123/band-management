@@ -1680,7 +1680,7 @@ export default function Home() {
     });
     filtered.sort((a, b) => {
       const startTimeA =
-        typeof a.startTime === "object"
+        a.startTime && typeof a.startTime === "object"
           ? parseTime12To24(
               a.startTime.hour,
               a.startTime.minute,
@@ -1688,7 +1688,7 @@ export default function Home() {
             )
           : a.startTime || "00:00";
       const startTimeB =
-        typeof b.startTime === "object"
+        b.startTime && typeof b.startTime === "object"
           ? parseTime12To24(
               b.startTime.hour,
               b.startTime.minute,
