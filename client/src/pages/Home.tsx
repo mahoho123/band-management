@@ -1731,16 +1731,16 @@ export default function Home() {
                 >
                   {TYPE_CONFIG[evt.type].emoji} {evt.title}
                 </div>
-                {/* Display time: always use formatTimeObjectTo12 for proper time slot handling */}
+                {/* Display time: show single period if start equals end, otherwise show range */}
                 <div className="text-xs sm:text-sm md:text-base text-gray-600 px-1.5 sm:px-2">
                   ⏰{" "}
-                  {typeof evt.startTime === "object"
+                  {typeof evt.startTime === "object" && typeof evt.endTime === "object" && evt.startTime && evt.endTime && evt.startTime.period === evt.endTime.period
                     ? formatTimeObjectTo12(evt.startTime)
-                    : formatTime12Full(evt.startTime)}{" "}
-                  -{" "}
-                  {typeof evt.endTime === "object"
-                    ? formatTimeObjectTo12(evt.endTime)
-                    : formatTime12Full(evt.endTime)}
+                    : `${typeof evt.startTime === "object"
+                        ? formatTimeObjectTo12(evt.startTime)
+                        : formatTime12Full(evt.startTime)} - ${typeof evt.endTime === "object"
+                        ? formatTimeObjectTo12(evt.endTime)
+                        : formatTime12Full(evt.endTime)}`}
                 </div>
 
                 {evt.location && (
