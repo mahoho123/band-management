@@ -31,6 +31,44 @@ import {
   getAdminPushSubscription,
 } from "../db";
 
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+/**
+ * Format time object to 12-hour format string
+ */
+function formatTimeObjectTo12(
+  timeObj: { hour: string; minute: string; period: string } | null | undefined
+): string {
+  if (!timeObj) return "待定";
+
+  const periodMap: Record<string, string> = {
+    AM: "上午",
+    PM: "下午",
+    pending: "待定",
+    morning: "上午",
+    afternoon: "下午",
+    evening: "晚上",
+    上午: "上午",
+    下午: "下午",
+    晚上: "晚上",
+    待定: "待定",
+  };
+
+  const chinesePeriod = periodMap[timeObj.period] || timeObj.period;
+
+  // If hour and minute are both --, return the time slot (period) name
+  if (timeObj.hour === "--" && timeObj.minute === "--") {
+    return chinesePeriod;
+  }
+
+  // If only one is --, still show the period
+  if (timeObj.hour === "--" || !timeObj.hour) return chinesePeriod;
+
+  return `${chinesePeriod} ${timeObj.hour}:${String(parseInt(timeObj.minute)).padStart(2, "0")}`;
+}
+
 export const bandRouter = router({
   // System Data
   getSystemData: publicProcedure.query(async () => {
@@ -243,9 +281,11 @@ export const bandRouter = router({
       // Write notification to band_notifications table
       try {
         const typeText = input.type === "rehearsal" ? "排練" : input.type === "performance" ? "演出" : input.type === "meeting" ? "會議" : "其他";
+        const startTimeStr = formatTimeObjectTo12(input.startTime);
+        const endTimeStr = formatTimeObjectTo12(input.endTime);
         await createNotification({
           title: `🎵 新增活動：${input.title}`,
-          message: `類型：${typeText}\n日期：${input.date}\n時間：${input.startTime} - ${input.endTime}\n地點：${input.location}`,
+          message: `類型：${typeText}\n日期：${input.date}\n時間：${startTimeStr} - ${endTimeStr}\n地點：${input.location}`,
           type: "event-added",
         });
       } catch (error) {
@@ -293,10 +333,12 @@ export const bandRouter = router({
       // Write notification to band_notifications table
       try {
         const typeText = data.type === "rehearsal" ? "排練" : data.type === "performance" ? "演出" : data.type === "meeting" ? "會議" : "其他";
+        const startTimeStr = data.startTime ? formatTimeObjectTo12(data.startTime) : "未變更";
+        const endTimeStr = data.endTime ? formatTimeObjectTo12(data.endTime) : "未變更";
         await createNotification({
           eventId: id,
           title: `🎵 編輯活動：${data.title || "活動"}`,
-          message: `日期：${data.date || "未變更"}\n時間：${data.startTime || ""} - ${data.endTime || ""}\n地點：${data.location || "未變更"}${data.type ? `\n類型：${typeText}` : ""}`,
+          message: `日期：${data.date || "未變更"}\n時間：${startTimeStr} - ${endTimeStr}\n地點：${data.location || "未變更"}${data.type ? `\n類型：${typeText}` : ""}`,
           type: "event-updated",
         });
       } catch (error) {
