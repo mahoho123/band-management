@@ -366,7 +366,7 @@ function formatDate(dateStr: string): string {
   return `${year}年${parseInt(month)}月${parseInt(day)}日`;
 }
 
-function formatTime12Full(time24: string | null): string {
+function formatTime12Full(time24: string | null | any): string {
   if (!time24) return "待定";
   const [hours, minutes] = time24.split(":").map(Number);
   const ampm = hours >= 12 ? "下午" : "上午";
