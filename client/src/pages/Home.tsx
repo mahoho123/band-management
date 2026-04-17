@@ -290,6 +290,32 @@ function isEventEnded(event: BandEvent): boolean {
   return nowTime > endTime24;
 }
 
+// Check if event start time has passed (for edit permission)
+function hasEventStartTimePassed(event: BandEvent): boolean {
+  const hkNow = getHKTime();
+  const todayStr = formatDateStr(hkNow);
+
+  // If event date is in the past, start time has passed
+  if (event.date < todayStr) return true;
+  
+  // If event date is in the future, start time hasn't passed
+  if (event.date > todayStr) return false;
+
+  // If no specific start time, assume it hasn't passed
+  if (!event.startTime) return false;
+
+  const nowTime = `${String(hkNow.getHours()).padStart(2, "0")}:${String(hkNow.getMinutes()).padStart(2, "0")}`;
+  const startTime24 =
+    typeof event.startTime === "object"
+      ? parseTime12To24(
+          event.startTime.hour,
+          event.startTime.minute,
+          event.startTime.period
+        )
+      : (event.startTime as any);
+  return nowTime > startTime24;
+}
+
 function getEventStatus(
   event: BandEvent
 ): "upcoming" | "ongoing" | "completed" {
@@ -353,8 +379,14 @@ function formatTimeObjectTo12(
   
   const chinesePeriod = periodMap[timeObj.period] || timeObj.period;
   
+  // If hour and minute are both --, return the time slot (period) name
+  if (timeObj.hour === "--" && timeObj.minute === "--")
+    return chinesePeriod;
+  
+  // If only one is --, still show the period and available time
   if (timeObj.hour === "--" || timeObj.minute === "--")
     return chinesePeriod;
+  
   return `${chinesePeriod} ${timeObj.hour}:${String(parseInt(timeObj.minute)).padStart(2, "0")}`;
 }
 
@@ -2218,7 +2250,7 @@ export default function Home() {
                 {eventModalMode === "view" &&
                   currentUser?.role === "admin" &&
                   selectedEvent &&
-                  !isEventEnded(selectedEvent) && (
+                  !hasEventStartTimePassed(selectedEvent) && (
                     <button
                       onClick={() =>
                         selectedEvent && openEventEditModal(selectedEvent.id)
