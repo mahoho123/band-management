@@ -1853,7 +1853,6 @@ export default function Home() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-base sm:text-lg font-medium text-gray-700 mb-2">或選擇時間段（如未填具體時間）</label>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {(['pending', 'morning', 'afternoon', 'evening'] as const).map((slot) => {
                       const labels = {
