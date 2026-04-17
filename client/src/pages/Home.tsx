@@ -2464,9 +2464,9 @@ export default function Home() {
                           className="time-select w-16 sm:w-20 bg-amber-50 font-medium text-sm sm:text-base"
                         >
                           <option value="pending">待定</option>
-                          <option value="AM">上午</option>
-                          <option value="PM">下午</option>
-                          <option value="evening">晚上</option>
+                          <option value="上午">上午</option>
+                          <option value="下午">下午</option>
+                          <option value="晚上">晚上</option>
                         </select>
                       </div>
                     </div>
@@ -2523,9 +2523,9 @@ export default function Home() {
                           className="time-select w-16 sm:w-20 bg-amber-50 font-medium text-sm sm:text-base"
                         >
                           <option value="pending">待定</option>
-                          <option value="AM">上午</option>
-                          <option value="PM">下午</option>
-                          <option value="evening">晚上</option>
+                          <option value="上午">上午</option>
+                          <option value="下午">下午</option>
+                          <option value="晚上">晚上</option>
                         </select>
                       </div>
                     </div>
