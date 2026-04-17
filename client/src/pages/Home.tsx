@@ -1083,17 +1083,35 @@ export default function Home() {
       startTime = { hour: startHour, minute: startMinute, period: startAmpm };
       endTime = { hour: endHour, minute: endMinute, period: endAmpm };
 
-      // Validate that start time is before end time using 24-hour conversion
-      const start24 = parseTime12To24(startHour, startMinute, startAmpm);
-      const end24 = parseTime12To24(endHour, endMinute, endAmpm);
-      if (start24 && end24) {
-        const [startH, startM] = start24.split(":").map(Number);
-        const [endH, endM] = end24.split(":").map(Number);
-        const startMinutes = startH * 60 + startM;
-        const endMinutes = endH * 60 + endM;
-        if (startMinutes >= endMinutes)
-          return showToast("開始時間必須早於結束時間", "error");
+      // Validate time order: if same period, allow any time; if different periods, check time
+      const periodOrder: Record<string, number> = {
+        "morning": 1, "上午": 1, "AM": 1,
+        "afternoon": 2, "下午": 2, "PM": 2,
+        "evening": 3, "晚上": 3,
+        "pending": 0, "待定": 0
+      };
+      const startPeriodOrder = periodOrder[startAmpm] || 0;
+      const endPeriodOrder = periodOrder[endAmpm] || 0;
+      
+      // If periods are different, check period order first
+      if (startPeriodOrder > endPeriodOrder) {
+        return showToast("開始時段必須早於或等於結束時段", "error");
       }
+      
+      // If same period, allow any time; if different periods, check time order
+      if (startPeriodOrder !== endPeriodOrder) {
+        const start24 = parseTime12To24(startHour, startMinute, startAmpm);
+        const end24 = parseTime12To24(endHour, endMinute, endAmpm);
+        if (start24 && end24) {
+          const [startH, startM] = start24.split(":").map(Number);
+          const [endH, endM] = end24.split(":").map(Number);
+          const startMinutes = startH * 60 + startM;
+          const endMinutes = endH * 60 + endM;
+          if (startMinutes >= endMinutes)
+            return showToast("開始時間必須早於結束時間", "error");
+        }
+      }
+      // If same period, skip time validation - allow any combination
     }
 
     const dateHoliday = hkHolidays.find(h => h.date === eventDate);
