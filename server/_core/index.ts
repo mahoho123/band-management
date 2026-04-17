@@ -44,7 +44,11 @@ async function startServer() {
     cors: {
       origin: "*",
       methods: ["GET", "POST"],
+      credentials: true,
     },
+    transports: ["websocket", "polling"],
+    pingInterval: 25000,
+    pingTimeout: 60000,
   });
   
   globalIO = io;
