@@ -1852,32 +1852,7 @@ export default function Home() {
                     </div>
                   </div>
                 </div>
-                <div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {(['pending', 'morning', 'afternoon', 'evening'] as const).map((slot) => {
-                      const labels = {
-                        pending: '待定',
-                        morning: '上午',
-                        afternoon: '下午',
-                        evening: '晚上'
-                      };
-                      return (
-                        <button
-                          key={slot}
-                          type="button"
-                          onClick={() => setEventTimeSlot(eventTimeSlot === slot ? null : slot)}
-                          className={`px-3 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base ${
-                            eventTimeSlot === slot
-                              ? 'bg-blue-500 text-white'
-                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                          }`}
-                        >
-                          {labels[slot]}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
+
                 <div>
                   <label className="block text-base sm:text-lg font-medium text-gray-700 mb-2">地點 <span className="text-red-500">*</span></label>
                   <input
