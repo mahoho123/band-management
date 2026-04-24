@@ -308,14 +308,17 @@ function hasEventStartTimePassed(event: BandEvent): boolean {
   // If event date is in the future, start time hasn't passed
   if (event.date > todayStr) return false;
 
-  // 關鍵修正：如果是今天且沒有具體時分，判定為未結束
-  if (!event.endTime || (event.endTime.hour === "--" && event.endTime.minute === "--")) {
+  // 關鍵修正：如果是今天且沒有具體時分，判定為未結束（不鎖定編輯）
+  const endHour = event.endTime?.hour;
+  const endMinute = event.endTime?.minute;
+  const hasSpecificEndTime = endHour && endHour !== "--" && endMinute && endMinute !== "--";
+  if (!event.endTime || !hasSpecificEndTime) {
     return false; 
   }
 
   // 只有有具體時間時才做 24 小時比對
   const nowTime = `${String(hkNow.getHours()).padStart(2, "0")}:${String(hkNow.getMinutes()).padStart(2, "0")}`;
-  const endTime24 = parseTime12To24(event.endTime.hour, event.endTime.minute, event.endTime.period);
+  const endTime24 = parseTime12To24(endHour, endMinute, event.endTime.period);
   return nowTime > endTime24;
 }
 
@@ -383,19 +386,29 @@ function formatTimeObjectTo12(timeObj: any): string {
 }
 
 function parseTime12To24(hour: string, minute: string, ampm: string): string {
+  // Normalize period to handle both Chinese and English period names
+  // Map Chinese period names to their 24h equivalents for arithmetic
+  const normalizedPeriod = (() => {
+    if (ampm === "上午" || ampm === "AM" || ampm === "morning") return "AM";
+    if (ampm === "下午" || ampm === "PM" || ampm === "afternoon") return "PM";
+    if (ampm === "晚上" || ampm === "evening") return "EVENING";
+    return ampm;
+  })();
+
   // If hour and minute are provided, use them (specific time mode)
   if (hour && hour !== "--" && minute && minute !== "--") {
     let h = parseInt(hour);
-    if (ampm === "PM" && h !== 12) h += 12;
-    if (ampm === "AM" && h === 12) h = 0;
+    if (normalizedPeriod === "PM" && h !== 12) h += 12;
+    if (normalizedPeriod === "AM" && h === 12) h = 0;
+    if (normalizedPeriod === "EVENING" && h !== 12) h += 12; // 晚上 treated as PM
     return `${String(h).padStart(2, "0")}:${minute}`;
   }
 
   // Handle time slot mode (when hour/minute are empty)
-  if (ampm === "pending") return "pending";
-  if (ampm === "morning" || ampm === "上午") return "09:00"; // Morning default: 09:00
-  if (ampm === "afternoon" || ampm === "下午") return "14:00"; // Afternoon default: 14:00
-  if (ampm === "evening" || ampm === "晚上") return "19:00"; // Evening default: 19:00
+  if (ampm === "pending" || ampm === "待定") return "pending";
+  if (normalizedPeriod === "AM") return "09:00"; // Morning default: 09:00
+  if (normalizedPeriod === "PM") return "14:00"; // Afternoon default: 14:00
+  if (normalizedPeriod === "EVENING") return "19:00"; // Evening default: 19:00
 
   // Fallback for AM/PM without hour/minute
   return "00:00";
