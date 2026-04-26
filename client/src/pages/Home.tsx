@@ -634,8 +634,15 @@ export default function Home() {
   const [repeatEnabled, setRepeatEnabled] = useState(false);
 
   // List view
-  const [listYear, setListYear] = useState(new Date().getFullYear());
-  const [listMonth, setListMonth] = useState<string>("all");
+  // 使用香港時間 (UTC+8) 初始化年份和月份
+  const [listYear, setListYear] = useState(() => {
+    const hkNow = new Date(new Date().getTime() + 8 * 60 * 60 * 1000);
+    return hkNow.getUTCFullYear();
+  });
+  const [listMonth, setListMonth] = useState<string>(() => {
+    const hkNow = new Date(new Date().getTime() + 8 * 60 * 60 * 1000);
+    return hkNow.getUTCMonth().toString(); // 0-11
+  });
   const [filterByDate, setFilterByDate] = useState<string | null>(null);
   const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState("");
