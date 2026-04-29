@@ -639,9 +639,9 @@ export default function Home() {
     const hkNow = new Date(new Date().getTime() + 8 * 60 * 60 * 1000);
     return hkNow.getUTCFullYear();
   });
-  const [listMonth, setListMonth] = useState<string>(() => {
+  const [listMonth, setListMonth] = useState<number>(() => {
     const hkNow = new Date(new Date().getTime() + 8 * 60 * 60 * 1000);
-    return hkNow.getUTCMonth().toString(); // 0-11
+    return hkNow.getUTCMonth(); // 0-11, always a valid month
   });
   const [filterByDate, setFilterByDate] = useState<string | null>(null);
   const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
@@ -1794,7 +1794,7 @@ export default function Home() {
       if (selectedDates.size > 0 && !selectedDates.has(e.date)) return false;
       const d = new Date(e.date);
       if (d.getFullYear() !== listYear) return false;
-      if (listMonth !== "all" && d.getMonth() !== parseInt(listMonth))
+      if (d.getMonth() !== listMonth)
         return false;
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
@@ -3669,19 +3669,11 @@ export default function Home() {
               />
               <DatePicker
                 year={listYear}
-                month={listMonth === "all" ? 0 : parseInt(listMonth as string)}
+                month={listMonth}
                 yearOptions={yearOptions}
                 onYearChange={y => setListYear(y)}
-                onMonthChange={m => setListMonth(m.toString())}
+                onMonthChange={m => setListMonth(m)}
               />
-              {listMonth !== "all" && (
-                <button
-                  onClick={() => setListMonth("all")}
-                  className="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-2 sm:px-3 py-1.5 rounded-lg whitespace-nowrap"
-                >
-                  清除月份
-                </button>
-              )}
               {selectedDates.size > 0 && (
                 <>
                   <span className="text-xs sm:text-sm text-gray-600 truncate">
@@ -4075,19 +4067,11 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-3 sm:mb-5 flex-wrap items-start sm:items-center">
               <DatePicker
                 year={listYear}
-                month={listMonth === "all" ? 0 : parseInt(listMonth as string)}
+                month={listMonth}
                 yearOptions={yearOptions}
                 onYearChange={y => setListYear(y)}
-                onMonthChange={m => setListMonth(m.toString())}
+                onMonthChange={m => setListMonth(m)}
               />
-              {listMonth !== "all" && (
-                <button
-                  onClick={() => setListMonth("all")}
-                  className="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-2 sm:px-3 py-1.5 rounded-lg whitespace-nowrap"
-                >
-                  清除月份
-                </button>
-              )}
             </div>
 
             {(membersQuery.data || []).length === 0 ? (
@@ -4104,8 +4088,7 @@ export default function Home() {
                       const [year, month] = e.date.split("-");
                       const yearMatch = parseInt(year) === listYear;
                       const monthMatch =
-                        listMonth === "all" ||
-                        parseInt(month) === parseInt(listMonth as string) + 1;
+                        parseInt(month) === listMonth + 1;
                       return yearMatch && monthMatch;
                     }
                   );
