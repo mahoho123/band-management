@@ -39,17 +39,86 @@
       "keywords": "樂隊管理, 活動管理系統, 排練日程, 演出管理, 成員管理, 出席記錄, 香港樂隊"
     }
     </script>
+    <!-- ===== PERFORMANCE: Resource Hints ===== -->
+    <!-- DNS prefetch for external resources -->
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+    <!-- Preconnect to font origins -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Font Awesome: load async (non-render-blocking) -->
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" /></noscript>
+    <!-- Google Fonts: swap display to avoid invisible text -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <!-- ===== PERFORMANCE: Critical Inline CSS ===== -->
+    <!-- Renders login skeleton before JS bundle loads, regardless of network speed -->
+    <style id="critical-css">
+      *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+      html,body{height:100%;font-family:'Noto Sans HK',system-ui,-apple-system,sans-serif;background:#fffbf0}
+      #root{min-height:100vh;display:flex;align-items:center;justify-content:center}
+      /* Login skeleton overlay */
+      #login-skeleton{
+        position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;
+        align-items:center;justify-content:center;z-index:9999;
+        backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)
+      }
+      #login-skeleton-card{
+        background:rgba(255,251,240,.98);border:1px solid rgba(244,208,63,.2);
+        box-shadow:0 8px 32px rgba(0,0,0,.12);border-radius:1rem;
+        width:min(92vw,400px);padding:1.5rem;animation:skFadeIn .2s ease-out
+      }
+      @keyframes skFadeIn{from{opacity:0;transform:scale(.96) translateY(-6px)}to{opacity:1;transform:none}}
+      #login-skeleton-tabs{display:flex;border-bottom:1px solid #e5e7eb;margin-bottom:1.25rem}
+      #login-skeleton-tabs span{
+        flex:1;padding:.625rem 0;text-align:center;font-size:.95rem;font-weight:500;
+        color:#92400e;border-bottom:2px solid #f59e0b
+      }
+      #login-skeleton-tabs span+span{color:#6b7280;border-bottom:2px solid transparent}
+      .sk-row{height:2.75rem;background:#f3f4f6;border-radius:.5rem;margin-bottom:.75rem;display:flex;align-items:center;padding:0 1rem;gap:.75rem}
+      .sk-avatar{width:2rem;height:2rem;border-radius:50%;background:#fde68a;flex-shrink:0}
+      .sk-line{height:.75rem;border-radius:.25rem;background:#e5e7eb;flex:1}
+      .sk-btn{
+        width:100%;height:2.75rem;border-radius:.75rem;margin-top:.5rem;
+        background:linear-gradient(135deg,#f4d03f,#d4a017);border:none;cursor:pointer;
+        font-size:.9rem;font-weight:600;color:#fff
+      }
+    </style>
     <link rel="icon" type="image/x-icon" href="https://private-us-east-1.manuscdn.com/user_upload_by_module/session_file/310519663399040844/LMeSkudqbItSxlSJ.ico?Expires=1804689922&Signature=n7rE1ulPsebuSypcQ1gGaIfpdVDS3WRBw3FOpx5VbDo3NZSynQ58nZ~3O-zhxCDvp2mFuQnKnE50GADwXP7jHbhmcEJY1mvDqe-wnjON2jZofGXC3Sv1lVpK5R4gSXYw2eZTk~EDTYkgkdHcLn04HJY7tP2ce6ZfjkSFS69-S42oqPF5CmeGcsyVBbRH~omIc4hqb9h8X6oHm~FAHLAhrPgq4XQTPqFn9mOtYH65f0XybW~24eOUDlaMdANmLdydf6KT9pDXfL-xsfJCeoXtZyS8wDAEhx5eE-AG0rEKtiqh7fkt7SWlPxD14IRLxCbY5lbiGc1~0n6cAldMM-bXiw__&Key-Pair-Id=K2HSFNDJXOU9YS" />
     <link rel="icon" type="image/png" sizes="32x32" href="https://private-us-east-1.manuscdn.com/user_upload_by_module/session_file/310519663399040844/gzLFWzLTtdONfpLM.png?Expires=1804689922&Signature=GjamdKWB7jIFfylhk1vWl6LTko2pqCi7dWRaSDMKsZ08Fk04434CN4eAldH1hN2MCJNxw7nN~QzSXANl2PUuEla43XjB-1faN5aRUCnmDsqzQ2DGbWvizH7cIVhTp0SxvhHS9QqslV-vs9ABM1w5W3xoiP3xHFhgAgofLlnyrS3hbxV4ly2pyaKVTMBX4bmybClEEcTOFVZgPEjbMZpun0eVdJ18kI2hT1~HzrnIGb8jzsBk2umLWiamAea3eDH1yk2rE8csZgNvZ-ANF6BNtGJSc5kUIJq1NzPrCQtjgus0Q4OhUCiK~aKCn5RmMOF1ub7hKfbspQj8bNgOAftKRA__&Key-Pair-Id=K2HSFNDJXOU9YS" />
     <link rel="icon" type="image/png" sizes="16x16" href="https://private-us-east-1.manuscdn.com/user_upload_by_module/session_file/310519663399040844/kKQNrjGdfsWlYrEE.png?Expires=1804689922&Signature=l07bwM72bhxorsjtxCb4i0yrcpf6E7FIrzRZQGWHvmGE1nCY3Zez5bMk6urWCxBM1HtLRh4hxaRmSIP3bgRRozTOZ4MmhB6heUH0BkP9n4p2lDdNtLrNdYra6-zv9BaWbHU6m5QGarvlkSsW2Vbgj10nsRsPoSgxt31vYbIqsgbsCRG7iOvNXo2LXHglZclxsOO0hG4GqZnnPAx47Hqb62LnHWFPnqyQkPrH2gVI7fMUyG98Hz-ocGajC~f9qvUOcixMkqkZObrlwi~XI-X~EIC7-oCiLpsCI0qX91hhQ4JEplgU~Z6esH64uuITrXezi14OeQGAds0VDlpOvS4Ruw__&Key-Pair-Id=K2HSFNDJXOU9YS" />
     <link rel="apple-touch-icon" href="https://private-us-east-1.manuscdn.com/user_upload_by_module/session_file/310519663399040844/TbKrdqjVNllQzEKs.png?Expires=1804689922&Signature=K2CyydWe1PNauJflq-ag5b93IwKx1-qIiL9VLDoeYLLMqRZiHegNf8HL18rr8d8IpO6ny~6yiBWi4SNmeXYVlx-Bqcv5NARdS7RTHhDEhapWdNa7luhgX8k3XDUAEJJ8M0aE-uosfncR05i8pxn06yNYfF~xrfZF3ks8hlc8oWZcEDpjjL937busa02Xt7GOgZ4E2ey-WbkPPjjgWWHmQZw~Azlj7tlGMwTndOeqnpzTEjeSWVob9aymwPrJoW1dDiPK3MVTJ49XKOOyPibWlBh3bD2uMmSCAWsnBnGQtNcSDUfBa3O8MJbH8hs6FghS0xCiHNogOMPaMy4Gic-QrA__&Key-Pair-Id=K2HSFNDJXOU9YS" /></head>
 
   <body>
+    <!-- Login skeleton: shown instantly before JS loads, removed once React mounts -->
+    <div id="login-skeleton" aria-hidden="true">
+      <div id="login-skeleton-card">
+        <div id="login-skeleton-tabs">
+          <span>👤 成員登入</span>
+          <span>👑 主管登入</span>
+        </div>
+        <div class="sk-row"><div class="sk-avatar"></div><div class="sk-line"></div></div>
+        <div class="sk-row"><div class="sk-avatar"></div><div class="sk-line"></div></div>
+        <div class="sk-row"><div class="sk-avatar"></div><div class="sk-line"></div></div>
+        <button class="sk-btn" disabled>載入中…</button>
+      </div>
+    </div>
     <div id="root"></div>
+    <script>
+      // Remove skeleton once React has mounted (first paint of #root)
+      (function(){
+        var ob=new MutationObserver(function(){
+          var r=document.getElementById('root');
+          if(r&&r.children.length>0){
+            var sk=document.getElementById('login-skeleton');
+            if(sk){sk.style.transition='opacity .15s';sk.style.opacity='0';setTimeout(function(){sk&&sk.remove()},160);}
+            ob.disconnect();
+          }
+        });
+        ob.observe(document.getElementById('root')||document.body,{childList:true,subtree:true});
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
     <script
       defer
