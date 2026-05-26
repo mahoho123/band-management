@@ -1793,7 +1793,7 @@ export default function Home() {
                 : "bg-white border-gray-200 hover:border-amber-300"
           }`}
           onClick={() => {
-            if (currentUser?.role === "admin") openAddEventModal(dateStr);
+            if (currentUser?.role === "admin" || currentUser?.role === "vice-admin") openAddEventModal(dateStr);
             else if (dayEvents.length > 0) {
               // 顯示當日所有活動的清單
               setCurrentView("list");
@@ -3724,7 +3724,7 @@ export default function Home() {
                   今天
                 </button>
               </div>
-              {currentUser?.role === "admin" && (
+              {(currentUser?.role === "admin" || currentUser?.role === "vice-admin") && (
                 <div className="flex items-center gap-1 sm:gap-2 w-full sm:w-auto">
                   <button
                     onClick={handleOpenMonthlyNotification}
@@ -3855,7 +3855,7 @@ export default function Home() {
             </div>
 
             {/* Batch Operations Toolbar */}
-            {selectedEventIds.size > 0 && currentUser?.role === "admin" && (
+            {selectedEventIds.size > 0 && (currentUser?.role === "admin" || currentUser?.role === "vice-admin") && (
               <div className="bg-amber-50 border-2 border-amber-200 rounded-lg p-3 mb-4 flex items-center justify-between gap-3">
                 <span className="text-sm font-medium text-amber-700">
                   已選 {selectedEventIds.size} / {displayEvents.length} 個活動
@@ -3906,7 +3906,7 @@ export default function Home() {
                       : `暫無活動`}
                   </p>
                   {currentListTab === "incomplete" &&
-                    currentUser?.role === "admin" &&
+                    (currentUser?.role === "admin" || currentUser?.role === "vice-admin") &&
                     !searchQuery.trim() && (
                       <button
                         onClick={() => openAddEventModal()}
@@ -3943,8 +3943,8 @@ export default function Home() {
                     setSelectedEventIds(newSelected);
                   };
                   const handleCardClick = () => {
-                    if (currentUser?.role === "admin") {
-                      // 主管點擊卡片只切換勾選狀態，完全不彈出詳情模態框
+                    if (currentUser?.role === "admin" || currentUser?.role === "vice-admin") {
+                      // 主管和副主席點擊卡片只切換勾選狀態，完全不彈出詳情模態框
                       const newSelected = new Set(selectedEventIds);
                       if (newSelected.has(event.id)) {
                         newSelected.delete(event.id);
@@ -3953,7 +3953,7 @@ export default function Home() {
                       }
                       setSelectedEventIds(newSelected);
                     } else {
-                      // 成員點擊卡片才彈出詳情
+                      // 成员點擊卡片才彈出詳情
                       openEventModal(event.id);
                     }
                   };
@@ -3965,7 +3965,7 @@ export default function Home() {
                       className={`event-card bg-white rounded-xl p-4 shadow-sm cursor-pointer ${typeConf.border} ${isOngoing ? "ongoing-card" : ""} ${isEnded ? "completed-card" : ""} ${isSelected ? "ring-2 ring-amber-500 bg-amber-50" : ""}`}
                     >
                       <div className="flex justify-between items-start gap-4">
-                        {currentUser?.role === "admin" && (
+                        {(currentUser?.role === "admin" || currentUser?.role === "vice-admin") && (
                           <div className="flex-shrink-0 pt-1">
                             <input
                               type="checkbox"
