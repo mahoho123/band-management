@@ -76,6 +76,7 @@ interface Holiday {
 interface SystemData {
   isSetup: boolean;
   adminPassword: string;
+  viceAdminPassword?: string; // 副主席的密碼
   members: Member[];
   events: BandEvent[];
   holidays: Holiday[];
@@ -83,8 +84,8 @@ interface SystemData {
 }
 
 interface CurrentUser {
-  id: number | "admin";
-  role: "admin" | "member";
+  id: number | "admin" | "vice-admin";
+  role: "admin" | "member" | "vice-admin";
   name: string;
 }
 
@@ -567,7 +568,7 @@ export default function Home() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [showEventModal, setShowEventModal] = useState(false);
-  const [loginTab, setLoginTab] = useState<"member" | "admin">("member");
+  const [loginTab, setLoginTab] = useState<"member" | "admin" | "vice-admin">("member");
 
   // Toast
   const [toast, setToast] = useState<ToastState>({
@@ -582,6 +583,7 @@ export default function Home() {
   const [setupFirstInstrument, setSetupFirstInstrument] = useState("");
 
   const [adminLoginPassword, setAdminLoginPassword] = useState("");
+  const [viceAdminLoginPassword, setViceAdminLoginPassword] = useState("");
 
   // 成員登入密碼輸入（取代 window.prompt）
   const [memberLoginState, setMemberLoginState] = useState<{
@@ -595,10 +597,10 @@ export default function Home() {
 
   // 重設密碼 modal（主管用）
   const [resetPasswordState, setResetPasswordState] = useState<{
-    type: "member" | "admin";
+    type: "member" | "admin" | "vice-admin";
     memberId?: number;
     memberName?: string;
-    step: "current" | "new"; // admin 重設時需要先驗證現有密碼
+    step: "current" | "new"; // admin/vice-admin 重設時需要先驗證現有密碼
     currentPassword: string;
     newPassword: string;
     confirmPassword: string;
@@ -914,6 +916,43 @@ export default function Home() {
           onError: () => showToast("登入失敗，請稍後重試", "error"),
         }
       );
+    }
+  };
+
+  const handleViceAdminLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    const saved = localStorage.getItem("bandSystemData");
+    let data: SystemData = {
+      isSetup: false,
+      adminPassword: "",
+      members: [],
+      events: [],
+      holidays: [],
+    };
+    if (saved) {
+      try {
+        data = JSON.parse(saved);
+      } catch {
+        // ignore
+      }
+    }
+    if (!data.viceAdminPassword) {
+      showToast("副主席尚未設定密碼，請聯絡主管", "error");
+      return;
+    }
+    if (viceAdminLoginPassword === data.viceAdminPassword) {
+      const user = {
+        id: "vice-admin" as const,
+        role: "vice-admin" as const,
+        name: "副主席",
+      };
+      setCurrentUser(user);
+      sessionStorage.setItem("bandCurrentUser", JSON.stringify(user));
+      setShowLoginModal(false);
+      setViceAdminLoginPassword("");
+      showToast("副主席登入成功", "success");
+    } else {
+      showToast("副主席密碼錯誤", "error");
     }
   };
 
@@ -1278,6 +1317,9 @@ export default function Home() {
     memberId: number,
     status: "going" | "not-going" | "unknown"
   ) => {
+    if (currentUser?.role === "vice-admin") {
+      return showToast("副主席不能修改出席狀態", "error");
+    }
     const event = eventsQuery.data?.find(e => e.id === eventId);
     if (!event) return;
     if (isEventEnded(event))
@@ -1387,6 +1429,20 @@ export default function Home() {
     });
   };
 
+  const handleResetViceAdminPassword = () => {
+    if (currentUser?.role !== "admin") {
+      showToast("仃有主管可以重設副主席密碼", "error");
+      return;
+    }
+    setResetPasswordState({
+      type: "vice-admin",
+      step: "current",
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    });
+  };
+
   const handleResetPasswordSubmit = () => {
     if (!resetPasswordState) return;
     const {
@@ -1434,9 +1490,53 @@ export default function Home() {
           onError: () => showToast("重設密碼失敗，請稍後重試", "error"),
         }
       );
+    } else if (type === "vice-admin") {
+      if (step === "current") {
+        // 驗證現有密碼
+        verifyAdminPasswordMutation.mutate(
+          { password: currentPassword },
+          {
+            onSuccess: result => {
+              if (result.success) {
+                setResetPasswordState(prev =>
+                  prev ? { ...prev, step: "new" } : null
+                );
+              } else {
+                showToast("主管密碼錯誤", "error");
+              }
+            },
+            onError: () => showToast("驗證失敗，請稍後重試", "error"),
+          }
+        );
+        return;
+      }
+      if (newPassword.length < 4)
+        return showToast("密碼最少需要一4個字元", "error");
+      if (newPassword !== confirmPassword)
+        return showToast("兩次輸入不一致", "error");
+      // 直接修改 localStorage 中的副主席密碼
+      const saved = localStorage.getItem("bandSystemData");
+      let data: SystemData = {
+        isSetup: false,
+        adminPassword: "",
+        members: [],
+        events: [],
+        holidays: [],
+      };
+      if (saved) {
+        try {
+          data = JSON.parse(saved);
+        } catch {
+          // ignore
+        }
+      }
+      data.viceAdminPassword = newPassword;
+      localStorage.setItem("bandSystemData", JSON.stringify(data));
+      showToast("副主席密碼已重設", "success");
+      setResetPasswordState(null);
     } else {
       if (newPassword.length < 4)
-        return showToast("密碼最少需要4個字元", "error");
+        return showToast("密碼最少需要一4個字元", "error");
       updateMemberMutation.mutate(
         { id: memberId!, password: newPassword },
         {
@@ -2020,6 +2120,14 @@ export default function Home() {
                 <span className="sm:hidden">成</span>
               </button>
               <button
+                onClick={() => setLoginTab("vice-admin")}
+                className={`flex-1 pb-1.5 sm:pb-2 md:pb-3 text-sm sm:text-base md:text-lg font-medium transition-all ${loginTab === "vice-admin" ? "border-b-2 border-amber-500 text-amber-700" : "text-gray-500 hover:text-gray-700"}`}
+              >
+                <i className="fas fa-star mr-0.5 sm:mr-1 md:mr-2" />
+                <span className="hidden sm:inline">副主席</span>
+                <span className="sm:hidden">副</span>
+              </button>
+              <button
                 onClick={() => setLoginTab("admin")}
                 className={`flex-1 pb-1.5 sm:pb-2 md:pb-3 text-sm sm:text-base md:text-lg font-medium transition-all ${loginTab === "admin" ? "border-b-2 border-amber-500 text-amber-700" : "text-gray-500 hover:text-gray-700"}`}
               >
@@ -2184,6 +2292,32 @@ export default function Home() {
                   </>
                 )}
               </div>
+            ) : loginTab === "vice-admin" ? (
+              <form
+                onSubmit={handleViceAdminLogin}
+                className="space-y-2 sm:space-y-3 md:space-y-4"
+              >
+                <div>
+                  <label className="block text-sm sm:text-base md:text-lg font-medium text-gray-700 mb-1.5 sm:mb-2">
+                    副主席密碼
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    value={viceAdminLoginPassword}
+                    onChange={e => setViceAdminLoginPassword(e.target.value)}
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-sm sm:text-base md:text-lg"
+                    placeholder="輸入副主席密碼"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="w-full band-gradient text-white py-2.5 sm:py-3 md:py-4 rounded-lg sm:rounded-xl hover:shadow-lg transition-all font-medium text-sm sm:text-base md:text-lg"
+                >
+                  <i className="fas fa-sign-in-alt mr-1 sm:mr-2" />
+                  登入
+                </button>
+              </form>
             ) : (
               <form
                 onSubmit={handleAdminLogin}
@@ -2330,7 +2464,7 @@ export default function Home() {
               </h3>
               <div className="flex items-center gap-2 ml-2 flex-shrink-0">
                 {eventModalMode === "view" &&
-                  currentUser?.role === "admin" &&
+                  (currentUser?.role === "admin" || currentUser?.role === "vice-admin") &&
                   selectedEvent &&
                   !hasEventStartTimePassed(selectedEvent) && (
                     <button
@@ -2353,7 +2487,7 @@ export default function Home() {
             </div>
 
             {eventModalMode === "view" &&
-              currentUser?.role === "admin" &&
+              (currentUser?.role === "admin" || currentUser?.role === "vice-admin") &&
               selectedEvent && (
                 <div className="mb-4 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 bg-green-50 border-b border-green-200">
                   <p className="text-sm sm:text-base text-green-700 font-medium mb-2 flex items-center gap-1">
@@ -4051,6 +4185,13 @@ export default function Home() {
                   <i className="fas fa-key" />
                   重設主管密碼
                 </button>
+                <button
+                  onClick={handleResetViceAdminPassword}
+                  className="bg-blue-50 text-blue-700 text-sm px-4 py-2 rounded-xl hover:bg-blue-100 transition-all flex items-center gap-2"
+                >
+                  <i className="fas fa-star" />
+                  重設副主席密碼
+                </button>
               </div>
             </div>
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-5">
@@ -4202,7 +4343,9 @@ export default function Home() {
               <h3 className="text-lg font-bold text-gray-800">
                 {resetPasswordState.type === "admin"
                   ? "重設主管密碼"
-                  : `重設 ${resetPasswordState.memberName} 的密碼`}
+                  : resetPasswordState.type === "vice-admin"
+                    ? "重設副主席密碼"
+                    : `重設 ${resetPasswordState.memberName} 的密碼`}
               </h3>
               <button
                 onClick={() => setResetPasswordState(null)}
@@ -4212,7 +4355,7 @@ export default function Home() {
               </button>
             </div>
             <div className="space-y-3">
-              {resetPasswordState.type === "admin" &&
+              {(resetPasswordState.type === "admin" || resetPasswordState.type === "vice-admin") &&
               resetPasswordState.step === "current" ? (
                 <>
                   <div>
