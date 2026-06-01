@@ -3247,7 +3247,7 @@ export default function Home() {
                     )}
 
                     {/* WhatsApp Notification Button */}
-                    {currentUser?.role === "admin" && (
+                    {(currentUser?.role === "admin" || currentUser?.role === "vice-admin") && (
                       <div className="mt-4 pt-4 border-t border-gray-200">
                         <p className="text-xs text-gray-500 font-medium mb-2 flex items-center gap-1">
                           <i className="fab fa-whatsapp text-green-500" />
@@ -3780,7 +3780,7 @@ export default function Home() {
               <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">
                 樂隊活動清單
               </h2>
-              {currentUser?.role === "admin" && (
+              {(currentUser?.role === "admin" || currentUser?.role === "vice-admin") && (
                 <button
                   onClick={() => openAddEventModal()}
                   className="band-gradient text-white text-xs sm:text-sm px-2 sm:px-4 py-2 rounded-lg sm:rounded-xl hover:shadow-md transition-all font-medium flex items-center gap-1 sm:gap-2 whitespace-nowrap w-full sm:w-auto justify-center sm:justify-start"
