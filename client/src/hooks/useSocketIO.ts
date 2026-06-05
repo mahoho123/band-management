@@ -63,9 +63,11 @@ export function useSocketIO() {
 
     // Connect to Socket.IO server
     const socket = io(window.location.origin, {
+      path: "/api/socket.io",
+      transports: ["websocket", "polling"],
       reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
+      reconnectionDelay: 2000,
+      reconnectionDelayMax: 10000,
       reconnectionAttempts: 5,
     });
 

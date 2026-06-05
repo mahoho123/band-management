@@ -41,12 +41,16 @@ async function startServer() {
   
   // Initialize Socket.IO
   const io = new SocketIOServer(server, {
+    path: "/api/socket.io",
     cors: {
       origin: "*",
       methods: ["GET", "POST"],
       credentials: true,
     },
+    // Use websocket-only to avoid XHR polling errors in proxy environments
+    // Fallback to polling if websocket fails
     transports: ["websocket", "polling"],
+    allowUpgrades: true,
     pingInterval: 25000,
     pingTimeout: 60000,
   });

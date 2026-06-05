@@ -11,10 +11,13 @@ let socket: Socket | null = null;
 function getSocket(): Socket {
   if (!socket) {
     socket = io(window.location.origin, {
+      path: "/api/socket.io",
+      // Try websocket first; fall back to polling only if websocket is unavailable
+      transports: ["websocket", "polling"],
       reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
-      reconnectionAttempts: Infinity,
+      reconnectionDelay: 2000,
+      reconnectionDelayMax: 10000,
+      reconnectionAttempts: 5,
     });
 
     socket.on('connect', () => {
