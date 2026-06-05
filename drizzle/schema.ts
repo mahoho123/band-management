@@ -97,6 +97,7 @@ export type InsertBandHoliday = typeof bandHolidays.$inferInsert;
 export const bandSystemData = mysqlTable("band_system_data", {
   id: int("id").autoincrement().primaryKey(),
   adminPassword: varchar("adminPassword", { length: 255 }).notNull(),
+  viceAdminPassword: varchar("viceAdminPassword", { length: 255 }),
   isSetup: int("isSetup").default(0).notNull(),
   adminSubscription: text("adminSubscription"), // JSON string for admin's push subscription
   createdAt: timestamp("createdAt").defaultNow().notNull(),

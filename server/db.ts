@@ -209,6 +209,29 @@ export async function initBandSystemData(adminPassword: string) {
   }
 }
 
+export async function updateViceAdminPassword(viceAdminPassword: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const existing = await db.select().from(bandSystemData).limit(1);
+  if (existing.length > 0) {
+    return await db.update(bandSystemData).set({ viceAdminPassword, updatedAt: new Date() }).where(eq(bandSystemData.id, existing[0].id));
+  }
+  return null;
+}
+
+export async function verifyViceAdminPassword(password: string) {
+  const db = await getDb();
+  if (!db) return { success: false, message: "系統未初始化" };
+  const result = await db.select().from(bandSystemData).limit(1);
+  if (!result.length || !result[0].viceAdminPassword) {
+    return { success: false, message: "副主席尚未設定密碼，請聯絡主管" };
+  }
+  if (password === result[0].viceAdminPassword) {
+    return { success: true, message: "副主席密碼驗證成功" };
+  }
+  return { success: false, message: "副主席密碼錯誤" };
+}
+
 export async function updateBandSystemData(adminPassword: string) {
   console.log("[updateBandSystemData] Called with password:", adminPassword);
   const db = await getDb();

@@ -1,0 +1,1 @@
+ALTER TABLE `band_system_data` ADD `viceAdminPassword` varchar(255);

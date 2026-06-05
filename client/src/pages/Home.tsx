@@ -533,6 +533,10 @@ export default function Home() {
     trpc.band.verifyAdminPassword.useMutation();
   const verifyMemberPasswordMutation =
     trpc.band.verifyMemberPassword.useMutation();
+  const verifyViceAdminPasswordMutation =
+    trpc.band.verifyViceAdminPassword.useMutation();
+  const updateViceAdminPasswordMutation =
+    trpc.band.updateViceAdminPassword.useMutation();
   const utils = trpc.useUtils();
 
   // 從 localStorage 讀取已儲存的登入狀態
@@ -921,39 +925,30 @@ export default function Home() {
 
   const handleViceAdminLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    const saved = localStorage.getItem("bandSystemData");
-    let data: SystemData = {
-      isSetup: false,
-      adminPassword: "",
-      members: [],
-      events: [],
-      holidays: [],
-    };
-    if (saved) {
-      try {
-        data = JSON.parse(saved);
-      } catch {
-        // ignore
+    verifyViceAdminPasswordMutation.mutate(
+      { password: viceAdminLoginPassword },
+      {
+        onSuccess: result => {
+          if (result.success) {
+            const user = {
+              id: "vice-admin" as const,
+              role: "vice-admin" as const,
+              name: "副主席",
+            };
+            setCurrentUser(user);
+            sessionStorage.setItem("bandCurrentUser", JSON.stringify(user));
+            setShowLoginModal(false);
+            setViceAdminLoginPassword("");
+            showToast("副主席登入成功", "success");
+          } else {
+            showToast(result.message || "副主席密碼錯誤", "error");
+          }
+        },
+        onError: () => {
+          showToast("登入失敗，請重試", "error");
+        },
       }
-    }
-    if (!data.viceAdminPassword) {
-      showToast("副主席尚未設定密碼，請聯絡主管", "error");
-      return;
-    }
-    if (viceAdminLoginPassword === data.viceAdminPassword) {
-      const user = {
-        id: "vice-admin" as const,
-        role: "vice-admin" as const,
-        name: "副主席",
-      };
-      setCurrentUser(user);
-      sessionStorage.setItem("bandCurrentUser", JSON.stringify(user));
-      setShowLoginModal(false);
-      setViceAdminLoginPassword("");
-      showToast("副主席登入成功", "success");
-    } else {
-      showToast("副主席密碼錯誤", "error");
-    }
+    );
   };
 
   const handleLogout = () => {
@@ -1004,25 +999,33 @@ export default function Home() {
   // EVENT MANAGEMENT
   // ============================================
   const openAddEventModal = (dateStr?: string) => {
-    if (currentUser?.role !== "admin") return;
-    setEventTitle("");
-    setEventDate(dateStr || formatDateStr(new Date()));
-    setEventType("rehearsal");
-    setEventLocation("");
-    setEventNotes("");
-    setStartHour("");
-    setStartMinute("");
-    setStartAmpm("pending");
-    setEndHour("");
-    setEndMinute("");
-    setEndAmpm("pending");
-    setDateHolidayWarning("");
-    setSelectedEventId(null);
-    setEventModalMode("add");
-    setRepeatEnabled(false);
-    setExtraRepeatDates([]);
-    checkDateHolidayFor(dateStr || formatDateStr(new Date()));
-    setShowEventModal(true);
+    try {
+      console.log("[openAddEventModal] called, currentUser:", currentUser, "dateStr:", dateStr);
+      // Allow all logged-in users to add events
+      setEventTitle("");
+      setEventDate(dateStr || formatDateStr(new Date()));
+      setEventType("rehearsal");
+      setEventLocation("");
+      setEventNotes("");
+      setStartHour("");
+      setStartMinute("");
+      setStartAmpm("pending");
+      setEndHour("");
+      setEndMinute("");
+      setEndAmpm("pending");
+      setDateHolidayWarning("");
+      setSelectedEventId(null);
+      setEventModalMode("add");
+      setRepeatEnabled(false);
+      setExtraRepeatDates([]);
+      checkDateHolidayFor(dateStr || formatDateStr(new Date()));
+      console.log("[openAddEventModal] about to setShowEventModal(true)");
+      setShowEventModal(true);
+      console.log("[openAddEventModal] done");
+    } catch (err) {
+      console.error("[openAddEventModal] ERROR:", err);
+      showToast("新增活動出錯: " + String(err), "error");
+    }
   };
 
   const openEventModal = (eventId: number) => {

@@ -22,6 +22,8 @@ import {
   getBandSystemData,
   initBandSystemData,
   updateBandSystemData,
+  updateViceAdminPassword,
+  verifyViceAdminPassword,
   createNotification,
   getUnreadNotifications,
   savePushSubscription,
@@ -110,6 +112,23 @@ export const bandRouter = router({
         return { success: true, message: "主管密碼驗證成功" };
       }
       return { success: false, message: "主管密碼錯誤" };
+    }),
+
+  verifyViceAdminPassword: publicProcedure
+    .input(z.object({ password: z.string() }))
+    .mutation(async ({ input }) => {
+      return await verifyViceAdminPassword(input.password);
+    }),
+
+  updateViceAdminPassword: publicProcedure
+    .input(z.object({ viceAdminPassword: z.string() }))
+    .mutation(async ({ input }) => {
+      const result = await updateViceAdminPassword(input.viceAdminPassword);
+      const io = getIO();
+      if (io) {
+        io.sockets.emit("system:updated");
+      }
+      return { success: true, message: "副主席密碼已更新" };
     }),
 
   verifyMemberPassword: publicProcedure
