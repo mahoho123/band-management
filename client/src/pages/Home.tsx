@@ -17,6 +17,11 @@ import {
 } from "@/components/TimeSelector";
 
 import { trpc } from "@/lib/trpc";
+import {
+  buildEventDates,
+  commitRepeatDates,
+  toggleRepeatDate,
+} from "@/lib/repeatDates";
 
 // Helper functions for Web Push
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
@@ -638,6 +643,17 @@ export default function Home() {
   // Repeat event states - custom date selection
   const [extraRepeatDates, setExtraRepeatDates] = useState<string[]>([]); // additional dates beyond the main date
   const [repeatEnabled, setRepeatEnabled] = useState(false);
+  // Date picker for multi-select repeat dates
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedRepeatDates, setSelectedRepeatDates] = useState<Set<string>>(new Set());
+  const [datePickerMonth, setDatePickerMonth] = useState<number>(() => {
+    const hkNow = new Date(new Date().getTime() + 8 * 60 * 60 * 1000);
+    return hkNow.getUTCMonth();
+  });
+  const [datePickerYear, setDatePickerYear] = useState<number>(() => {
+    const hkNow = new Date(new Date().getTime() + 8 * 60 * 60 * 1000);
+    return hkNow.getUTCFullYear();
+  });
 
   // List view
   // 使用香港時間 (UTC+8) 初始化年份和月份
@@ -1018,6 +1034,8 @@ export default function Home() {
       setEventModalMode("add");
       setRepeatEnabled(false);
       setExtraRepeatDates([]);
+      setShowDatePicker(false);
+      setSelectedRepeatDates(new Set());
       checkDateHolidayFor(dateStr || formatDateStr(new Date()));
       console.log("[openAddEventModal] about to setShowEventModal(true)");
       setShowEventModal(true);
@@ -1205,14 +1223,11 @@ export default function Home() {
       );
     } else {
       // Generate dates: main date + any extra repeat dates
-      const datesToCreate: string[] = [eventDate];
-      if (repeatEnabled && extraRepeatDates.length > 0) {
-        extraRepeatDates.forEach(d => {
-          if (d && d !== eventDate && !datesToCreate.includes(d)) {
-            datesToCreate.push(d);
-          }
-        });
-      }
+      const datesToCreate = buildEventDates(
+        eventDate,
+        extraRepeatDates,
+        repeatEnabled,
+      );
 
       const total = datesToCreate.length;
       let completed = 0;
@@ -2727,12 +2742,12 @@ export default function Home() {
                         </span>
                         <div
                           onClick={() => {
-                            setRepeatEnabled(!repeatEnabled);
-                            if (
-                              !repeatEnabled &&
-                              extraRepeatDates.length === 0
-                            ) {
-                              setExtraRepeatDates([""]);
+                            const nextEnabled = !repeatEnabled;
+                            setRepeatEnabled(nextEnabled);
+                            setShowDatePicker(false);
+                            if (!nextEnabled) {
+                              setSelectedRepeatDates(new Set());
+                              setExtraRepeatDates([]);
                             }
                           }}
                           className={`w-10 h-5 rounded-full transition-colors cursor-pointer relative ${
@@ -2755,6 +2770,27 @@ export default function Home() {
                           <i className="fas fa-info-circle mr-1" />
                           除上方日期外，選擇其他重複活動的日期
                         </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const initialDates = extraRepeatDates.filter(
+                              d => d && d !== eventDate
+                            );
+                            setSelectedRepeatDates(new Set(initialDates));
+                            const [year, month] = eventDate.split("-").map(Number);
+                            if (year && month) {
+                              setDatePickerYear(year);
+                              setDatePickerMonth(month - 1);
+                            }
+                            setShowDatePicker(!showDatePicker);
+                          }}
+                          className="w-full px-3 py-2 border border-amber-200 rounded-lg bg-white text-amber-700 hover:bg-amber-50 transition-colors text-sm font-medium"
+                        >
+                          <i className="fas fa-calendar mr-2" />
+                          {selectedRepeatDates.size > 0
+                            ? `已選擇 ${selectedRepeatDates.size} 個日期`
+                            : "點擊選擇日期"}
+                        </button>
                         {extraRepeatDates.map((d, idx) => (
                           <div key={idx} className="flex items-center gap-2">
                             <input
@@ -2764,6 +2800,9 @@ export default function Home() {
                                 const updated = [...extraRepeatDates];
                                 updated[idx] = e.target.value;
                                 setExtraRepeatDates(updated);
+                                setSelectedRepeatDates(
+                                  new Set(updated.filter(d => d && d !== eventDate)),
+                                );
                               }}
                               className="flex-1 px-3 py-1.5 border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none text-sm bg-white"
                             />
@@ -2776,6 +2815,9 @@ export default function Home() {
                                 setExtraRepeatDates(
                                   updated.length > 0 ? updated : [""]
                                 );
+                                setSelectedRepeatDates(
+                                  new Set(updated.filter(d => d && d !== eventDate)),
+                                );
                               }}
                               className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                             >
@@ -2783,18 +2825,137 @@ export default function Home() {
                             </button>
                           </div>
                         ))}
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setExtraRepeatDates([...extraRepeatDates, ""])
-                          }
-                          className="w-full py-1.5 border border-dashed border-amber-300 text-amber-700 rounded-lg text-xs hover:bg-amber-100 transition-colors"
-                        >
-                          <i className="fas fa-plus mr-1" />
-                          新增日期
-                        </button>
+
                       </div>
                     )}
+                  </div>
+                )}
+                {showDatePicker && repeatEnabled && (
+                  <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-[60] p-2 sm:p-4">
+                    <div className="bg-white rounded-xl shadow-xl p-4 sm:p-6 max-w-sm w-full max-h-[80vh] overflow-y-auto">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-lg sm:text-xl font-bold text-gray-800">選擇重複日期</h4>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedRepeatDates(
+                              new Set(extraRepeatDates.filter(d => d && d !== eventDate)),
+                            );
+                            setShowDatePicker(false);
+                          }}
+                          className="text-gray-400 hover:text-gray-600 text-xl"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      <div className="flex items-center justify-between mb-3">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (datePickerMonth === 0) {
+                              setDatePickerMonth(11);
+                              setDatePickerYear(y => y - 1);
+                            } else {
+                              setDatePickerMonth(m => m - 1);
+                            }
+                          }}
+                          className="px-2 py-1 text-gray-600 hover:bg-gray-100 rounded"
+                        >
+                          <i className="fas fa-chevron-left" />
+                        </button>
+                        <span className="text-sm font-medium text-gray-700">
+                          {datePickerYear}年 {datePickerMonth + 1}月
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (datePickerMonth === 11) {
+                              setDatePickerMonth(0);
+                              setDatePickerYear(y => y + 1);
+                            } else {
+                              setDatePickerMonth(m => m + 1);
+                            }
+                          }}
+                          className="px-2 py-1 text-gray-600 hover:bg-gray-100 rounded"
+                        >
+                          <i className="fas fa-chevron-right" />
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-7 gap-1 mb-4">
+                        {['日', '一', '二', '三', '四', '五', '六'].map(day => (
+                          <div key={day} className="text-center text-xs font-bold text-gray-600 py-1">
+                            {day}
+                          </div>
+                        ))}
+                        {Array.from(
+                          {
+                            length:
+                              new Date(datePickerYear, datePickerMonth, 1).getDay() +
+                              new Date(datePickerYear, datePickerMonth + 1, 0).getDate(),
+                          },
+                          (_, index) => {
+                            const firstDay = new Date(datePickerYear, datePickerMonth, 1).getDay();
+                            const day = index - firstDay + 1;
+                            if (day < 1) {
+                              return <div key={`empty-${index}`} className="aspect-square" />;
+                            }
+                            const dateStr = `${datePickerYear}-${String(datePickerMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+                            const isSelected = selectedRepeatDates.has(dateStr);
+                            const isMainDate = dateStr === eventDate;
+                            return (
+                              <button
+                                key={dateStr}
+                                type="button"
+                                disabled={isMainDate}
+                                onClick={() => {
+                                  if (isMainDate) return;
+                                  setSelectedRepeatDates(prev =>
+                                    toggleRepeatDate(prev, dateStr, eventDate),
+                                  );
+                                }}
+                                className={`aspect-square rounded text-sm font-medium transition-colors ${
+                                  isMainDate
+                                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                    : isSelected
+                                      ? "bg-amber-500 text-white hover:bg-amber-600"
+                                      : "bg-gray-50 text-gray-700 hover:bg-gray-100"
+                                }`}
+                              >
+                                {day}
+                              </button>
+                            );
+                          }
+                        )}
+                      </div>
+                      <div className="flex gap-2 pt-3 border-t">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const dates = commitRepeatDates(
+                              selectedRepeatDates,
+                              eventDate,
+                            );
+                            setExtraRepeatDates(dates);
+                            setShowDatePicker(false);
+                          }}
+                          className="flex-1 px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors font-medium text-sm"
+                        >
+                          確定
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedRepeatDates(
+                              new Set(extraRepeatDates.filter(d => d && d !== eventDate)),
+                            );
+                            setShowDatePicker(false);
+                          }}
+                          className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm"
+                        >
+                          取消
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 )}
                 <div className="flex gap-3 pt-2">
