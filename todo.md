@@ -838,3 +838,9 @@
 - [x] 修正登入、月曆、活動清單、成員管理及活動 Modal 的手機顯示
 - [x] 修正器材借用 iframe 的手機尺寸與內嵌捲動行為
 - [x] 以手機及桌面視窗驗證並執行相關測試
+
+## 新需求 (118) - 器材借用 iframe 改用正式網址
+- [x] 確認器材借用平台的正式公開網址，取代 3000 預覽網址
+- [x] 更新 iframe source 並保留手機響應式尺寸
+- [x] 驗證手機畫面不再顯示未發布警告
+- [x] 使用已確認的器材借用 production URL `https://slowbeat-ren-bspj3tdd.manus.space/embed` 更新 iframe
