@@ -651,3 +651,58 @@ input:disabled {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
+
+/* Whole-site responsive safeguards */
+html,
+body,
+#root {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+img,
+iframe,
+video,
+canvas {
+  max-width: 100%;
+}
+
+input,
+select,
+textarea,
+button {
+  max-width: 100%;
+}
+
+.glass-panel {
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .nav-tab {
+    flex: 1 1 calc(50% - 0.25rem);
+    min-width: 0;
+    justify-content: center;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .nav-tab i {
+    font-size: 0.75rem;
+  }
+
+  .calendar-day,
+  .calendar-day > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .modal-enter {
+    width: min(100%, calc(100vw - 1rem));
+    max-width: calc(100vw - 1rem) !important;
+    overflow-x: hidden;
+  }
+}

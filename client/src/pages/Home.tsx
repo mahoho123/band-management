@@ -2473,8 +2473,8 @@ export default function Home() {
       {showEventModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 overflow-y-auto">
           <div className="glass-panel rounded-xl sm:rounded-2xl w-full max-w-xs sm:max-w-sm md:max-w-2xl lg:max-w-3xl p-3 sm:p-4 md:p-6 modal-enter shadow-2xl my-2 sm:my-4 md:my-8 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-3 sm:mb-5">
-              <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 truncate">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 sm:mb-5">
+              <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 truncate min-w-0 flex-1">
                 {eventModalMode === "add"
                   ? "新增活動"
                   : eventModalMode === "edit"
@@ -2513,7 +2513,7 @@ export default function Home() {
                     <i className="fab fa-whatsapp" />
                     發送 WhatsApp 通知
                   </p>
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <button
                       onClick={() => handleOpenWhatsAppNotification("reminder")}
                       className="flex-1 bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition-all font-medium text-base flex items-center justify-center gap-1.5"
@@ -2546,7 +2546,7 @@ export default function Home() {
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-base sm:text-lg"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <label className="block text-base sm:text-lg font-medium text-gray-700 mb-2">
                       日期 <span className="text-red-500">*</span>
@@ -2731,8 +2731,8 @@ export default function Home() {
                   />
                 </div>
                 {eventModalMode === "add" && (
-                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 sm:p-4">
-                    <div className="flex items-center justify-between mb-2">
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 sm:p-4 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
                       <label className="text-base sm:text-lg font-medium text-amber-800">
                         <i className="fas fa-redo mr-2 text-amber-600" />
                         重複活動
@@ -2959,7 +2959,7 @@ export default function Home() {
                     </div>
                   </div>
                 )}
-                <div className="flex gap-3 pt-2">
+                <div className="flex flex-col sm:flex-row gap-3 pt-2">
                   <button
                     type="submit"
                     className="flex-1 band-gradient text-white py-2.5 rounded-xl hover:shadow-lg transition-all font-medium text-sm"

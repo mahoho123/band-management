@@ -28,7 +28,7 @@ export default function EquipmentLoanView({ onBack }: EquipmentLoanViewProps) {
       <iframe
         src={EQUIPMENT_LOAN_EMBED_URL}
         title="慢半拍器材借用平台"
-        className="w-full min-h-[650px] h-[min(900px,calc(100vh-180px))] border-0 rounded-xl overflow-hidden bg-white"
+        className="w-full min-h-[500px] h-[calc(100dvh-13rem)] sm:h-[min(900px,calc(100vh-180px))] border-0 rounded-xl overflow-hidden bg-white"
         loading="lazy"
         referrerPolicy="strict-origin-when-cross-origin"
       />
