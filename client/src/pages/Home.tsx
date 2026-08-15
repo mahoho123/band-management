@@ -1500,11 +1500,10 @@ export default function Home() {
       updatePasswordMutation.mutate(
         { adminPassword: newPassword },
         {
-          onSuccess: async () => {
+          onSuccess: () => {
             showToast("主管密碼已重設", "success");
             setResetPasswordState(null);
-            await new Promise(resolve => setTimeout(resolve, 500));
-            await systemDataQuery.refetch();
+            void systemDataQuery.refetch();
           },
           onError: () => showToast("重設密碼失敗，請稍後重試", "error"),
         }
@@ -1559,11 +1558,10 @@ export default function Home() {
       updateMemberMutation.mutate(
         { id: memberId!, password: newPassword },
         {
-          onSuccess: async () => {
+          onSuccess: () => {
             showToast(`${memberName} 的密碼已重設`, "success");
             setResetPasswordState(null);
-            await new Promise(resolve => setTimeout(resolve, 500));
-            await membersQuery.refetch();
+            void membersQuery.refetch();
           },
           onError: () => showToast("重設密碼失敗，請稍後重試", "error"),
         }
@@ -3532,30 +3530,12 @@ export default function Home() {
                       window.location.href = `whatsapp://send?text=${encodedText}`;
                       showToast("已開啟 WhatsApp APP", "success");
                     } else {
-                      // 電腦版：優先開啟 Desktop App，未安裝時降級到 Web 版
-                      const desktopUrl = `whatsapp://send?text=${encodedText}`;
+                      // 電腦版：直接開啟 WhatsApp Web，避免等待 Desktop App fallback
                       const webUrl = `https://wa.me/?text=${encodedText}`;
-
-                      // 設定超時：如果 2 秒內 Desktop App 沒有開啟，則降級到 Web
-                      const timeout = setTimeout(() => {
-                        window.open(webUrl, "_blank");
-                        showToast(
-                          "已開啟 WhatsApp Web，請選擇接收人或群組",
-                          "info"
-                        );
-                      }, 2000);
-
-                      // 嘗試開啟 Desktop App
-                      window.location.href = desktopUrl;
-
-                      // 如果成功開啟 Desktop App，則取消超時
-                      window.addEventListener(
-                        "blur",
-                        () => {
-                          clearTimeout(timeout);
-                          showToast("已開啟 WhatsApp Desktop App", "success");
-                        },
-                        { once: true }
+                      window.open(webUrl, "_blank", "noopener,noreferrer");
+                      showToast(
+                        "已開啟 WhatsApp Web，請選擇接收人或群組",
+                        "success"
                       );
                     }
                   }}
@@ -4634,7 +4614,7 @@ export default function Home() {
         }
 
         .modal-enter {
-          animation: slideUp 0.3s ease-out;
+          animation: none;
         }
 
         @keyframes slideUp {
@@ -4896,16 +4876,10 @@ export default function Home() {
           }
         }
 
-        .animate-in {
-          animation: fadeIn 0.3s ease-out, slideInFromBottom 0.3s ease-out;
-        }
-
-        .fade-in {
-          animation: fadeIn 0.3s ease-out;
-        }
-
+        .animate-in,
+        .fade-in,
         .slide-in-from-bottom-4 {
-          animation: slideInFromBottom 0.3s ease-out;
+          animation: none;
         }
       `}</style>
     </div>

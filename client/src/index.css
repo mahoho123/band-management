@@ -662,6 +662,17 @@ body,
   overflow-x: hidden;
 }
 
+/* Keep interaction feedback immediate; network work still shows its own status. */
+button,
+a,
+input,
+select,
+textarea,
+[role="button"] {
+  transition-duration: 0.001s !important;
+  transition-delay: 0s !important;
+}
+
 img,
 iframe,
 video,

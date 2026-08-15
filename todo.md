@@ -844,3 +844,8 @@
 - [x] 更新 iframe source 並保留手機響應式尺寸
 - [x] 驗證手機畫面不再顯示未發布警告
 - [x] 使用已確認的器材借用 production URL `https://slowbeat-ren-bspj3tdd.manus.space/embed` 更新 iframe
+
+## 新需求 (119) - 全站 UI 及功能即時回應
+- [x] 盤點並移除可避免的 timeout、過長 transition、非必要 debounce 及等待
+- [x] 為非同步操作提供即時 loading、disabled 及成功／錯誤 feedback
+- [x] 驗證主要 UI 操作即時回應並保存版本
