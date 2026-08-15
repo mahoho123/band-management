@@ -9,6 +9,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { DatePicker } from "@/components/DatePicker";
+import EquipmentLoanView from "@/pages/EquipmentLoanView";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 import { AdminPushSubscription } from "@/components/AdminPushSubscription";
 import {
@@ -555,7 +556,7 @@ export default function Home() {
   });
   const [currentDate, setCurrentDate] = useState(new Date());
   const [currentView, setCurrentView] = useState<
-    "calendar" | "list" | "members"
+    "calendar" | "list" | "members" | "equipment"
   >("calendar");
   const [currentListTab, setCurrentListTab] = useState<
     "incomplete" | "completed"
@@ -3821,6 +3822,15 @@ export default function Home() {
                 <span className="sm:hidden">成</span>
               </button>
             )}
+            <button
+              onClick={() => setCurrentView("equipment")}
+              className={`nav-tab text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 ${currentView === "equipment" ? "active" : ""}`}
+              title="器材借用平台"
+            >
+              <i className="fas fa-toolbox" />
+              <span className="hidden sm:inline">器材借用</span>
+              <span className="sm:hidden">器</span>
+            </button>
             {currentUser?.role === "admin" && (
               <button
                 onClick={() => setShowPushNotificationSettings(true)}
@@ -3845,6 +3855,11 @@ export default function Home() {
             )}
           </div>
         </div>
+
+        {/* Equipment-loan View */}
+        {currentView === "equipment" && (
+          <EquipmentLoanView onBack={() => setCurrentView("calendar")} />
+        )}
 
         {/* Calendar View */}
         {currentView === "calendar" && (
