@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { EQUIPMENT_LOAN_EMBED_URL } from "@shared/equipmentLoan";
 
 interface EquipmentLoanViewProps {
@@ -5,6 +6,8 @@ interface EquipmentLoanViewProps {
 }
 
 export default function EquipmentLoanView({ onBack }: EquipmentLoanViewProps) {
+  const [showReminderNotice, setShowReminderNotice] = useState(true);
+
   return (
     <section className="glass-panel rounded-lg sm:rounded-xl md:rounded-2xl p-2 sm:p-3 md:p-5 shadow-lg">
       <div className="flex items-center justify-between gap-3 mb-3 sm:mb-4">
@@ -25,6 +28,36 @@ export default function EquipmentLoanView({ onBack }: EquipmentLoanViewProps) {
           返回月曆
         </button>
       </div>
+      {showReminderNotice && (
+        <div
+          role="status"
+          className="mb-3 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-900"
+        >
+          <i className="fas fa-bell mt-0.5 text-amber-600" aria-hidden="true" />
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold">未登入或未允許通知時，手機不會收到交還提醒</p>
+            <p className="mt-1 text-xs leading-5 text-amber-800">
+              請在器材平台按「登入帳戶」，登入後允許通知／推播，才可接收交還提示。
+            </p>
+            <a
+              href={EQUIPMENT_LOAN_EMBED_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-2 inline-flex font-medium text-amber-900 underline underline-offset-2"
+            >
+              開啟器材平台登入
+            </a>
+          </div>
+          <button
+            type="button"
+            aria-label="關閉提醒提示"
+            onClick={() => setShowReminderNotice(false)}
+            className="shrink-0 rounded-md px-2 py-1 text-amber-700 hover:bg-amber-100"
+          >
+            <i className="fas fa-times" aria-hidden="true" />
+          </button>
+        </div>
+      )}
       <iframe
         src={EQUIPMENT_LOAN_EMBED_URL}
         title="慢半拍器材借用平台"
