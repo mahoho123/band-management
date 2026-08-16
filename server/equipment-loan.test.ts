@@ -4,8 +4,8 @@ import { EQUIPMENT_LOAN_EMBED_URL } from "@shared/equipmentLoan";
 describe("equipment-loan embed", () => {
   it("uses the supplied embed endpoint", () => {
     expect(EQUIPMENT_LOAN_EMBED_URL).toBe(
-      "https://slowbeat-ren-bspj3tdd.manus.space/embed",
+      "https://slowbeat-ren-bspj3tdd.manus.space/",
     );
-    expect(EQUIPMENT_LOAN_EMBED_URL.endsWith("/embed")).toBe(true);
+    expect(new URL(EQUIPMENT_LOAN_EMBED_URL).pathname).toBe("/");
   });
 });

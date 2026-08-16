@@ -849,3 +849,8 @@
 - [x] 盤點並移除可避免的 timeout、過長 transition、非必要 debounce 及等待
 - [x] 為非同步操作提供即時 loading、disabled 及成功／錯誤 feedback
 - [x] 驗證主要 UI 操作即時回應並保存版本
+
+## 新需求 (120) - 器材借用嵌入導覽列消失
+- [x] 比較 slowbeat 根網址與 `/embed` 路由並確認導覽列消失原因
+- [x] 修正 iframe source 或嵌入顯示邏輯，讓 Header／分頁導覽可見及可點擊
+- [x] 驗證獨立開啟及嵌入手機版導覽後保存版本
