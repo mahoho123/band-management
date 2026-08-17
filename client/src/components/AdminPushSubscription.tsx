@@ -119,7 +119,11 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
   return window.btoa(binary);
 }
 
-export function AdminPushSubscription() {
+interface AdminPushSubscriptionProps {
+  autoEnable?: boolean;
+}
+
+export function AdminPushSubscription({ autoEnable = false }: AdminPushSubscriptionProps) {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -162,6 +166,13 @@ export function AdminPushSubscription() {
 
     init();
   }, []);
+
+  useEffect(() => {
+    if (!autoEnable || typeof window === "undefined") return;
+    if ("Notification" in window && Notification.permission === "granted") {
+      void handleSubscribe();
+    }
+  }, [autoEnable]);
 
   const handleConfirmBatteryGuide = () => {
     localStorage.setItem('battery-guide-confirmed', 'true');

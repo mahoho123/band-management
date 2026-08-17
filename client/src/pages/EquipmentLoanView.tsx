@@ -3,9 +3,13 @@ import { EQUIPMENT_LOAN_EMBED_URL } from "@shared/equipmentLoan";
 
 interface EquipmentLoanViewProps {
   onBack: () => void;
+  notificationReady?: boolean;
 }
 
-export default function EquipmentLoanView({ onBack }: EquipmentLoanViewProps) {
+export default function EquipmentLoanView({
+  onBack,
+  notificationReady = false,
+}: EquipmentLoanViewProps) {
   const [showReminderNotice, setShowReminderNotice] = useState(true);
 
   return (
@@ -28,7 +32,7 @@ export default function EquipmentLoanView({ onBack }: EquipmentLoanViewProps) {
           返回月曆
         </button>
       </div>
-      {showReminderNotice && (
+      {!notificationReady && showReminderNotice && (
         <div
           role="status"
           className="mb-3 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-900"

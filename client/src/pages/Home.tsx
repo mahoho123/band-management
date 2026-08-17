@@ -678,6 +678,7 @@ export default function Home() {
   const [showWhatsAppGuide, setShowWhatsAppGuide] = useState(false);
   const [showPushNotificationSettings, setShowPushNotificationSettings] =
     useState(false);
+  const [autoEnableNotifications, setAutoEnableNotifications] = useState(false);
   const [whatsAppMessage, setWhatsAppMessage] = useState("");
   const [whatsAppMode, setWhatsAppMode] = useState<
     "personal" | "group" | "copy"
@@ -820,8 +821,21 @@ export default function Home() {
   // ============================================
   // LOGIN
   // ============================================
-  const handleAdminLogin = (e: React.FormEvent) => {
+  const requestNotificationPermissionFromLogin = async () => {
+    if (typeof window === "undefined" || !("Notification" in window)) {
+      return "unsupported" as const;
+    }
+    if (Notification.permission !== "default") return Notification.permission;
+    try {
+      return await Notification.requestPermission();
+    } catch {
+      return "denied" as const;
+    }
+  };
+
+  const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    const notificationPermission = await requestNotificationPermissionFromLogin();
     verifyAdminPasswordMutation.mutate(
       { password: adminLoginPassword },
       {
@@ -836,9 +850,9 @@ export default function Home() {
             sessionStorage.setItem("bandCurrentUser", JSON.stringify(user));
             setShowLoginModal(false);
             setAdminLoginPassword("");
-            showToast("主管登入成功", "success");
-            // Note: Web Push subscription is handled by AdminPushSubscription component
-            // User can enable notifications via "通知設定" button
+            setAutoEnableNotifications(notificationPermission === "granted");
+            setShowPushNotificationSettings(true);
+            showToast("主管登入成功，正在設定手機通知", "success");
           } else {
             showToast(result.message || "主管密碼錯誤", "error");
           }
@@ -3573,10 +3587,13 @@ export default function Home() {
               </button>
             </div>
 
-            <AdminPushSubscription />
+            <AdminPushSubscription autoEnable={autoEnableNotifications} />
 
             <button
-              onClick={() => setShowPushNotificationSettings(false)}
+              onClick={() => {
+                setShowPushNotificationSettings(false);
+                setAutoEnableNotifications(false);
+              }}
               className="w-full mt-4 bg-blue-500 text-white py-2.5 rounded-xl hover:bg-blue-600 transition-all font-medium"
             >
               關閉
@@ -3838,7 +3855,10 @@ export default function Home() {
 
         {/* Equipment-loan View */}
         {currentView === "equipment" && (
-          <EquipmentLoanView onBack={() => setCurrentView("calendar")} />
+          <EquipmentLoanView
+            onBack={() => setCurrentView("calendar")}
+            notificationReady={currentUser?.role === "admin"}
+          />
         )}
 
         {/* Calendar View */}
