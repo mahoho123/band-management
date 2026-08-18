@@ -7,6 +7,7 @@ import { Server as SocketIOServer } from "socket.io";
 import { registerOAuthRoutes } from "./oauth";
 import { registerChatRoutes } from "./chat";
 import { setIO } from "./socket";
+import { migratePlaintextPasswords } from "../db";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
@@ -131,6 +132,9 @@ async function startServer() {
 
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
+    void migratePlaintextPasswords().catch(error => {
+      console.error("[PasswordMigration] Unable to migrate legacy credentials", error);
+    });
   });
 }
 

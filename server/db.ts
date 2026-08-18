@@ -2,6 +2,7 @@ import { eq, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, bandMembers, bandEvents, bandAttendance, bandHolidays, bandSystemData, bandNotifications, pushSubscriptions, BandMember, BandEvent, BandAttendance, BandHoliday, BandSystemData, BandNotification, PushSubscription, InsertBandMember, InsertBandEvent, InsertBandAttendance, InsertBandHoliday, InsertBandSystemData, InsertBandNotification, InsertPushSubscription } from "../drizzle/schema";
 import { ENV } from './_core/env';
+import { hashPassword, isHashedPassword, verifyPassword } from './_core/passwords';
 import { desc } from "drizzle-orm";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -102,7 +103,11 @@ export async function getBandMembers() {
 export async function addBandMember(member: InsertBandMember) {
   const db = await getDb();
   if (!db) return null;
-  const result = await db.insert(bandMembers).values(member);
+  const values: InsertBandMember = {
+    ...member,
+    password: !member.password || isHashedPassword(member.password) ? member.password : hashPassword(member.password),
+  };
+  const result = await db.insert(bandMembers).values(values);
   return result;
 }
 
@@ -115,7 +120,10 @@ export async function deleteBandMember(id: number) {
 export async function updateBandMember(id: number, data: Partial<BandMember>) {
   const db = await getDb();
   if (!db) return null;
-  return await db.update(bandMembers).set(data).where(eq(bandMembers.id, id));
+  const values = data.password === undefined || !data.password || isHashedPassword(data.password)
+    ? data
+    : { ...data, password: hashPassword(data.password) };
+  return await db.update(bandMembers).set(values).where(eq(bandMembers.id, id));
 }
 
 export async function getBandEvents() {
@@ -198,23 +206,55 @@ export async function getBandSystemData() {
   return result.length > 0 ? result[0] : null;
 }
 
+export async function migratePlaintextPasswords(): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  const [systemRows, members] = await Promise.all([
+    db.select().from(bandSystemData).limit(1),
+    db.select().from(bandMembers),
+  ]);
+  const system = systemRows[0];
+  if (system && (!isHashedPassword(system.adminPassword) || (system.viceAdminPassword && !isHashedPassword(system.viceAdminPassword)))) {
+    await db.update(bandSystemData)
+      .set({
+        adminPassword: isHashedPassword(system.adminPassword) ? system.adminPassword : hashPassword(system.adminPassword),
+        viceAdminPassword: system.viceAdminPassword && !isHashedPassword(system.viceAdminPassword)
+          ? hashPassword(system.viceAdminPassword)
+          : system.viceAdminPassword,
+        updatedAt: new Date(),
+      })
+      .where(eq(bandSystemData.id, system.id));
+  }
+
+  await Promise.all(
+    members
+      .filter(member => Boolean(member.password) && !isHashedPassword(member.password))
+      .map(member => db.update(bandMembers)
+        .set({ password: hashPassword(member.password), updatedAt: new Date() })
+        .where(eq(bandMembers.id, member.id)))
+  );
+}
+
 export async function initBandSystemData(adminPassword: string) {
   const db = await getDb();
   if (!db) return null;
+  const storedPassword = isHashedPassword(adminPassword) ? adminPassword : hashPassword(adminPassword);
   const existing = await db.select().from(bandSystemData).limit(1);
   if (existing.length > 0) {
-    return await db.update(bandSystemData).set({ adminPassword, isSetup: 1 }).where(eq(bandSystemData.id, existing[0].id));
+    return await db.update(bandSystemData).set({ adminPassword: storedPassword, isSetup: 1 }).where(eq(bandSystemData.id, existing[0].id));
   } else {
-    return await db.insert(bandSystemData).values({ adminPassword, isSetup: 1 });
+    return await db.insert(bandSystemData).values({ adminPassword: storedPassword, isSetup: 1 });
   }
 }
 
 export async function updateViceAdminPassword(viceAdminPassword: string) {
   const db = await getDb();
   if (!db) return null;
+  const storedPassword = isHashedPassword(viceAdminPassword) ? viceAdminPassword : hashPassword(viceAdminPassword);
   const existing = await db.select().from(bandSystemData).limit(1);
   if (existing.length > 0) {
-    return await db.update(bandSystemData).set({ viceAdminPassword, updatedAt: new Date() }).where(eq(bandSystemData.id, existing[0].id));
+    return await db.update(bandSystemData).set({ viceAdminPassword: storedPassword, updatedAt: new Date() }).where(eq(bandSystemData.id, existing[0].id));
   }
   return null;
 }
@@ -226,14 +266,19 @@ export async function verifyViceAdminPassword(password: string) {
   if (!result.length || !result[0].viceAdminPassword) {
     return { success: false, message: "副主席尚未設定密碼，請聯絡主管" };
   }
-  if (password === result[0].viceAdminPassword) {
+  if (verifyPassword(password, result[0].viceAdminPassword)) {
+    if (!isHashedPassword(result[0].viceAdminPassword)) {
+      await db.update(bandSystemData)
+        .set({ viceAdminPassword: hashPassword(password), updatedAt: new Date() })
+        .where(eq(bandSystemData.id, result[0].id));
+    }
     return { success: true, message: "副主席密碼驗證成功" };
   }
   return { success: false, message: "副主席密碼錯誤" };
 }
 
 export async function updateBandSystemData(adminPassword: string) {
-  console.log("[updateBandSystemData] Called with password:", adminPassword);
+  const storedPassword = isHashedPassword(adminPassword) ? adminPassword : hashPassword(adminPassword);
   const db = await getDb();
   if (!db) {
     console.log("[updateBandSystemData] Database not available");
@@ -245,18 +290,13 @@ export async function updateBandSystemData(adminPassword: string) {
     console.log("[updateBandSystemData] Existing records:", existing);
     
     if (existing.length > 0) {
-      console.log("[updateBandSystemData] Updating record id:", existing[0].id, "with password:", adminPassword);
-      
-      // Update with explicit timestamp
       const updateResult = await db
         .update(bandSystemData)
-        .set({ 
-          adminPassword,
+        .set({
+          adminPassword: storedPassword,
           updatedAt: new Date()
         })
         .where(eq(bandSystemData.id, existing[0].id));
-      
-      console.log("[updateBandSystemData] Update result:", updateResult);
       
       // Verify the update by selecting the record again
       const updated = await db
@@ -267,13 +307,9 @@ export async function updateBandSystemData(adminPassword: string) {
       
       console.log("[updateBandSystemData] Updated record:", updated);
       
-      if (updated.length > 0) {
-        console.log("[updateBandSystemData] Verification successful. New password:", updated[0].adminPassword);
-        return updated[0];
-      }
+      if (updated.length > 0) return updated[0];
     }
-    
-    console.log("[updateBandSystemData] No existing records found");
+
     return null;
   } catch (error) {
     console.error("[updateBandSystemData] Error:", error);

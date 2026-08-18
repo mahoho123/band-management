@@ -7,6 +7,7 @@ const projectRoot = resolve(import.meta.dirname, "..");
 const homeSource = readFileSync(resolve(projectRoot, "client/src/pages/Home.tsx"), "utf8");
 const mainSource = readFileSync(resolve(projectRoot, "client/src/main.tsx"), "utf8");
 const routerSource = readFileSync(resolve(projectRoot, "server/routers/band.ts"), "utf8");
+const attendanceSideEffectsSource = readFileSync(resolve(projectRoot, "server/attendanceSideEffects.ts"), "utf8");
 const serverEntrySource = readFileSync(resolve(projectRoot, "server/_core/index.ts"), "utf8");
 const socketSource = readFileSync(resolve(projectRoot, "server/_core/socket.ts"), "utf8");
 const globalStyles = readFileSync(resolve(projectRoot, "client/src/index.css"), "utf8");
@@ -58,7 +59,7 @@ describe("zero-perceived-latency contracts", () => {
   });
 
   it("queues non-critical notifications after the core mutation path", () => {
-    expect(routerSource).toContain('enqueueBackgroundTask("attendance notification"');
+    expect(attendanceSideEffectsSource).toContain('enqueueBackgroundTask("attendance notification"');
     expect(routerSource).toContain('enqueueBackgroundTask("event-added notification"');
     expect(routerSource).toContain('enqueueBackgroundTask("event-updated notification"');
     expect(routerSource).toContain('enqueueBackgroundTask("event-deleted notification"');
@@ -94,5 +95,20 @@ describe("zero-perceived-latency contracts", () => {
     expect(globalStyles).toContain("backface-visibility: hidden");
     expect(globalStyles).toContain("prefers-reduced-motion: reduce");
     expect(globalStyles).toContain("transition: transform 0.1s linear");
+  });
+
+  it("supports batch attendance updates with background notification side effects", () => {
+    expect(routerSource).toContain("setAttendanceBatch: publicProcedure");
+    expect(routerSource).toContain("Promise.all(input.changes.map");
+    expect(routerSource).toContain("queueAttendanceNotification(change)");
+    expect(routerSource).toContain('whatsappUrl: "https://wa.me/85254029146"');
+  });
+
+  it("keeps credentials server-side and migrates legacy password storage", () => {
+    const dbSource = readFileSync(resolve(projectRoot, "server/db.ts"), "utf8");
+    expect(routerSource).toContain("verifyPassword(input.password, systemData.adminPassword)");
+    expect(routerSource).toContain("adminPassword: _adminPassword");
+    expect(dbSource).toContain("migratePlaintextPasswords");
+    expect(dbSource).toContain("hashPassword(member.password)");
   });
 });

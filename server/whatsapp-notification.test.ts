@@ -402,3 +402,16 @@ describe('WhatsApp 通知功能', () => {
     });
   });
 });
+
+
+describe('跨平台 WhatsApp URL encoding', () => {
+  it('preserves Chinese, numeric, punctuation, line breaks, and emoji content after URL round-trip', () => {
+    const message = '🎵 排練 15:30｜備註：準時到達！#A/B';
+    const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    const parsed = new URL(url);
+
+    expect(parsed.hostname).toBe('wa.me');
+    expect(parsed.searchParams.get('text')).toBe(message);
+    expect(decodeURIComponent(encodeURIComponent(message))).toBe(message);
+  });
+});

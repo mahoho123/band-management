@@ -2,8 +2,11 @@ import { z } from "zod";
 import { publicProcedure, router } from "../_core/trpc";
 import { getIO } from "../_core/socket";
 import { enqueueBackgroundTask } from "../_core/background";
+import { assertPasswordRateLimit, getRequestIdentifier } from "../_core/rateLimit";
+import { isHashedPassword, verifyPassword } from "../_core/passwords";
 import { getDb } from "../db";
 import { sendPushNotificationToAdmins } from "../_core/webpush";
+import { queueAttendanceNotification, AttendanceChange } from "../attendanceSideEffects";
 import { and, eq } from "drizzle-orm";
 import { bandMembers, bandEvents, bandSystemData, BandMember, BandEvent, BandHoliday } from "../../drizzle/schema";
 import { getFromCache, setInCache, deleteFromCache, clearCacheByPrefix, CACHE_KEYS } from "../cache";
@@ -75,7 +78,10 @@ function formatTimeObjectTo12(
 export const bandRouter = router({
   // System Data
   getSystemData: publicProcedure.query(async () => {
-    return await getBandSystemData();
+    const systemData = await getBandSystemData();
+    if (!systemData) return null;
+    const { adminPassword: _adminPassword, viceAdminPassword: _viceAdminPassword, ...publicData } = systemData;
+    return publicData;
   }),
 
   initSystem: publicProcedure
@@ -104,12 +110,13 @@ export const bandRouter = router({
   // Password Verification
   verifyAdminPassword: publicProcedure
     .input(z.object({ password: z.string() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      assertPasswordRateLimit(`admin:${getRequestIdentifier(ctx.req)}`);
       const systemData = await getBandSystemData();
       if (!systemData) {
         return { success: false, message: "系統未初始化" };
       }
-      if (input.password === systemData.adminPassword) {
+      if (verifyPassword(input.password, systemData.adminPassword)) {
         return { success: true, message: "主管密碼驗證成功" };
       }
       return { success: false, message: "主管密碼錯誤" };
@@ -117,7 +124,8 @@ export const bandRouter = router({
 
   verifyViceAdminPassword: publicProcedure
     .input(z.object({ password: z.string() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      assertPasswordRateLimit(`vice-admin:${getRequestIdentifier(ctx.req)}`);
       return await verifyViceAdminPassword(input.password);
     }),
 
@@ -134,7 +142,8 @@ export const bandRouter = router({
 
   verifyMemberPassword: publicProcedure
     .input(z.object({ memberId: z.number(), password: z.string() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      assertPasswordRateLimit(`member:${input.memberId}:${getRequestIdentifier(ctx.req)}`);
       const members = await getBandMembers();
       const member = members?.find((m) => m.id === input.memberId);
       if (!member) {
@@ -143,7 +152,10 @@ export const bandRouter = router({
       if (!member.password) {
         return { success: false, message: "成員未設定密碼" };
       }
-      if (input.password === member.password) {
+      if (verifyPassword(input.password, member.password)) {
+        if (!isHashedPassword(member.password)) {
+          await updateBandMember(input.memberId, { password: input.password });
+        }
         // Notify admin after the successful response path, without blocking login.
         enqueueBackgroundTask("member-login notification", async () => {
           const now = new Date();
@@ -418,41 +430,34 @@ export const bandRouter = router({
         });
       }
       
-      enqueueBackgroundTask("attendance notification", async () => {
-        const db = await getDb();
-        if (!db) return;
-        const memberResult = await db.select().from(bandMembers).where(eq(bandMembers.id, input.memberId));
-        const member = memberResult.length > 0 ? memberResult[0] : null;
-        const eventResult = await db.select().from(bandEvents).where(eq(bandEvents.id, input.eventId));
-        const event = eventResult.length > 0 ? eventResult[0] : null;
-        if (!member || !event) return;
+      queueAttendanceNotification(input);
 
-        const statusText = input.status === "going" ? "✅ 已確認出席" : input.status === "not-going" ? "❌ 已確認不出席" : "❓ 待確認";
-        const logoUrl = '/logo.png';
-        const startTimeStr = formatTimeObjectTo12(event.startTime);
-        const endTimeStr = formatTimeObjectTo12(event.endTime);
-        const eventDetails = `📅 ${event.date}\n🕐 ${startTimeStr} - ${endTimeStr}\n📍 ${event.location}`;
-        const notificationBody = `${member.name}\n${statusText}\n\n${event.title}\n${eventDetails}`;
+      return { success: true, whatsappUrl: "https://wa.me/85254029146" };
+    }),
 
-        await createNotification({
-          eventId: input.eventId,
-          memberId: input.memberId,
-          title: `🎵 出席狀態更新`,
-          message: `${member.name} ${statusText}\n\n${event.title}\n${eventDetails}`,
-          type: "attendance-changed",
-        });
-        await sendPushNotificationToAdmins({
-          title: "🎵 出席狀態更新",
-          body: notificationBody,
-          eventId: input.eventId,
-          url: "/",
-          icon: logoUrl,
-          badge: logoUrl,
-          eventTag: `attendance-event-${input.eventId}-${input.memberId}`,
-        });
-      });
-
-      return { success: true };
+  setAttendanceBatch: publicProcedure
+    .input(z.object({ changes: z.array(z.object({
+      eventId: z.number(),
+      memberId: z.number(),
+      status: z.enum(["going", "not-going", "unknown"]),
+    })).min(1).max(100) }))
+    .mutation(async ({ input }) => {
+      await Promise.all(input.changes.map(change => setAttendance(change.eventId, change.memberId, change.status)));
+      const eventIds = [...new Set(input.changes.map(change => change.eventId))];
+      const io = getIO();
+      for (const eventId of eventIds) {
+        deleteFromCache(CACHE_KEYS.ATTENDANCE(eventId));
+      }
+      deleteFromCache(CACHE_KEYS.EVENTS);
+      for (const change of input.changes) {
+        io?.sockets.emit("attendance:changed", change);
+        queueAttendanceNotification(change);
+      }
+      return {
+        success: true,
+        updated: input.changes.length,
+        whatsappUrl: "https://wa.me/85254029146",
+      };
     }),
 
   // Notifications
