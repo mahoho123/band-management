@@ -904,3 +904,8 @@
 - [x] 活動新增／編輯以 in-flight guard 阻止重複提交並保持首次點擊即時回饋
 - [x] 成員註冊、活動刪除及成員刪除使用 mutation pending guard
 - [x] 通過 TypeScript check、latency tests 12/12 及 production build
+
+## 延伸優化 (130) - 渲染計算快取
+- [x] memoize holiday normalization，避免 modal／toast state 變更重算全部假期
+- [x] memoize filtered event groups，避免無關 state 變更重掃活動清單
+- [x] 通過 TypeScript check、latency tests 13/13 及 production build

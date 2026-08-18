@@ -6,7 +6,7 @@
  * - Card-based layout with subtle shadows
  */
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { DatePicker } from "@/components/DatePicker";
 import EquipmentLoanView from "@/pages/EquipmentLoanView";
@@ -1968,8 +1968,11 @@ export default function Home() {
   const getFirstDayOfMonth = (year: number, month: number) =>
     new Date(year, month, 1).getDay();
 
-  const todayStr = formatDateStr(new Date());
-  const hkHolidays = initializeHolidays(holidaysQuery.data || []);
+  const todayStr = useMemo(() => formatDateStr(new Date()), [currentDate]);
+  const hkHolidays = useMemo(
+    () => initializeHolidays(holidaysQuery.data || []),
+    [holidaysQuery.data]
+  );
 
   const renderCalendar = () => {
     const daysInMonth = getDaysInMonth(calendarYear, calendarMonth);
@@ -2109,7 +2112,7 @@ export default function Home() {
   // ============================================
   // LIST RENDERING
   // ============================================
-  const getFilteredEvents = () => {
+  const filteredEventGroups = useMemo(() => {
     let filtered = (eventsQuery.data || []).filter(e => {
       if (selectedDates.size > 0 && !selectedDates.has(e.date)) return false;
       const d = new Date(e.date);
@@ -2149,10 +2152,17 @@ export default function Home() {
     const incomplete = filtered.filter(e => !isEventEnded(e));
     const completed = filtered.filter(e => isEventEnded(e));
     return { incomplete, completed };
-  };
+  }, [
+    currentDate,
+    eventsQuery.data,
+    listMonth,
+    listYear,
+    searchQuery,
+    selectedDates,
+  ]);
 
   const { incomplete: incompleteEvents, completed: completedEvents } =
-    getFilteredEvents();
+    filteredEventGroups;
   const displayEvents =
     currentListTab === "incomplete" ? incompleteEvents : completedEvents;
   const hasSearchResults =

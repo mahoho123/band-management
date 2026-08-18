@@ -11,6 +11,12 @@ const serverEntrySource = readFileSync(resolve(projectRoot, "server/_core/index.
 const globalStyles = readFileSync(resolve(projectRoot, "client/src/index.css"), "utf8");
 
 describe("zero-perceived-latency contracts", () => {
+  it("memoizes expensive calendar and list selectors", () => {
+    expect(homeSource).toContain("const hkHolidays = useMemo(");
+    expect(homeSource).toContain("const filteredEventGroups = useMemo(() => {");
+    expect(homeSource).toContain("filteredEventGroups;");
+  });
+
   it("uses React Query optimistic mutation callbacks for core entities", () => {
     expect(homeSource).toContain("onMutate: async input =>");
     expect(homeSource).toContain("utils.band.getEvents.setData");
