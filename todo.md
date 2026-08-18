@@ -948,3 +948,9 @@
 - [x] 移除未被 App 掛載的 NotificationBar dead component
 - [x] 完整 Vitest suite 通過：17 files、210 tests；TypeScript 0 errors；production build 成功
 - [x] 200／500 simulated cache-reader smoke benchmarks 通過；結果不宣稱正式 production capacity
+
+## 新需求 (138) - 全站瀏覽器尺寸自動適配
+- [x] 盤點全站固定寬高、overflow、Modal、表單、月曆、清單、成員管理及 iframe 的響應式風險
+- [x] 建立 fluid viewport 容器、文字及控制項尺寸規則
+- [x] 調整所有頁面及元件以自動適配桌面、平板及手機瀏覽器
+- [x] 加入跨 viewport regression tests 並通過 TypeScript、production build 及預覽驗證

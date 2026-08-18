@@ -8,7 +8,7 @@
     <meta http-equiv="Expires" content="0" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>慢半拍 - 樂隊活動管理系統 | 排練演出日程規劃</title>
     <meta name="description" content="慢半拍是專為樂隊設計的活動管理系統。輕鬆管理樂隊成員、排練演出日程、出席記錄，支援香港假期自動載入，實時同步所有設備。" />
     <meta name="keywords" content="樂隊管理, 活動管理系統, 排練日程, 演出管理, 成員管理, 出席記錄, 香港樂隊" />
@@ -56,8 +56,8 @@
     <!-- Renders login skeleton before JS bundle loads, regardless of network speed -->
     <style id="critical-css">
       *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-      html,body{height:100%;font-family:'Noto Sans HK',system-ui,-apple-system,sans-serif;background:#fffbf0}
-      #root{min-height:100vh;display:flex;align-items:center;justify-content:center}
+      html,body{width:100%;min-height:100%;font-family:'Noto Sans HK',system-ui,-apple-system,sans-serif;background:#fffbf0}
+      #root{width:100%;min-height:100dvh}
       /* Login skeleton overlay */
       #login-skeleton{
         position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;

@@ -19,11 +19,13 @@ interface DropdownPos {
 
 function getDropdownPos(btnEl: HTMLButtonElement, dropW: number): DropdownPos {
   const r = btnEl.getBoundingClientRect();
-  const vw = window.innerWidth;
+  const vw = Math.max(window.innerWidth, 1);
+  const availableWidth = Math.max(vw - 16, 1);
+  const effectiveWidth = Math.min(dropW, availableWidth);
   const top = r.bottom + window.scrollY + 4;
   let left = r.left + window.scrollX;
-  if (left + dropW > vw - 8) {
-    left = vw - dropW - 8;
+  if (left + effectiveWidth > vw - 8) {
+    left = vw - effectiveWidth - 8;
   }
   if (left < 8) left = 8;
   return { top, left };
@@ -141,7 +143,10 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
             position: 'absolute',
             top: yearPos.top,
             left: yearPos.left,
-            width: YEAR_W,
+            width: `min(${YEAR_W}px, calc(100vw - 16px))`,
+            maxHeight: 'min(80dvh, 32rem)',
+            overflowY: 'auto',
+            boxSizing: 'border-box',
             zIndex: 99999,
             background: logoColors.dropBg,
             border: logoColors.dropBorder,
@@ -174,7 +179,7 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
             </button>
           </div>
           {/* Year Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', padding: '8px 12px 12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '6px', padding: '8px 12px 12px' }}>
             {currentYearPage.map(y => (
               <button
                 key={y}
@@ -219,7 +224,10 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
             position: 'absolute',
             top: monthPos.top,
             left: monthPos.left,
-            width: MONTH_W,
+            width: `min(${MONTH_W}px, calc(100vw - 16px))`,
+            maxHeight: 'min(80dvh, 32rem)',
+            overflowY: 'auto',
+            boxSizing: 'border-box',
             zIndex: 99999,
             background: logoColors.dropBg,
             border: logoColors.dropBorder,
@@ -228,7 +236,7 @@ export function DatePicker({ year, month, yearOptions, onYearChange, onMonthChan
             boxShadow: logoColors.dropShadow,
           }}
         >
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '6px' }}>
             {MONTHS_CN.map((m, idx) => (
               <button
                 key={idx}

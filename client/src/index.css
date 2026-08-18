@@ -52,6 +52,8 @@
 
 :root {
   --radius: 0.75rem;
+  --fluid-gutter: clamp(0.5rem, 2vw, 2rem);
+  --fluid-control-height: clamp(2.5rem, 5vw, 3rem);
   --background: oklch(0.99 0.01 44);
   --foreground: oklch(0.2 0.02 48);
   --card: oklch(0.99 0.005 44);
@@ -92,7 +94,11 @@
   }
   body {
     @apply bg-background text-foreground;
+    width: 100%;
+    min-height: 100dvh;
     font-family: 'Noto Sans HK', sans-serif;
+    overflow-x: hidden;
+    overflow-wrap: anywhere;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
@@ -661,7 +667,64 @@ body,
   width: 100%;
   min-width: 0;
   max-width: 100%;
+  min-height: 100%;
   overflow-x: hidden;
+}
+
+html {
+  min-height: 100%;
+  font-size: clamp(15px, calc(14px + 0.2vw), 16px);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+#root {
+  min-height: 100dvh;
+}
+
+/* Fluid shells keep every page inside the available browser width. */
+.responsive-page-shell {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding-inline: var(--fluid-gutter);
+  padding-block: clamp(0.75rem, 2vw, 1.5rem);
+}
+
+.responsive-page-shell > *,
+.responsive-surface {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.responsive-surface {
+  overflow-wrap: anywhere;
+}
+
+.equipment-iframe {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: clamp(31.25rem, calc(100dvh - 13rem), 56.25rem);
+  min-height: clamp(28rem, 70dvh, 56.25rem);
+}
+
+@media (max-width: 640px) {
+  .equipment-iframe {
+    height: clamp(28rem, calc(100dvh - 11rem), 56.25rem);
+    min-height: 28rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .responsive-page-shell {
+    padding-inline: 0.375rem;
+  }
+
+  .equipment-iframe {
+    height: clamp(26rem, calc(100dvh - 10rem), 56.25rem);
+    min-height: 26rem;
+  }
 }
 
 /* Keep interaction feedback immediate; network work still shows its own status. */
@@ -707,6 +770,31 @@ select,
 textarea,
 button {
   max-width: 100%;
+  min-width: 0;
+}
+
+input[type="time"],
+input[type="date"],
+input[type="datetime-local"] {
+  width: min(100%, 14rem);
+}
+
+select,
+input,
+textarea {
+  min-height: var(--fluid-control-height);
+}
+
+textarea {
+  resize: vertical;
+}
+
+@media (max-width: 480px) {
+  input[type="time"],
+  input[type="date"],
+  input[type="datetime-local"] {
+    width: 100%;
+  }
 }
 
 .glass-panel {

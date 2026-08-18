@@ -3946,7 +3946,7 @@ export default function Home() {
       )}
 
       {/* Main Content */}
-      <div className="w-full px-2 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6 max-w-full">
+      <div className="responsive-page-shell responsive-surface">
         {/* Header */}
         <div className="glass-panel rounded-lg sm:rounded-xl md:rounded-2xl p-3 sm:p-4 md:p-5 shadow-lg mb-3 sm:mb-4 md:mb-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
