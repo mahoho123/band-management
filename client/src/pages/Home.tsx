@@ -543,11 +543,13 @@ export default function Home() {
       utils.band.getMembers.setData(undefined, oldMembers =>
         oldMembers ? [...oldMembers, optimisticMember] : [optimisticMember]
       );
-      return { previousMembers };
+      return { optimisticMemberId: optimisticMember.id };
     },
     onError: (_error, _input, context) => {
-      if (context?.previousMembers !== undefined) {
-        utils.band.getMembers.setData(undefined, context.previousMembers);
+      if (context?.optimisticMemberId !== undefined) {
+        utils.band.getMembers.setData(undefined, oldMembers =>
+          oldMembers?.filter(member => member.id !== context.optimisticMemberId)
+        );
       }
       showToast("新增成員失敗，已還原畫面", "error");
     },
@@ -559,6 +561,7 @@ export default function Home() {
     onMutate: async input => {
       await utils.band.getMembers.cancel();
       const previousMembers = utils.band.getMembers.getData();
+      const previousMember = previousMembers?.find(member => member.id === input.id);
       utils.band.getMembers.setData(undefined, oldMembers =>
         oldMembers?.map(member =>
           member.id === input.id
@@ -578,11 +581,17 @@ export default function Home() {
             : member
         )
       );
-      return { previousMembers };
+      return { previousMember };
     },
     onError: (_error, _input, context) => {
-      if (context?.previousMembers !== undefined) {
-        utils.band.getMembers.setData(undefined, context.previousMembers);
+      if (context?.previousMember !== undefined) {
+        utils.band.getMembers.setData(undefined, oldMembers =>
+          oldMembers?.map(member =>
+            member.id === context.previousMember?.id
+              ? context.previousMember
+              : member
+          )
+        );
       }
       showToast("更新成員失敗，已還原畫面", "error");
     },
@@ -594,14 +603,21 @@ export default function Home() {
     onMutate: async ({ id }) => {
       await utils.band.getMembers.cancel();
       const previousMembers = utils.band.getMembers.getData();
+      const deletedMember = previousMembers?.find(member => member.id === id);
       utils.band.getMembers.setData(undefined, oldMembers =>
         oldMembers?.filter(member => member.id !== id)
       );
-      return { previousMembers };
+      return { deletedMember };
     },
     onError: (_error, _input, context) => {
-      if (context?.previousMembers !== undefined) {
-        utils.band.getMembers.setData(undefined, context.previousMembers);
+      if (context?.deletedMember !== undefined) {
+        utils.band.getMembers.setData(undefined, oldMembers => {
+          if (!oldMembers) return [context.deletedMember!];
+          if (oldMembers.some(member => member.id === context.deletedMember?.id)) {
+            return oldMembers;
+          }
+          return [...oldMembers, context.deletedMember!];
+        });
       }
       showToast("刪除成員失敗，已還原畫面", "error");
     },
@@ -631,11 +647,13 @@ export default function Home() {
       utils.band.getEvents.setData(undefined, oldEvents =>
         oldEvents ? [...oldEvents, optimisticEvent] : [optimisticEvent]
       );
-      return { previousEvents };
+      return { optimisticEventId: optimisticEvent.id };
     },
     onError: (_error, _input, context) => {
-      if (context?.previousEvents !== undefined) {
-        utils.band.getEvents.setData(undefined, context.previousEvents);
+      if (context?.optimisticEventId !== undefined) {
+        utils.band.getEvents.setData(undefined, oldEvents =>
+          oldEvents?.filter(event => event.id !== context.optimisticEventId)
+        );
       }
       // The aggregate handler below reports the final result without blocking the modal.
     },
@@ -647,6 +665,7 @@ export default function Home() {
     onMutate: async input => {
       await utils.band.getEvents.cancel();
       const previousEvents = utils.band.getEvents.getData();
+      const previousEvent = previousEvents?.find(event => event.id === input.id);
       utils.band.getEvents.setData(undefined, oldEvents =>
         oldEvents?.map(event =>
           event.id === input.id
@@ -666,14 +685,20 @@ export default function Home() {
             : event
         )
       );
-      return { previousEvents };
+      return { previousEvent };
     },
     onSuccess: () => {
       setCurrentView("calendar");
     },
     onError: (_error, _input, context) => {
-      if (context?.previousEvents !== undefined) {
-        utils.band.getEvents.setData(undefined, context.previousEvents);
+      if (context?.previousEvent !== undefined) {
+        utils.band.getEvents.setData(undefined, oldEvents =>
+          oldEvents?.map(event =>
+            event.id === context.previousEvent?.id
+              ? context.previousEvent
+              : event
+          )
+        );
       }
       showToast("更新活動失敗，已還原畫面", "error");
     },
@@ -685,14 +710,21 @@ export default function Home() {
     onMutate: async ({ id }) => {
       await utils.band.getEvents.cancel();
       const previousEvents = utils.band.getEvents.getData();
+      const deletedEvent = previousEvents?.find(event => event.id === id);
       utils.band.getEvents.setData(undefined, oldEvents =>
         oldEvents?.filter(event => event.id !== id)
       );
-      return { previousEvents };
+      return { deletedEvent };
     },
     onError: (_error, _input, context) => {
-      if (context?.previousEvents !== undefined) {
-        utils.band.getEvents.setData(undefined, context.previousEvents);
+      if (context?.deletedEvent !== undefined) {
+        utils.band.getEvents.setData(undefined, oldEvents => {
+          if (!oldEvents) return [context.deletedEvent!];
+          if (oldEvents.some(event => event.id === context.deletedEvent?.id)) {
+            return oldEvents;
+          }
+          return [...oldEvents, context.deletedEvent!];
+        });
       }
       showToast("刪除活動失敗，已還原畫面", "error");
     },
@@ -704,6 +736,9 @@ export default function Home() {
     onMutate: async input => {
       await utils.band.getEvents.cancel();
       const previousEvents = utils.band.getEvents.getData();
+      const previousStatus = previousEvents
+        ?.find(event => event.id === input.eventId)
+        ?.attendance[String(input.memberId)];
       utils.band.getEvents.setData(undefined, oldEvents =>
         oldEvents?.map(event =>
           event.id === input.eventId
@@ -717,12 +752,21 @@ export default function Home() {
             : event
         )
       );
-      return { previousEvents };
+      return { previousStatus };
     },
-    onError: (_error, _input, context) => {
-      if (context?.previousEvents !== undefined) {
-        utils.band.getEvents.setData(undefined, context.previousEvents);
-      }
+    onError: (_error, input, context) => {
+      utils.band.getEvents.setData(undefined, oldEvents =>
+        oldEvents?.map(event => {
+          if (event.id !== input.eventId) return event;
+          const attendance = { ...event.attendance };
+          if (context?.previousStatus === undefined) {
+            delete attendance[String(input.memberId)];
+          } else {
+            attendance[String(input.memberId)] = context.previousStatus;
+          }
+          return { ...event, attendance };
+        })
+      );
       showToast("更新出席狀態失敗，已還原畫面", "error");
     },
     onSettled: () => {

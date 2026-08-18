@@ -3,8 +3,8 @@ import { trpc } from '@/lib/trpc';
 
 interface Notification {
   id: number;
-  eventId: number;
-  memberId: number;
+  eventId: number | null;
+  memberId: number | null;
   type: string;
   title: string;
   message: string;

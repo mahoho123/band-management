@@ -877,3 +877,10 @@
 - [x] 優化快取、預載、背景通知及非阻塞 feedback
 - [x] 優化 CSS 互動回饋、渲染穩定性及資源載入
 - [x] 加入回歸測試、執行 production build 及瀏覽器驗證
+
+## 延伸優化 (125) - 樂觀更新一致性及型別清理
+- [x] 讓成員及活動 mutation 只回滾受影響的快取項目，避免覆蓋並行操作
+- [x] 讓出席失敗只還原指定成員狀態
+- [x] 修復 Web Push ArrayBuffer 型別相容性
+- [x] 修復 AIChatBox、Streamdown、NotificationBar 既有 TypeScript 診斷
+- [x] 重新執行 TypeScript check 及 latency regression tests
