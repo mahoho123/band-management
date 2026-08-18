@@ -12,6 +12,15 @@ const socketSource = readFileSync(resolve(projectRoot, "server/_core/socket.ts")
 const globalStyles = readFileSync(resolve(projectRoot, "client/src/index.css"), "utf8");
 
 describe("zero-perceived-latency contracts", () => {
+  it("integrates the optional TimeSelector without delaying event submission", () => {
+    expect(homeSource).toContain("<TimeSelector");
+    expect(homeSource).toContain("value={timeSelectorValue}");
+    expect(homeSource).toContain("onChange={handleTimeSelectorChange}");
+    expect(homeSource).toContain('timeSlot: timePeriodToSelectorSlot(startAmpm)');
+    expect(homeSource).toContain("setEventTimeSlot(null);");
+    expect(homeSource).toContain("setEventTimeSlot(event.timeSlot ?? null);");
+  });
+
   it("memoizes expensive calendar and list selectors", () => {
     expect(homeSource).toContain("const hkHolidays = useMemo(");
     expect(homeSource).toContain("const filteredEventGroups = useMemo(() => {");

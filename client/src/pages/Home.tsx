@@ -392,6 +392,34 @@ function formatTimeObjectTo12(timeObj: any): string {
   return `${chinesePeriod} ${timeObj.hour}:${String(timeObj.minute).padStart(2, "0")}`;
 }
 
+function timePeriodToSelectorSlot(period: string): TimeSelectorState["timeSlot"] {
+  if (period === "上午" || period === "AM" || period === "morning") return "morning";
+  if (period === "下午" || period === "PM" || period === "afternoon") return "afternoon";
+  if (period === "晚上" || period === "evening") return "evening";
+  return "pending";
+}
+
+function legacyTimeToSelectorValue(hour: string, minute: string, period: string): string | null {
+  if (!hour || hour === "--" || !minute || minute === "--") return null;
+  return parseTime12To24(hour, minute, period);
+}
+
+function selectorTimeToLegacy(time: string | null | undefined): {
+  hour: string;
+  minute: string;
+  period: string;
+} {
+  if (!time) return { hour: "", minute: "", period: "pending" };
+  const [rawHour, minute = "00"] = time.split(":");
+  const numericHour = Number(rawHour);
+  const period = numericHour >= 19 ? "晚上" : numericHour >= 12 ? "下午" : "上午";
+  return {
+    hour: String(numericHour % 12 || 12),
+    minute,
+    period,
+  };
+}
+
 function parseTime12To24(hour: string, minute: string, ampm: string): string {
   // Normalize period to handle both Chinese and English period names
   // Map Chinese period names to their 24h equivalents for arithmetic
@@ -911,6 +939,37 @@ export default function Home() {
   const [eventTimeSlot, setEventTimeSlot] = useState<
     "pending" | "morning" | "afternoon" | "evening" | null
   >(null);
+  const timeSelectorValue = useMemo<TimeSelectorState>(
+    () => ({
+      startTime: legacyTimeToSelectorValue(startHour, startMinute, startAmpm),
+      endTime: legacyTimeToSelectorValue(endHour, endMinute, endAmpm),
+      timeSlot: timePeriodToSelectorSlot(startAmpm),
+    }),
+    [endAmpm, endHour, endMinute, startAmpm, startHour, startMinute]
+  );
+  const handleTimeSelectorChange = useCallback((next: TimeSelectorState) => {
+    const slotLabels: Record<NonNullable<TimeSelectorState["timeSlot"]>, string> = {
+      pending: "pending",
+      morning: "上午",
+      afternoon: "下午",
+      evening: "晚上",
+    };
+    const selectedSlot = next.timeSlot ? slotLabels[next.timeSlot] : undefined;
+
+    if (next.startTime !== undefined) {
+      const start = selectorTimeToLegacy(next.startTime);
+      setStartHour(start.hour);
+      setStartMinute(start.minute);
+      setStartAmpm(next.startTime ? start.period : selectedSlot || "pending");
+    }
+    if (next.endTime !== undefined) {
+      const end = selectorTimeToLegacy(next.endTime);
+      setEndHour(end.hour);
+      setEndMinute(end.minute);
+      setEndAmpm(next.endTime ? end.period : selectedSlot || "pending");
+    }
+    if (next.timeSlot !== undefined) setEventTimeSlot(next.timeSlot);
+  }, []);
   // Repeat event states - custom date selection
   const [extraRepeatDates, setExtraRepeatDates] = useState<string[]>([]); // additional dates beyond the main date
   const [repeatEnabled, setRepeatEnabled] = useState(false);
@@ -1313,6 +1372,7 @@ export default function Home() {
       setDateHolidayWarning("");
       setSelectedEventId(null);
       setEventModalMode("add");
+      setEventTimeSlot(null);
       setRepeatEnabled(false);
       setExtraRepeatDates([]);
       setShowDatePicker(false);
@@ -1341,6 +1401,7 @@ export default function Home() {
     if (!event) return;
     setSelectedEventId(eventId);
     setEventModalMode("edit");
+    setEventTimeSlot(event.timeSlot ?? null);
     setEventTitle(event.title);
     setEventDate(event.date);
     setEventType(event.type);
@@ -2797,7 +2858,11 @@ export default function Home() {
                     </select>
                   </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <TimeSelector
+                  value={timeSelectorValue}
+                  onChange={handleTimeSelectorChange}
+                />
+                <div className="hidden grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <label className="block text-sm sm:text-base md:text-lg font-medium text-gray-700 mb-2 sm:mb-3">
                       開始時間 <span className="text-red-500">*</span>
