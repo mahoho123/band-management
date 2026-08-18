@@ -55,6 +55,11 @@ describe("zero-perceived-latency contracts", () => {
     expect(serverEntrySource).toContain("app.use(compression({ threshold: 1024 }))");
   });
 
+  it("uses immutable caching for hashed production assets", () => {
+    expect(serverEntrySource).toContain("req.path.startsWith('/assets/')");
+    expect(serverEntrySource).toContain("public, max-age=31536000, immutable");
+  });
+
   it("keeps interaction feedback compositor-friendly", () => {
     expect(globalStyles).toContain("will-change: transform, background-color, border-color");
     expect(globalStyles).toContain("backface-visibility: hidden");

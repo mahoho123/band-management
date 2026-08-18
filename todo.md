@@ -894,3 +894,8 @@
 - [x] 啟用 Express thresholded response compression
 - [x] 加入 compression regression test
 - [x] 通過 TypeScript check、focused tests 及 production build
+
+## 延伸優化 (128) - 靜態資源快取標頭
+- [x] 為 production hashed assets 啟用 immutable 長期快取
+- [x] 保留 HTML 與 API 的短期／no-cache 行為
+- [x] 通過 TypeScript check、cache regression tests 及 production build

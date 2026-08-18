@@ -85,7 +85,14 @@ async function startServer() {
       res.setHeader('Pragma', 'no-cache');
       res.setHeader('Expires', '0');
     } else {
-      res.setHeader('Cache-Control', 'public, max-age=3600');
+      const isHashedAsset =
+        req.path.startsWith('/assets/') && /\.[a-f0-9]{8,}\./i.test(req.path);
+      res.setHeader(
+        'Cache-Control',
+        isHashedAsset
+          ? 'public, max-age=31536000, immutable'
+          : 'public, max-age=3600'
+      );
     }
     // 不探测服务器
     res.setHeader('X-Powered-By', 'Band Management');
