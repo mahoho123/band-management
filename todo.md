@@ -899,3 +899,8 @@
 - [x] 為 production hashed assets 啟用 immutable 長期快取
 - [x] 保留 HTML 與 API 的短期／no-cache 行為
 - [x] 通過 TypeScript check、cache regression tests 及 production build
+
+## 延伸優化 (129) - 重複提交防護
+- [x] 活動新增／編輯以 in-flight guard 阻止重複提交並保持首次點擊即時回饋
+- [x] 成員註冊、活動刪除及成員刪除使用 mutation pending guard
+- [x] 通過 TypeScript check、latency tests 12/12 及 production build

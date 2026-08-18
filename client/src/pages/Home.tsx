@@ -525,6 +525,7 @@ export default function Home() {
   const optimisticMemberIdRef = useRef(-1);
   const optimisticHolidayIdRef = useRef(-1);
   const attendanceInFlightRef = useRef(new Set<string>());
+  const eventSubmissionInFlightRef = useRef(false);
 
   // tRPC mutations. List/toggle mutations update the React Query cache before
   // the request leaves the browser, then reconcile or roll back in the background.
@@ -1266,6 +1267,7 @@ export default function Home() {
       return showToast("兩次輸入的密碼不一致", "error");
     if (membersQuery.data?.some(m => m.name === regName.trim()))
       return showToast("此名稱已被使用", "error");
+    if (addMemberMutation.isPending) return;
 
     addMemberMutation.mutate(
       {
@@ -1478,7 +1480,8 @@ export default function Home() {
       setDateHolidayWarning(dateHoliday.name);
       return;
     }
-
+    if (eventSubmissionInFlightRef.current) return;
+    eventSubmissionInFlightRef.current = true;
     if (eventModalMode === "edit" && selectedEventId) {
       updateEventMutation.mutate(
         {
@@ -1496,6 +1499,9 @@ export default function Home() {
             showToast("活動已更新", "success");
             setShowEventModal(false);
             setCurrentView("calendar");
+          },
+          onSettled: () => {
+            eventSubmissionInFlightRef.current = false;
           },
         }
       );
@@ -1542,12 +1548,14 @@ export default function Home() {
             "success"
           );
         }
+      }).finally(() => {
+        eventSubmissionInFlightRef.current = false;
       });
     }
   };
 
   const handleDeleteEvent = () => {
-    if (!selectedEventId) return;
+    if (!selectedEventId || deleteEventMutation.isPending) return;
     const event = eventsQuery.data?.find(e => e.id === selectedEventId);
     if (event && isEventEnded(event))
       return showToast("此活動已結束，不能刪除", "error");
@@ -1765,6 +1773,7 @@ export default function Home() {
   };
 
   const handleDeleteMember = (memberId: number) => {
+    if (deleteMemberMutation.isPending) return;
     deleteMemberMutation.mutate(
       { id: memberId },
       {

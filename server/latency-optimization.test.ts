@@ -20,6 +20,13 @@ describe("zero-perceived-latency contracts", () => {
     expect(homeSource).not.toContain("localAttendance");
   });
 
+  it("guards heavy submissions only while a mutation is pending", () => {
+    expect(homeSource).toContain("eventSubmissionInFlightRef.current");
+    expect(homeSource).toContain("if (addMemberMutation.isPending) return;");
+    expect(homeSource).toContain("deleteEventMutation.isPending");
+    expect(homeSource).toContain("deleteMemberMutation.isPending");
+  });
+
   it("prefetches the next view on pointer and keyboard focus", () => {
     expect(homeSource).toContain("prefetchViewData(\"calendar\")");
     expect(homeSource).toContain("prefetchViewData(\"list\")");
