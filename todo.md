@@ -954,3 +954,8 @@
 - [x] 建立 fluid viewport 容器、文字及控制項尺寸規則
 - [x] 調整所有頁面及元件以自動適配桌面、平板及手機瀏覽器
 - [x] 加入跨 viewport regression tests 並通過 TypeScript、production build 及預覽驗證
+
+## 新需求 (139) - 器材借用直接開新分頁
+- [x] 將「器材借用」入口改為新分頁開啟 https://slowbeat-ren-bspj3tdd.manus.space/
+- [x] 移除該入口對站內 iframe 視圖的依賴，保留其他導航功能
+- [x] 更新測試並通過 TypeScript、production build 及預覽驗證

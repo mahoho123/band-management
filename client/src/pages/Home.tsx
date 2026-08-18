@@ -9,7 +9,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { DatePicker } from "@/components/DatePicker";
-import EquipmentLoanView from "@/pages/EquipmentLoanView";
+import { EQUIPMENT_LOAN_EMBED_URL } from "@shared/equipmentLoan";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 import { AdminPushSubscription } from "@/components/AdminPushSubscription";
 import {
@@ -859,7 +859,7 @@ export default function Home() {
   });
   const [currentDate, setCurrentDate] = useState(new Date());
   const [currentView, setCurrentView] = useState<
-    "calendar" | "list" | "members" | "equipment"
+    "calendar" | "list" | "members"
   >("calendar");
   const [currentListTab, setCurrentListTab] = useState<
     "incomplete" | "completed"
@@ -1030,7 +1030,7 @@ export default function Home() {
   );
 
   const prefetchViewData = useCallback(
-    (view: "calendar" | "list" | "members" | "equipment") => {
+    (view: "calendar" | "list" | "members") => {
       if (view === "calendar" || view === "list") {
         void utils.band.getEvents.prefetch(undefined, { staleTime: 30_000 });
       }
@@ -4077,17 +4077,18 @@ export default function Home() {
                 <span className="sm:hidden">成</span>
               </button>
             )}
-            <button
-              onClick={() => setCurrentView("equipment")}
-              onPointerEnter={() => prefetchViewData("equipment")}
-              onFocus={() => prefetchViewData("equipment")}
-              className={`nav-tab text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 ${currentView === "equipment" ? "active" : ""}`}
-              title="器材借用平台"
+            <a
+              href={EQUIPMENT_LOAN_EMBED_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="nav-tab text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2"
+              title="器材借用平台（新分頁開啟）"
+              aria-label="器材借用（新分頁開啟）"
             >
               <i className="fas fa-toolbox" />
               <span className="hidden sm:inline">器材借用</span>
               <span className="sm:hidden">器</span>
-            </button>
+            </a>
             {currentUser?.role === "admin" && (
               <button
                 onClick={() => setShowPushNotificationSettings(true)}
@@ -4113,13 +4114,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Equipment-loan View */}
-        {currentView === "equipment" && (
-          <EquipmentLoanView
-            onBack={() => setCurrentView("calendar")}
-            notificationReady={currentUser?.role === "admin"}
-          />
-        )}
 
         {/* Calendar View */}
         {currentView === "calendar" && (
