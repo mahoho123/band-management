@@ -30,6 +30,7 @@ import {
   verifyViceAdminPassword,
   createNotification,
   getUnreadNotifications,
+  acknowledgeNotification,
   savePushSubscription,
   getPushSubscriptionsForUser,
   deletePushSubscription,
@@ -464,6 +465,25 @@ export const bandRouter = router({
   getUnreadNotifications: publicProcedure.query(async () => {
     return await getUnreadNotifications();
   }),
+
+  acknowledgeNotification: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        deviceId: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const res = await acknowledgeNotification(input.id, input.deviceId);
+      const io = getIO();
+      if (io) {
+        io.sockets.emit("notification:acknowledged", {
+          id: input.id,
+          deviceId: input.deviceId,
+        });
+      }
+      return { success: true };
+    }),
 
   // Holidays - 使用緩存
   getHolidays: publicProcedure.query(async () => {

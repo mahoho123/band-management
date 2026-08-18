@@ -959,3 +959,9 @@
 - [x] 將「器材借用」入口改為新分頁開啟 https://slowbeat-ren-bspj3tdd.manus.space/
 - [x] 移除該入口對站內 iframe 視圖的依賴，保留其他導航功能
 - [x] 更新測試並通過 TypeScript、production build 及預覽驗證
+
+## 新需求 (140) - 跨裝置背景推播與通知去重
+- [x] 擴展資料庫 schema 支援通知事件與多裝置已處理狀態（ack / dismissed）
+- [x] 實作伺服器端背景推播分發、去重及認可（acknowledgement）路由
+- [x] 升級前端與 Service Worker 以支援背景推播、點擊自動回報及其他裝置即時收回
+- [x] 新增跨裝置背景通知與去重回歸測試並驗證通過

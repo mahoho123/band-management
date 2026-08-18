@@ -28,14 +28,16 @@ export function queueAttendanceNotification(change: AttendanceChange): void {
     const eventDetails = `📅 ${event.date}\n🕐 ${formatTimeObjectTo12(event.startTime)} - ${formatTimeObjectTo12(event.endTime)}\n📍 ${event.location}`;
     const notificationBody = `${member.name}\n${statusText}\n\n${event.title}\n${eventDetails}`;
 
-    await createNotification({
+    const notifRes: any = await createNotification({
       eventId: change.eventId,
       memberId: change.memberId,
       title: "🎵 出席狀態更新",
       message: `${member.name} ${statusText}\n\n${event.title}\n${eventDetails}`,
       type: "attendance-changed",
     });
+    const notifId = Array.isArray(notifRes) && notifRes[0]?.insertId ? notifRes[0].insertId : notifRes?.insertId;
     await sendPushNotificationToAdmins({
+      id: notifId,
       title: "🎵 出席狀態更新",
       body: notificationBody,
       eventId: change.eventId,

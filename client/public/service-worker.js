@@ -119,6 +119,7 @@ self.addEventListener('push', (event) => {
     vibrate: [200, 100, 200, 100, 200],
     timestamp: Date.now(),
     data: {
+      id: data.id,
       url: data.url || '/',
       eventId: data.eventId,
       notifiedAt: Date.now(),
@@ -153,6 +154,18 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
   console.log('[SW] Notification clicked, action:', event.action);
   event.notification.close();
+
+  const notificationId = event.notification.data?.id;
+  if (notificationId) {
+    // 告知後端此通知已被點擊，並廣播讓其他裝置收回
+    event.waitUntil(
+      fetch('/api/trpc/band.acknowledgeNotification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: notificationId, deviceId: 'sw-' + Date.now() }),
+      }).catch(err => console.warn('[SW] Failed to ack notification:', err))
+    );
+  }
 
   const targetUrl = event.notification.data?.url || '/';
 

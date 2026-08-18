@@ -342,6 +342,19 @@ export async function markNotificationAsRead(id: number) {
   return await db.update(bandNotifications).set({ isRead: 1 }).where(eq(bandNotifications.id, id));
 }
 
+export async function acknowledgeNotification(id: number, deviceId: string) {
+  const db = await getDb();
+  if (!db) return null;
+  return await db
+    .update(bandNotifications)
+    .set({
+      status: "acknowledged",
+      isRead: 1,
+      ackByDevice: deviceId,
+    })
+    .where(eq(bandNotifications.id, id));
+}
+
 export async function markAllNotificationsAsRead() {
   const db = await getDb();
   if (!db) return null;

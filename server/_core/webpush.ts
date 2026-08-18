@@ -19,6 +19,7 @@ const PUSH_OPTIONS: webpush.RequestOptions = {
 };
 
 export interface PushNotificationPayload {
+  id?: number;
   title: string;
   body: string;
   eventId?: number;
@@ -96,6 +97,7 @@ export async function sendPushNotificationToAdmins(
     }
 
     const notificationPayload = JSON.stringify({
+      id: payload.id,
       title: payload.title,
       body: payload.body,
       eventId: payload.eventId,

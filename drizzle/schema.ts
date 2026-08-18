@@ -116,12 +116,16 @@ export const bandNotifications = mysqlTable("band_notifications", {
   title: varchar("title", { length: 255 }).notNull(),
   message: text("message").notNull(),
   isRead: int("isRead").default(0).notNull(),
+  status: mysqlEnum("status", ["pending", "acknowledged", "dismissed"]).default("pending").notNull(),
+  ackByDevice: varchar("ackByDevice", { length: 255 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 }, (table) => ({
   // Index for sorting by createdAt (most common query pattern)
   createdAtIdx: index("notifications_created_at_idx").on(table.createdAt),
   // Index for unread notifications filter
   isReadIdx: index("notifications_is_read_idx").on(table.isRead),
+  // Index for notification status lookup
+  statusIdx: index("notifications_status_idx").on(table.status),
 }));
 
 export type BandNotification = typeof bandNotifications.$inferSelect;
