@@ -123,10 +123,14 @@ interface AdminPushSubscriptionProps {
   autoEnable?: boolean;
 }
 
+const DENIED_PERMISSION_MESSAGE =
+  '通知權限目前被瀏覽器封鎖。請先在此網站的瀏覽器設定中選擇「允許」，然後按「重新檢查權限」。\n\n📱 Android Chrome：地址欄右側「⋮」→ 設定 → 網站設定 → 通知 → 找到此網站並允許。\n\n💻 電腦：點擊地址欄左側的鎖定圖標 → 通知 → 允許。';
+
 export function AdminPushSubscription({ autoEnable = false }: AdminPushSubscriptionProps) {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [permissionDenied, setPermissionDenied] = useState(false);
   const [success, setSuccess] = useState(false);
   const [showIOSPrompt, setShowIOSPrompt] = useState(false);
   const [showBatteryGuide, setShowBatteryGuide] = useState(false);
@@ -183,6 +187,7 @@ export function AdminPushSubscription({ autoEnable = false }: AdminPushSubscript
   const handleSubscribe = async () => {
     setIsLoading(true);
     setError(null);
+    setPermissionDenied(false);
     setSuccess(false);
 
     try {
@@ -210,15 +215,17 @@ export function AdminPushSubscription({ autoEnable = false }: AdminPushSubscript
       ]);
 
       if (Notification.permission === 'denied') {
-        throw new Error(
-          '❌ 您已拒絕通知權限。\n\n請在瀏覽器設定中允許通知：\n\n📱 Android Chrome：\n1. 點擊地址欄右側的「⋮」\n2. 設定 → 網站設定 → 通知\n3. 找到此網站並允許\n\n💻 電腦：\n1. 點擊地址欄左側的鎖定圖標\n2. 通知 → 允許'
-        );
+        setPermissionDenied(true);
+        setError(DENIED_PERMISSION_MESSAGE);
+        return;
       }
 
       if (Notification.permission !== 'granted') {
         const permission = await Notification.requestPermission();
         if (permission !== 'granted') {
-          throw new Error('❌ 無法獲取通知權限，請在瀏覽器設定中允許通知後重試。');
+          setPermissionDenied(true);
+          setError(DENIED_PERMISSION_MESSAGE);
+          return;
         }
       }
 
@@ -380,9 +387,9 @@ export function AdminPushSubscription({ autoEnable = false }: AdminPushSubscript
         )}
 
         {error && (
-          <div className="flex items-start gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-red-700 whitespace-pre-line">{error}</div>
+          <div className={`flex items-start gap-3 p-3 rounded-lg ${permissionDenied ? 'bg-amber-50 border border-amber-200' : 'bg-red-50 border border-red-200'}`}>
+            <AlertCircle className={`w-5 h-5 flex-shrink-0 mt-0.5 ${permissionDenied ? 'text-amber-600' : 'text-red-600'}`} />
+            <div className={`text-sm whitespace-pre-line ${permissionDenied ? 'text-amber-800' : 'text-red-700'}`}>{error}</div>
           </div>
         )}
 
@@ -396,6 +403,16 @@ export function AdminPushSubscription({ autoEnable = false }: AdminPushSubscript
         )}
 
         <div className="space-y-3">
+          {permissionDenied && !isSubscribed && (
+            <Button
+              onClick={() => void handleSubscribe()}
+              disabled={isLoading}
+              variant="outline"
+              className="w-full border-amber-300 text-amber-800 hover:bg-amber-50"
+            >
+              {isLoading ? '檢查中...' : '重新檢查權限'}
+            </Button>
+          )}
           {isSubscribed ? (
             <>
               <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
