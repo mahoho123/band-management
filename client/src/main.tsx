@@ -38,6 +38,11 @@ if (typeof document !== 'undefined') {
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      // Serve warm cache immediately, then revalidate in the background.
+      staleTime: 30_000,
+      gcTime: 5 * 60_000,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: true,
       // 服務器重啟時自動重試，最多 2 次，間隔 1 秒
       retry: (failureCount, error) => {
         if (error instanceof TRPCClientError) {

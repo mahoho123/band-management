@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { publicProcedure, router } from "../_core/trpc";
 import { getIO } from "../_core/index";
+import { enqueueBackgroundTask } from "../_core/background";
 import { getDb } from "../db";
 import { sendPushNotificationToAdmins } from "../_core/webpush";
 import { and, eq } from "drizzle-orm";
@@ -143,31 +144,27 @@ export const bandRouter = router({
         return { success: false, message: "成員未設定密碼" };
       }
       if (input.password === member.password) {
-        // Notify admin that member has logged in
-        try {
+        // Notify admin after the successful response path, without blocking login.
+        enqueueBackgroundTask("member-login notification", async () => {
           const now = new Date();
           const timeStr = now.toLocaleString('zh-HK', { timeZone: 'Asia/Hong_Kong', hour12: true, hour: 'numeric', minute: '2-digit' });
           const dateStr = now.toLocaleDateString('zh-HK', { timeZone: 'Asia/Hong_Kong', month: 'long', day: 'numeric', weekday: 'short' });
           const notifTitle = `👤 ${member.name} 已登入`;
           const notifMessage = `${member.name}（${member.instrument || '成員'}）於 ${dateStr} ${timeStr} 登入系統`;
-          // Write to band_notifications table
           await createNotification({
             memberId: input.memberId,
             title: notifTitle,
             message: notifMessage,
             type: 'member-added',
-          }).catch(err => console.error('[memberLogin] createNotification error:', err));
-          // Send push notification to admin
+          });
           await sendPushNotificationToAdmins({
             title: notifTitle,
             body: notifMessage,
             url: '/',
             icon: '/logo.png',
             badge: '/logo.png',
-          }).catch(err => console.error('[memberLogin] push notification error:', err));
-        } catch (err) {
-          console.error('[memberLogin] notification error:', err);
-        }
+          });
+        });
         return { success: true, message: "成員密碼驗證成功" };
       }
       return { success: false, message: "成員密碼錯誤" };
@@ -297,8 +294,7 @@ export const bandRouter = router({
         console.log('[Band Router] WARNING: io is null, cannot emit event');
       }
       
-      // Write notification to band_notifications table
-      try {
+      enqueueBackgroundTask("event-added notification", async () => {
         const typeText = input.type === "rehearsal" ? "排練" : input.type === "performance" ? "演出" : input.type === "meeting" ? "會議" : "其他";
         const startTimeStr = formatTimeObjectTo12(input.startTime);
         const endTimeStr = formatTimeObjectTo12(input.endTime);
@@ -307,9 +303,7 @@ export const bandRouter = router({
           message: `類型：${typeText}\n日期：${input.date}\n時間：${startTimeStr} - ${endTimeStr}\n地點：${input.location}`,
           type: "event-added",
         });
-      } catch (error) {
-        console.error("[createNotification] addEvent error:", error);
-      }
+      });
       
       return result;
     }),
@@ -349,8 +343,7 @@ export const bandRouter = router({
         io.sockets.emit("event:updated");
       }
       
-      // Write notification to band_notifications table
-      try {
+      enqueueBackgroundTask("event-updated notification", async () => {
         const typeText = data.type === "rehearsal" ? "排練" : data.type === "performance" ? "演出" : data.type === "meeting" ? "會議" : "其他";
         const startTimeStr = data.startTime ? formatTimeObjectTo12(data.startTime) : "未變更";
         const endTimeStr = data.endTime ? formatTimeObjectTo12(data.endTime) : "未變更";
@@ -360,9 +353,7 @@ export const bandRouter = router({
           message: `日期：${data.date || "未變更"}\n時間：${startTimeStr} - ${endTimeStr}\n地點：${data.location || "未變更"}${data.type ? `\n類型：${typeText}` : ""}`,
           type: "event-updated",
         });
-      } catch (error) {
-        console.error("[createNotification] updateEvent error:", error);
-      }
+      });
       
       return result;
     }),
@@ -378,17 +369,14 @@ export const bandRouter = router({
       if (io) {
         io.sockets.emit("event:deleted");
       }
-      // Write notification to band_notifications table
-      try {
+      enqueueBackgroundTask("event-deleted notification", async () => {
         await createNotification({
           eventId: input.id,
           title: `🗑️ 刪除活動 #${input.id}`,
           message: `活動 ID ${input.id} 已被刪除`,
           type: "event-deleted",
         });
-      } catch (error) {
-        console.error("[createNotification] deleteEvent error:", error);
-      }
+      });
       return result;
     }),
 
@@ -430,60 +418,39 @@ export const bandRouter = router({
         });
       }
       
-      // Send Web Push notification to admin
-      try {
-        console.log('[setAttendance] Attempting to send push notification...');
+      enqueueBackgroundTask("attendance notification", async () => {
         const db = await getDb();
-        if (db) {
-          const memberResult = await db.select().from(bandMembers).where(eq(bandMembers.id, input.memberId));
-          const member = memberResult.length > 0 ? memberResult[0] : null;
-          console.log('[setAttendance] Member found:', member?.name);
-          
-          const eventResult = await db.select().from(bandEvents).where(eq(bandEvents.id, input.eventId));
-          const event = eventResult.length > 0 ? eventResult[0] : null;
-          console.log('[setAttendance] Event found:', event?.title);
-          
-          if (member && event) {
-            const statusText = input.status === "going" ? "✅ 已確認出席" : input.status === "not-going" ? "❌ 已確認不出席" : "❓ 待確認";
-            const logoUrl = '/logo.png'; // Use local logo file
-            
-            // Format event details for notification
-            const startTimeStr = formatTimeObjectTo12(event.startTime);
-            const endTimeStr = formatTimeObjectTo12(event.endTime);
-            const eventDetails = `📅 ${event.date}\n🕐 ${startTimeStr} - ${endTimeStr}\n📍 ${event.location}`;
-            const notificationBody = `${member.name}\n${statusText}\n\n${event.title}\n${eventDetails}`;
-            
-            // Write to band_notifications table
-            await createNotification({
-              eventId: input.eventId,
-              memberId: input.memberId,
-              title: `🎵 出席狀態更新`,
-              message: `${member.name} ${statusText}\n\n${event.title}\n${eventDetails}`,
-              type: "attendance-changed",
-            }).catch(err => console.error("[createNotification] setAttendance error:", err));
-            
-            console.log('[setAttendance] Sending push notification with status:', statusText);
-            const eventTag = `attendance-event-${input.eventId}-${input.memberId}`;
-            
-            await sendPushNotificationToAdmins({
-              title: "🎵 出席狀態更新",
-              body: notificationBody,
-              eventId: input.eventId,
-              url: "/",
-              icon: logoUrl,
-              badge: logoUrl,
-              eventTag: eventTag,
-            }).catch(err => console.error("[setAttendance] Push notification error:", err));
-            console.log('[setAttendance] Push notification sent successfully');
-          } else {
-            console.log('[setAttendance] Member or event not found, skipping push notification');
-          }
-        } else {
-          console.log('[setAttendance] Database not available');
-        }
-      } catch (error) {
-        console.error("[setAttendance] Error sending push notification:", error);
-      }
+        if (!db) return;
+        const memberResult = await db.select().from(bandMembers).where(eq(bandMembers.id, input.memberId));
+        const member = memberResult.length > 0 ? memberResult[0] : null;
+        const eventResult = await db.select().from(bandEvents).where(eq(bandEvents.id, input.eventId));
+        const event = eventResult.length > 0 ? eventResult[0] : null;
+        if (!member || !event) return;
+
+        const statusText = input.status === "going" ? "✅ 已確認出席" : input.status === "not-going" ? "❌ 已確認不出席" : "❓ 待確認";
+        const logoUrl = '/logo.png';
+        const startTimeStr = formatTimeObjectTo12(event.startTime);
+        const endTimeStr = formatTimeObjectTo12(event.endTime);
+        const eventDetails = `📅 ${event.date}\n🕐 ${startTimeStr} - ${endTimeStr}\n📍 ${event.location}`;
+        const notificationBody = `${member.name}\n${statusText}\n\n${event.title}\n${eventDetails}`;
+
+        await createNotification({
+          eventId: input.eventId,
+          memberId: input.memberId,
+          title: `🎵 出席狀態更新`,
+          message: `${member.name} ${statusText}\n\n${event.title}\n${eventDetails}`,
+          type: "attendance-changed",
+        });
+        await sendPushNotificationToAdmins({
+          title: "🎵 出席狀態更新",
+          body: notificationBody,
+          eventId: input.eventId,
+          url: "/",
+          icon: logoUrl,
+          badge: logoUrl,
+          eventTag: `attendance-event-${input.eventId}-${input.memberId}`,
+        });
+      });
 
       return { success: true };
     }),

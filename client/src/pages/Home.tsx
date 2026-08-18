@@ -520,20 +520,215 @@ export default function Home() {
     refetchOnMount: true,
   });
 
-  // tRPC mutations
+  const utils = trpc.useUtils();
+  const optimisticEventIdRef = useRef(-1);
+  const optimisticMemberIdRef = useRef(-1);
+  const attendanceInFlightRef = useRef(new Set<string>());
+
+  // tRPC mutations. List/toggle mutations update the React Query cache before
+  // the request leaves the browser, then reconcile or roll back in the background.
   const initSystemMutation = trpc.band.initSystem.useMutation();
   const updatePasswordMutation = trpc.band.updateSystemPassword.useMutation();
-  const addMemberMutation = trpc.band.addMember.useMutation();
-  const updateMemberMutation = trpc.band.updateMember.useMutation();
-  const deleteMemberMutation = trpc.band.deleteMember.useMutation();
-  const addEventMutation = trpc.band.addEvent.useMutation();
+  const addMemberMutation = trpc.band.addMember.useMutation({
+    onMutate: async input => {
+      await utils.band.getMembers.cancel();
+      const previousMembers = utils.band.getMembers.getData();
+      const optimisticMember = {
+        id: optimisticMemberIdRef.current--,
+        name: input.name,
+        instrument: input.instrument ?? null,
+        color: input.color ?? "blue",
+        hasPassword: Boolean(input.password),
+      };
+      utils.band.getMembers.setData(undefined, oldMembers =>
+        oldMembers ? [...oldMembers, optimisticMember] : [optimisticMember]
+      );
+      return { previousMembers };
+    },
+    onError: (_error, _input, context) => {
+      if (context?.previousMembers !== undefined) {
+        utils.band.getMembers.setData(undefined, context.previousMembers);
+      }
+      showToast("新增成員失敗，已還原畫面", "error");
+    },
+    onSettled: () => {
+      void utils.band.getMembers.invalidate();
+    },
+  });
+  const updateMemberMutation = trpc.band.updateMember.useMutation({
+    onMutate: async input => {
+      await utils.band.getMembers.cancel();
+      const previousMembers = utils.band.getMembers.getData();
+      utils.band.getMembers.setData(undefined, oldMembers =>
+        oldMembers?.map(member =>
+          member.id === input.id
+            ? {
+                ...member,
+                name: input.name !== undefined ? input.name : member.name,
+                instrument:
+                  input.instrument !== undefined
+                    ? input.instrument
+                    : member.instrument,
+                color: input.color !== undefined ? input.color : member.color,
+                hasPassword:
+                  input.password !== undefined
+                    ? Boolean(input.password)
+                    : member.hasPassword,
+              }
+            : member
+        )
+      );
+      return { previousMembers };
+    },
+    onError: (_error, _input, context) => {
+      if (context?.previousMembers !== undefined) {
+        utils.band.getMembers.setData(undefined, context.previousMembers);
+      }
+      showToast("更新成員失敗，已還原畫面", "error");
+    },
+    onSettled: () => {
+      void utils.band.getMembers.invalidate();
+    },
+  });
+  const deleteMemberMutation = trpc.band.deleteMember.useMutation({
+    onMutate: async ({ id }) => {
+      await utils.band.getMembers.cancel();
+      const previousMembers = utils.band.getMembers.getData();
+      utils.band.getMembers.setData(undefined, oldMembers =>
+        oldMembers?.filter(member => member.id !== id)
+      );
+      return { previousMembers };
+    },
+    onError: (_error, _input, context) => {
+      if (context?.previousMembers !== undefined) {
+        utils.band.getMembers.setData(undefined, context.previousMembers);
+      }
+      showToast("刪除成員失敗，已還原畫面", "error");
+    },
+    onSettled: () => {
+      void utils.band.getMembers.invalidate();
+    },
+  });
+  const addEventMutation = trpc.band.addEvent.useMutation({
+    onMutate: async input => {
+      await utils.band.getEvents.cancel();
+      const previousEvents = utils.band.getEvents.getData();
+      const optimisticEvent = {
+        id: optimisticEventIdRef.current--,
+        title: input.title,
+        date: input.date,
+        startTime: input.startTime ?? null,
+        endTime: input.endTime ?? null,
+        timeSlot: input.timeSlot ?? null,
+        location: input.location,
+        type: input.type,
+        notes: input.notes ?? "",
+        attendance: {},
+        isCompleted: input.isCompleted ?? 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      utils.band.getEvents.setData(undefined, oldEvents =>
+        oldEvents ? [...oldEvents, optimisticEvent] : [optimisticEvent]
+      );
+      return { previousEvents };
+    },
+    onError: (_error, _input, context) => {
+      if (context?.previousEvents !== undefined) {
+        utils.band.getEvents.setData(undefined, context.previousEvents);
+      }
+      // The aggregate handler below reports the final result without blocking the modal.
+    },
+    onSettled: () => {
+      void utils.band.getEvents.invalidate();
+    },
+  });
   const updateEventMutation = trpc.band.updateEvent.useMutation({
+    onMutate: async input => {
+      await utils.band.getEvents.cancel();
+      const previousEvents = utils.band.getEvents.getData();
+      utils.band.getEvents.setData(undefined, oldEvents =>
+        oldEvents?.map(event =>
+          event.id === input.id
+            ? {
+                ...event,
+                ...input,
+                startTime:
+                  input.startTime !== undefined
+                    ? input.startTime
+                    : event.startTime,
+                endTime:
+                  input.endTime !== undefined ? input.endTime : event.endTime,
+                timeSlot:
+                  input.timeSlot !== undefined ? input.timeSlot : event.timeSlot,
+                notes: input.notes !== undefined ? input.notes : event.notes,
+              }
+            : event
+        )
+      );
+      return { previousEvents };
+    },
     onSuccess: () => {
       setCurrentView("calendar");
     },
+    onError: (_error, _input, context) => {
+      if (context?.previousEvents !== undefined) {
+        utils.band.getEvents.setData(undefined, context.previousEvents);
+      }
+      showToast("更新活動失敗，已還原畫面", "error");
+    },
+    onSettled: () => {
+      void utils.band.getEvents.invalidate();
+    },
   });
-  const deleteEventMutation = trpc.band.deleteEvent.useMutation();
-  const setAttendanceMutation = trpc.band.setAttendance.useMutation();
+  const deleteEventMutation = trpc.band.deleteEvent.useMutation({
+    onMutate: async ({ id }) => {
+      await utils.band.getEvents.cancel();
+      const previousEvents = utils.band.getEvents.getData();
+      utils.band.getEvents.setData(undefined, oldEvents =>
+        oldEvents?.filter(event => event.id !== id)
+      );
+      return { previousEvents };
+    },
+    onError: (_error, _input, context) => {
+      if (context?.previousEvents !== undefined) {
+        utils.band.getEvents.setData(undefined, context.previousEvents);
+      }
+      showToast("刪除活動失敗，已還原畫面", "error");
+    },
+    onSettled: () => {
+      void utils.band.getEvents.invalidate();
+    },
+  });
+  const setAttendanceMutation = trpc.band.setAttendance.useMutation({
+    onMutate: async input => {
+      await utils.band.getEvents.cancel();
+      const previousEvents = utils.band.getEvents.getData();
+      utils.band.getEvents.setData(undefined, oldEvents =>
+        oldEvents?.map(event =>
+          event.id === input.eventId
+            ? {
+                ...event,
+                attendance: {
+                  ...event.attendance,
+                  [String(input.memberId)]: input.status,
+                },
+              }
+            : event
+        )
+      );
+      return { previousEvents };
+    },
+    onError: (_error, _input, context) => {
+      if (context?.previousEvents !== undefined) {
+        utils.band.getEvents.setData(undefined, context.previousEvents);
+      }
+      showToast("更新出席狀態失敗，已還原畫面", "error");
+    },
+    onSettled: () => {
+      void utils.band.getEvents.invalidate();
+    },
+  });
   const addHolidayMutation = trpc.band.addHoliday.useMutation();
   const verifyAdminPasswordMutation =
     trpc.band.verifyAdminPassword.useMutation();
@@ -543,7 +738,6 @@ export default function Home() {
     trpc.band.verifyViceAdminPassword.useMutation();
   const updateViceAdminPasswordMutation =
     trpc.band.updateViceAdminPassword.useMutation();
-  const utils = trpc.useUtils();
 
   // 從 localStorage 讀取已儲存的登入狀態
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(() => {
@@ -567,11 +761,6 @@ export default function Home() {
   // 月份/年份選擇器狀態
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [showYearPicker, setShowYearPicker] = useState(false);
-
-  // 本地出席狀態緩存 - 用於零延遲更新
-  const [localAttendance, setLocalAttendance] = useState<
-    Record<number, Record<string, string>>
-  >({});
 
   // Modal states
   const [showSetupModal, setShowSetupModal] = useState(false);
@@ -700,6 +889,18 @@ export default function Home() {
     []
   );
 
+  const prefetchViewData = useCallback(
+    (view: "calendar" | "list" | "members" | "equipment") => {
+      if (view === "calendar" || view === "list") {
+        void utils.band.getEvents.prefetch(undefined, { staleTime: 30_000 });
+      }
+      if (view === "members") {
+        void utils.band.getMembers.prefetch(undefined, { staleTime: 30_000 });
+      }
+    },
+    [utils]
+  );
+
   const handleShowMoreEvents = (dateStr: string) => {
     setSelectedDates(new Set([dateStr]));
     setCurrentView("list");
@@ -746,21 +947,6 @@ export default function Home() {
       }
     }
   }, [systemDataQuery.data, systemDataQuery.isLoading]);
-
-  // 初始化本地出席狀態緩存（強制所有 key 為字串，避免數字/字串 key 混用導致按鈕同時高亮問題）
-  useEffect(() => {
-    if (eventsQuery.data) {
-      const newLocalAttendance: Record<number, Record<string, string>> = {};
-      eventsQuery.data.forEach(event => {
-        const stringKeyAttendance: Record<string, string> = {};
-        Object.entries(event.attendance || {}).forEach(([k, v]) => {
-          stringKeyAttendance[String(k)] = String(v);
-        });
-        newLocalAttendance[event.id] = stringKeyAttendance;
-      });
-      setLocalAttendance(newLocalAttendance);
-    }
-  }, [eventsQuery.data]);
 
   // 注意：移除了自動回到今日的邏輯，讓用戶可以自由瀏覽其他月份
   // 事件完成狀態由 eventsQuery 的 isCompleted 字段判斷，不需要定期更新 currentDate
@@ -919,7 +1105,6 @@ export default function Home() {
             setShowLoginModal(false);
             setMemberLoginState(null);
             showToast(`歡迎，${memberName}！密碼已設定`, "success");
-            membersQuery.refetch();
           },
           onError: () => showToast("設定密碼失敗，請稍後重試", "error"),
         }
@@ -1020,7 +1205,6 @@ export default function Home() {
           showToast(`${regName} 已註冊！`, "success");
           setShowLoginModal(false); // Allow viewing without login
           setLoginTab("member");
-          membersQuery.refetch();
         },
       }
     );
@@ -1232,7 +1416,6 @@ export default function Home() {
             showToast("活動已更新", "success");
             setShowEventModal(false);
             setCurrentView("calendar");
-            utils.band.getEvents.invalidate();
           },
         }
       );
@@ -1245,41 +1428,41 @@ export default function Home() {
       );
 
       const total = datesToCreate.length;
-      let completed = 0;
-      let failed = 0;
-      try {
-        const results = await Promise.allSettled(
-          datesToCreate.map(date =>
-            addEventMutation.mutateAsync({
-              title: eventTitle,
-              date,
-              startTime,
-              endTime,
-              timeSlot: eventTimeSlot || undefined,
-              location: eventLocation,
-              type: eventType,
-              notes: eventNotes,
-            })
-          )
-        );
-        completed = results.filter(r => r.status === "fulfilled").length;
-        failed = results.filter(r => r.status === "rejected").length;
-        if (total > 1) {
+      setShowEventModal(false);
+      setCurrentView("calendar");
+      showToast(
+        total > 1 ? `已送出 ${total} 個活動，正在背景儲存` : "已送出活動，正在背景儲存",
+        "info"
+      );
+
+      void Promise.allSettled(
+        datesToCreate.map(date =>
+          addEventMutation.mutateAsync({
+            title: eventTitle,
+            date,
+            startTime,
+            endTime,
+            timeSlot: eventTimeSlot || undefined,
+            location: eventLocation,
+            type: eventType,
+            notes: eventNotes,
+          })
+        )
+      ).then(results => {
+        const completed = results.filter(r => r.status === "fulfilled").length;
+        const failed = results.length - completed;
+        if (failed > 0) {
           showToast(
-            `已新增 ${completed} 個活動${failed > 0 ? `（${failed} 個失敗）` : ""}`,
-            failed > 0 ? "error" : "success"
+            `已新增 ${completed} 個活動，${failed} 個失敗並已還原`,
+            "error"
           );
         } else {
-          showToast("活動已新增", "success");
+          showToast(
+            total > 1 ? `已新增 ${completed} 個活動` : "活動已新增",
+            "success"
+          );
         }
-      } catch (err) {
-        console.error("[handleSaveEvent] error:", err);
-        showToast("新增活動時發生錯誤", "error");
-      } finally {
-        setShowEventModal(false);
-        setCurrentView("calendar");
-        utils.band.getEvents.invalidate();
-      }
+      });
     }
   };
 
@@ -1295,7 +1478,24 @@ export default function Home() {
         onSuccess: () => {
           setShowEventModal(false);
           showToast("活動已刪除", "success");
-          eventsQuery.refetch();
+        },
+      }
+    );
+  };
+
+  const submitAttendanceChange = (
+    eventId: number,
+    memberId: number,
+    status: "going" | "not-going" | "unknown"
+  ) => {
+    const requestKey = `${eventId}:${memberId}`;
+    if (attendanceInFlightRef.current.has(requestKey)) return;
+    attendanceInFlightRef.current.add(requestKey);
+    setAttendanceMutation.mutate(
+      { eventId, memberId, status },
+      {
+        onSettled: () => {
+          attendanceInFlightRef.current.delete(requestKey);
         },
       }
     );
@@ -1310,38 +1510,7 @@ export default function Home() {
     if (!event) return;
     if (isEventEnded(event))
       return showToast("此活動已結束，不能修改出席狀態", "error");
-
-    // 立即更新本地狀態 - 零延遲
-    setLocalAttendance(prev => ({
-      ...prev,
-      [eventId]: {
-        ...prev[eventId],
-        [String(currentUser.id)]: status,
-      },
-    }));
-
-    // 後台同步到服務器
-    setAttendanceMutation.mutate(
-      {
-        eventId,
-        memberId: currentUser.id as number,
-        status,
-      },
-      {
-        onError: () => {
-          // 失敗時回溻本地狀態
-          setLocalAttendance(prev => ({
-            ...prev,
-            [eventId]: {
-              ...prev[eventId],
-              [String(currentUser.id)]:
-                event.attendance[String(currentUser.id)] || "unknown",
-            },
-          }));
-          showToast("更新出席狀態失敗", "error");
-        },
-      }
-    );
+    submitAttendanceChange(eventId, currentUser.id as number, status);
   };
 
   // Handle individual member attendance change
@@ -1357,42 +1526,7 @@ export default function Home() {
     if (!event) return;
     if (isEventEnded(event))
       return showToast("此活動已結束，不能修改出席狀態", "error");
-
-    // 立即更新本地狀態 - 零延遲
-    setLocalAttendance(prev => ({
-      ...prev,
-      [eventId]: {
-        ...prev[eventId],
-        [String(memberId)]: status,
-      },
-    }));
-
-    // 後台同步到服務器
-    setAttendanceMutation.mutate(
-      {
-        eventId,
-        memberId,
-        status,
-      },
-      {
-        onSuccess: () => {
-          // 主管改成員出席記錄時，不需要任何通知
-          // Web Push 通知會由後端自動發送給主管
-        },
-        onError: () => {
-          // 失敗時回滚本地狀態
-          setLocalAttendance(prev => ({
-            ...prev,
-            [eventId]: {
-              ...prev[eventId],
-              [String(memberId)]:
-                event.attendance[String(memberId)] || "unknown",
-            },
-          }));
-          showToast("更新出席狀態失敗", "error");
-        },
-      }
-    );
+    submitAttendanceChange(eventId, memberId, status);
   };
 
   const handleSetAttendance = (status: "going" | "not-going" | "unknown") => {
@@ -1400,39 +1534,8 @@ export default function Home() {
     const event = eventsQuery.data?.find(e => e.id === selectedEventId);
     if (!event) return;
     if (isEventEnded(event))
-      return showToast("此活b動已結束，不能修改出席狀態", "error");
-
-    // 立即更新本地狀態 - 零延遲
-    setLocalAttendance(prev => ({
-      ...prev,
-      [selectedEventId]: {
-        ...prev[selectedEventId],
-        [String(currentUser.id)]: status,
-      },
-    }));
-
-    // 後台同步到服務器
-    setAttendanceMutation.mutate(
-      {
-        eventId: selectedEventId,
-        memberId: currentUser.id as number,
-        status,
-      },
-      {
-        onError: () => {
-          // 失敗時回滚本地狀態
-          setLocalAttendance(prev => ({
-            ...prev,
-            [selectedEventId]: {
-              ...prev[selectedEventId],
-              [String(currentUser.id)]:
-                event.attendance[String(currentUser.id)] || "unknown",
-            },
-          }));
-          showToast("更新出席狀態失敗", "error");
-        },
-      }
-    );
+      return showToast("此活動已結束，不能修改出席狀態", "error");
+    submitAttendanceChange(selectedEventId, currentUser.id as number, status);
   };
 
   // ============================================
@@ -1575,9 +1678,7 @@ export default function Home() {
           onSuccess: () => {
             showToast(`${memberName} 的密碼已重設`, "success");
             setResetPasswordState(null);
-            void membersQuery.refetch();
           },
-          onError: () => showToast("重設密碼失敗，請稍後重試", "error"),
         }
       );
     }
@@ -1594,7 +1695,6 @@ export default function Home() {
             setShowLoginModal(false); // Allow viewing without login
           }
           showToast("成員已刪除", "success");
-          membersQuery.refetch();
         },
       }
     );
@@ -1604,7 +1704,7 @@ export default function Home() {
   // WHATSAPP NOTIFICATION
   // ============================================
   const generateAttendanceSummary = (event: BandEvent) => {
-    const attendance = localAttendance[event.id] || event.attendance;
+    const attendance = event.attendance;
     const members = membersQuery.data || [];
     const going = members
       .filter(m => attendance[String(m.id)] === "going")
@@ -1852,7 +1952,7 @@ export default function Home() {
             </div>
           )}
           {dayEvents.map((evt, i) => {
-            const attendance = localAttendance[evt.id] || evt.attendance;
+            const attendance = evt.attendance;
             const goingCount = Object.values(attendance).filter(
               v => v === "going"
             ).length;
@@ -3064,10 +3164,7 @@ export default function Home() {
                         <h4 className="font-bold text-gray-800">出席狀態</h4>
                         <span className="text-sm text-gray-500">
                           {(() => {
-                            const att = {
-                              ...selectedEvent.attendance,
-                              ...(localAttendance[selectedEvent.id] || {}),
-                            };
+                            const att = selectedEvent.attendance;
                             return (
                               <>
                                 出席:{" "}
@@ -3119,11 +3216,7 @@ export default function Home() {
                           </p>
                         </div>
                         {(() => {
-                          // 使用 localAttendance 即時狀態，消除視覺延遲
                           const myStatus =
-                            localAttendance[selectedEvent.id]?.[
-                              String(currentUser.id)
-                            ] ??
                             selectedEvent.attendance[String(currentUser.id)];
                           return (
                             <div className="flex gap-3 flex-wrap">
@@ -3171,9 +3264,7 @@ export default function Home() {
                         </h4>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                           {(() => {
-                            const attendance =
-                              localAttendance[selectedEvent.id] ||
-                              selectedEvent.attendance;
+                            const attendance = selectedEvent.attendance;
                             return (
                               <>
                                 {/* Going */}
@@ -3303,11 +3394,8 @@ export default function Home() {
                           </p>
                         ) : (
                           (membersQuery.data || []).map(member => {
-                            // 優先讀取 localAttendance 即時狀態，消除視覺延遲
                             const status =
-                              localAttendance[selectedEvent.id]?.[
-                                String(member.id)
-                              ] ?? selectedEvent.attendance[String(member.id)];
+                              selectedEvent.attendance[String(member.id)];
                             return (
                               <div
                                 key={member.id}
@@ -3795,6 +3883,8 @@ export default function Home() {
           <div className="flex gap-1 sm:gap-2 mt-3 sm:mt-4 md:mt-5 pt-3 sm:pt-4 md:pt-5 border-t border-gray-100 flex-wrap">
             <button
               onClick={() => setCurrentView("calendar")}
+              onPointerEnter={() => prefetchViewData("calendar")}
+              onFocus={() => prefetchViewData("calendar")}
               className={`nav-tab text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 ${currentView === "calendar" ? "active" : ""}`}
             >
               <i className="fas fa-calendar-alt" />
@@ -3803,6 +3893,8 @@ export default function Home() {
             </button>
             <button
               onClick={() => setCurrentView("list")}
+              onPointerEnter={() => prefetchViewData("list")}
+              onFocus={() => prefetchViewData("list")}
               className={`nav-tab text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 ${currentView === "list" ? "active" : ""}`}
             >
               <i className="fas fa-list" />
@@ -3812,6 +3904,8 @@ export default function Home() {
             {currentUser?.role === "admin" && (
               <button
                 onClick={() => setCurrentView("members")}
+                onPointerEnter={() => prefetchViewData("members")}
+                onFocus={() => prefetchViewData("members")}
                 className={`nav-tab text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 ${currentView === "members" ? "active" : ""}`}
               >
                 <i className="fas fa-users" />
@@ -3821,6 +3915,8 @@ export default function Home() {
             )}
             <button
               onClick={() => setCurrentView("equipment")}
+              onPointerEnter={() => prefetchViewData("equipment")}
+              onFocus={() => prefetchViewData("equipment")}
               className={`nav-tab text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 ${currentView === "equipment" ? "active" : ""}`}
               title="器材借用平台"
             >
@@ -4106,8 +4202,7 @@ export default function Home() {
                   ).length;
                   const myStatus =
                     currentUser?.role === "member"
-                      ? (localAttendance[event.id]?.[String(currentUser.id)] ??
-                        event.attendance[String(currentUser.id)])
+                      ? event.attendance[String(currentUser.id)]
                       : null;
 
                   const isSelected = selectedEventIds.has(event.id);
@@ -4200,8 +4295,7 @@ export default function Home() {
                             </div>
                             <div className="space-y-1">
                               {(() => {
-                                const attendance =
-                                  localAttendance[event.id] || event.attendance;
+                                const attendance = event.attendance;
                                 return (
                                   <>
                                     {/* Going */}
@@ -4413,17 +4507,17 @@ export default function Home() {
                     }
                   );
                   const eventCount = monthEvents.filter((e: BandEvent) => {
-                    const att = localAttendance[e.id] || e.attendance;
+                    const att = e.attendance;
                     return att[String(member.id)] === "going";
                   }).length;
                   const notAttendingCount = monthEvents.filter(
                     (e: BandEvent) => {
-                      const att = localAttendance[e.id] || e.attendance;
+                      const att = e.attendance;
                       return att[String(member.id)] === "not-going";
                     }
                   ).length;
                   const pendingCount = monthEvents.filter((e: BandEvent) => {
-                    const att = localAttendance[e.id] || e.attendance;
+                    const att = e.attendance;
                     return att[String(member.id)] === "unknown"; // 只計真正按了「待確認」的，未回應的不計
                   }).length;
                   return (

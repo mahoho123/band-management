@@ -160,7 +160,7 @@
   min-height: auto;
   background: #fffef5;
   border: 1px solid #f4d03f33;
-  transition: all 0.2s ease;
+  transition: transform 0.12s linear, opacity 0.12s linear, box-shadow 0.12s linear, background-color 0.12s linear, border-color 0.12s linear;
   padding: 0.5rem;
 }
 
@@ -217,7 +217,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: all 0.15s ease;
+  transition: transform 0.1s linear, opacity 0.1s linear, box-shadow 0.1s linear, background-color 0.1s linear, border-color 0.1s linear;
   border: 1px solid transparent;
 }
 
@@ -259,7 +259,7 @@
 }
 
 .attendance-btn {
-  transition: all 0.2s ease;
+  transition: transform 0.1s linear, opacity 0.1s linear, box-shadow 0.1s linear, background-color 0.1s linear, border-color 0.1s linear;
   border: 2px solid #e5e7eb;
   border-radius: 0.75rem;
   font-weight: 500;
@@ -312,7 +312,7 @@
 }
 
 .modal-enter {
-  animation: modalSlideIn 0.25s ease-out;
+  animation: modalSlideIn 0.12s linear;
 }
 
 @keyframes modalSlideIn {
@@ -337,7 +337,7 @@
 }
 
 .event-card {
-  transition: all 0.2s ease;
+  transition: transform 0.12s linear, opacity 0.12s linear, box-shadow 0.12s linear, background-color 0.12s linear, border-color 0.12s linear;
   border-left: 4px solid transparent;
 }
 
@@ -361,7 +361,7 @@
 }
 
 .list-tab-btn {
-  transition: all 0.25s ease;
+  transition: transform 0.12s linear, opacity 0.12s linear, box-shadow 0.12s linear, background-color 0.12s linear, border-color 0.12s linear;
   border-radius: 0.75rem;
   font-weight: 500;
   padding: 0.75rem 1rem;
@@ -613,6 +613,8 @@ input[type="reset"] {
   transition-timing-function: linear !important;
   cursor: pointer;
   will-change: transform, background-color, border-color;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
   user-select: none;
   -webkit-user-select: none;
   touch-action: manipulation;
@@ -678,6 +680,26 @@ iframe,
 video,
 canvas {
   max-width: 100%;
+}
+
+/* Keep non-layout interaction feedback on the compositor. */
+.interactive,
+button,
+a,
+[role="button"] {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 input,
