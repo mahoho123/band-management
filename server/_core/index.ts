@@ -6,6 +6,7 @@ import compression from "compression";
 import { Server as SocketIOServer } from "socket.io";
 import { registerOAuthRoutes } from "./oauth";
 import { registerChatRoutes } from "./chat";
+import { setIO } from "./socket";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
@@ -29,13 +30,6 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
   throw new Error(`No available port found starting from ${startPort}`);
 }
 
-// Global Socket.IO instance for broadcasting
-let globalIO: SocketIOServer | null = null;
-
-export function getIO(): SocketIOServer | null {
-  return globalIO;
-}
-
 async function startServer() {
   const app = express();
   const server = createServer(app);
@@ -56,7 +50,7 @@ async function startServer() {
     pingTimeout: 60000,
   });
   
-  globalIO = io;
+  setIO(io);
   
   // Socket.IO connection handling
   io.on("connection", (socket: any) => {

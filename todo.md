@@ -909,3 +909,8 @@
 - [x] memoize holiday normalization，避免 modal／toast state 變更重算全部假期
 - [x] memoize filtered event groups，避免無關 state 變更重掃活動清單
 - [x] 通過 TypeScript check、latency tests 13/13 及 production build
+
+## 延伸優化 (131) - 測試與 Socket.IO 啟動隔離
+- [x] 修正 WhatsApp 測試對 Drizzle array insert result 的 ID 提取
+- [x] 將 Socket.IO global state 移到 side-effect-free module，避免 router import 重複啟動 3000 server
+- [x] 完整 Vitest suite 通過：14 files、198 tests；focused latency tests 14/14；TypeScript 0 errors；production build 成功

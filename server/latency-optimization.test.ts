@@ -8,6 +8,7 @@ const homeSource = readFileSync(resolve(projectRoot, "client/src/pages/Home.tsx"
 const mainSource = readFileSync(resolve(projectRoot, "client/src/main.tsx"), "utf8");
 const routerSource = readFileSync(resolve(projectRoot, "server/routers/band.ts"), "utf8");
 const serverEntrySource = readFileSync(resolve(projectRoot, "server/_core/index.ts"), "utf8");
+const socketSource = readFileSync(resolve(projectRoot, "server/_core/socket.ts"), "utf8");
 const globalStyles = readFileSync(resolve(projectRoot, "client/src/index.css"), "utf8");
 
 describe("zero-perceived-latency contracts", () => {
@@ -66,6 +67,12 @@ describe("zero-perceived-latency contracts", () => {
   it("enables thresholded response compression at the server boundary", () => {
     expect(serverEntrySource).toContain('import compression from "compression"');
     expect(serverEntrySource).toContain("app.use(compression({ threshold: 1024 }))");
+  });
+
+  it("keeps Socket.IO state side-effect-free for router imports", () => {
+    expect(socketSource).toContain("let globalIO: SocketIOServer | null = null;");
+    expect(serverEntrySource).toContain('import { setIO } from "./socket"');
+    expect(routerSource).toContain('import { getIO } from "../_core/socket"');
   });
 
   it("uses immutable caching for hashed production assets", () => {

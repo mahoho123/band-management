@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { publicProcedure, router } from "../_core/trpc";
-import { getIO } from "../_core/index";
+import { getIO } from "../_core/socket";
 import { enqueueBackgroundTask } from "../_core/background";
 import { getDb } from "../db";
 import { sendPushNotificationToAdmins } from "../_core/webpush";

@@ -37,7 +37,7 @@ async function createTestEvent(title: string, overrides: Record<string, any> = {
     ...overrides,
   });
   const r = result as any;
-  return r.insertId || r;
+  return r.insertId ?? r?.[0]?.insertId ?? r;
 }
 
 async function createTestMember(name: string, password: string = 'test123'): Promise<number> {
@@ -48,7 +48,7 @@ async function createTestMember(name: string, password: string = 'test123'): Pro
     color: 'blue',
   });
   const r = result as any;
-  return r.insertId || r;
+  return r.insertId ?? r?.[0]?.insertId ?? r;
 }
 
 function generateAttendanceSummary(
