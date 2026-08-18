@@ -403,39 +403,33 @@ export function AdminPushSubscription({ autoEnable = false }: AdminPushSubscript
         )}
 
         <div className="space-y-3">
-          {permissionDenied && !isSubscribed && (
-            <Button
-              onClick={() => void handleSubscribe()}
-              disabled={isLoading}
-              variant="outline"
-              className="w-full border-amber-300 text-amber-800 hover:bg-amber-50"
-            >
-              {isLoading ? '檢查中...' : '重新檢查權限'}
-            </Button>
-          )}
           {isSubscribed ? (
-            <>
-              <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <CheckCircle2 className="w-5 h-5 text-green-600" />
-                <span className="text-sm font-medium text-green-700">推播通知已啟用</span>
+            <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+              <div className="text-sm font-medium text-green-700">
+                ✅ 推播通知已成功啟用！此裝置已完成常駐背景接收，無需再次設定。
               </div>
+            </div>
+          ) : (
+            <>
+              {permissionDenied && (
+                <Button
+                  onClick={() => void handleSubscribe()}
+                  disabled={isLoading}
+                  variant="outline"
+                  className="w-full border-amber-300 text-amber-800 hover:bg-amber-50 mb-2"
+                >
+                  {isLoading ? '檢查中...' : '重新檢查權限'}
+                </Button>
+              )}
               <Button
-                onClick={handleUnsubscribe}
+                onClick={handleSubscribe}
                 disabled={isLoading}
-                variant="outline"
-                className="w-full"
+                className="w-full bg-blue-600 hover:bg-blue-700"
               >
-                {isLoading ? '處理中...' : '停用推播通知'}
+                {isLoading ? '啟用中...' : '啟用推播通知'}
               </Button>
             </>
-          ) : (
-            <Button
-              onClick={handleSubscribe}
-              disabled={isLoading}
-              className="w-full bg-blue-600 hover:bg-blue-700"
-            >
-              {isLoading ? '啟用中...' : '啟用推播通知'}
-            </Button>
           )}
         </div>
 
