@@ -1147,21 +1147,8 @@ export default function Home() {
   // ============================================
   // LOGIN
   // ============================================
-  const requestNotificationPermissionFromLogin = async () => {
-    if (typeof window === "undefined" || !("Notification" in window)) {
-      return "unsupported" as const;
-    }
-    if (Notification.permission !== "default") return Notification.permission;
-    try {
-      return await Notification.requestPermission();
-    } catch {
-      return "denied" as const;
-    }
-  };
-
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const notificationPermission = await requestNotificationPermissionFromLogin();
     verifyAdminPasswordMutation.mutate(
       { password: adminLoginPassword },
       {
@@ -1176,9 +1163,8 @@ export default function Home() {
             sessionStorage.setItem("bandCurrentUser", JSON.stringify(user));
             setShowLoginModal(false);
             setAdminLoginPassword("");
-            setAutoEnableNotifications(notificationPermission === "granted");
-            setShowPushNotificationSettings(true);
-            showToast("主管登入成功，正在設定手機通知", "success");
+            setAutoEnableNotifications(false);
+            showToast("主管登入成功", "success");
           } else {
             showToast(result.message || "主管密碼錯誤", "error");
           }
