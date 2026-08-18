@@ -857,6 +857,11 @@ export default function Home() {
       return null;
     }
   });
+
+  const [devicePushSubscribed, setDevicePushSubscribed] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("bandDevicePushSubscribed") === "true";
+  });
   const [currentDate, setCurrentDate] = useState(new Date());
   const [currentView, setCurrentView] = useState<
     "calendar" | "list" | "members"
@@ -2312,11 +2317,48 @@ export default function Home() {
   // ============================================
   return (
     <div
-      className="min-h-screen"
+      className="min-h-screen relative"
       style={{
         background: "linear-gradient(135deg, #FFF8E1 0%, #FFF3CD 100%)",
       }}
     >
+      {/* Mandatory Device-Level Notification Gate for Logged-In Users */}
+      {currentUser && !devicePushSubscribed && (
+        <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-[100] p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border-2 border-amber-400 space-y-4 text-center my-auto">
+            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto text-amber-600 text-2xl font-bold animate-bounce">
+              🔔
+            </div>
+            <h2 className="text-xl font-bold text-gray-900">
+              必須開啟本裝置推播通知
+            </h2>
+            <p className="text-sm text-gray-600 leading-relaxed text-left">
+              根據 Band 隊管理規定，由即日起，所有登入使用者（包含一般成員、副主席與主管）在目前裝置上**必須先完成並啟用推播通知**，才能解鎖系統功能與進行任何操作。副主席或主管若在多台裝置登入，每台裝置皆須各自啟用一次通知。
+            </p>
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-left">
+              <AdminPushSubscription
+                onSubscribedChange={(subscribed) => {
+                  if (subscribed) {
+                    setDevicePushSubscribed(true);
+                    localStorage.setItem("bandDevicePushSubscribed", "true");
+                    showToast("本裝置通知已啟用，系統功能已解鎖", "success");
+                  }
+                }}
+              />
+            </div>
+            <div className="pt-2 flex justify-between items-center text-xs text-gray-500 border-t border-gray-100 mt-2">
+              <span>目前登入身分：{currentUser.name} ({currentUser.role === 'admin' ? '主管' : currentUser.role === 'vice-admin' ? '副主席' : '成員'})</span>
+              <button
+                onClick={handleLogout}
+                className="text-red-600 hover:underline font-semibold"
+              >
+                登出帳號
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Notification Bar */}
 
       {/* Setup Modal */}

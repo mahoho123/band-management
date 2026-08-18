@@ -121,12 +121,13 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
 
 interface AdminPushSubscriptionProps {
   autoEnable?: boolean;
+  onSubscribedChange?: (subscribed: boolean) => void;
 }
 
 const DENIED_PERMISSION_MESSAGE =
   '通知權限目前被瀏覽器封鎖。請先在此網站的瀏覽器設定中選擇「允許」，然後按「重新檢查權限」。\n\n📱 Android Chrome：地址欄右側「⋮」→ 設定 → 網站設定 → 通知 → 找到此網站並允許。\n\n💻 電腦：點擊地址欄左側的鎖定圖標 → 通知 → 允許。';
 
-export function AdminPushSubscription({ autoEnable = false }: AdminPushSubscriptionProps) {
+export function AdminPushSubscription({ autoEnable = false, onSubscribedChange }: AdminPushSubscriptionProps) {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -257,6 +258,7 @@ export function AdminPushSubscription({ autoEnable = false }: AdminPushSubscript
 
       setIsSubscribed(true);
       setSuccess(true);
+      onSubscribedChange?.(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
       const msg = err instanceof Error ? err.message : '❌ 訂閱失敗，請重試。';
