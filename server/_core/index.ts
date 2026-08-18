@@ -2,6 +2,7 @@ import express from "express";
 import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
+import compression from "compression";
 import { Server as SocketIOServer } from "socket.io";
 import { registerOAuthRoutes } from "./oauth";
 import { registerChatRoutes } from "./chat";
@@ -71,6 +72,9 @@ async function startServer() {
   // 配置 body parser，文件上传大小限制
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
+  // Compress JSON, HTML, and text responses while leaving small or already
+  // compressed assets untouched. This runs before API and static routes.
+  app.use(compression({ threshold: 1024 }));
   
   // 添加響应頭优化
   app.use((req, res, next) => {

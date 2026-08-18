@@ -889,3 +889,8 @@
 - [x] 新增假期時立即更新 holiday React Query cache
 - [x] 重複日期或 API 失敗時只移除本次 optimistic 項目
 - [x] 通過 TypeScript check 及 latency regression tests
+
+## 延伸優化 (127) - API 回應傳輸優化
+- [x] 啟用 Express thresholded response compression
+- [x] 加入 compression regression test
+- [x] 通過 TypeScript check、focused tests 及 production build
