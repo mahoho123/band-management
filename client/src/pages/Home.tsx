@@ -523,6 +523,7 @@ export default function Home() {
   const utils = trpc.useUtils();
   const optimisticEventIdRef = useRef(-1);
   const optimisticMemberIdRef = useRef(-1);
+  const optimisticHolidayIdRef = useRef(-1);
   const attendanceInFlightRef = useRef(new Set<string>());
 
   // tRPC mutations. List/toggle mutations update the React Query cache before
@@ -773,7 +774,42 @@ export default function Home() {
       void utils.band.getEvents.invalidate();
     },
   });
-  const addHolidayMutation = trpc.band.addHoliday.useMutation();
+  const addHolidayMutation = trpc.band.addHoliday.useMutation({
+    onMutate: async input => {
+      await utils.band.getHolidays.cancel();
+      const optimisticHoliday = {
+        id: optimisticHolidayIdRef.current--,
+        date: input.date,
+        name: input.name,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      const didInsert = !utils.band.getHolidays
+        .getData()
+        ?.some(holiday => holiday.date === input.date);
+      utils.band.getHolidays.setData(undefined, oldHolidays =>
+        oldHolidays
+          ? didInsert
+            ? [...oldHolidays, optimisticHoliday]
+            : oldHolidays
+          : [optimisticHoliday]
+      );
+      return { optimisticHolidayId: didInsert ? optimisticHoliday.id : undefined };
+    },
+    onError: (_error, _input, context) => {
+      if (context?.optimisticHolidayId !== undefined) {
+        utils.band.getHolidays.setData(undefined, oldHolidays =>
+          oldHolidays?.filter(
+            holiday => holiday.id !== context.optimisticHolidayId
+          )
+        );
+      }
+      showToast("新增假期失敗，已還原畫面", "error");
+    },
+    onSettled: () => {
+      void utils.band.getHolidays.invalidate();
+    },
+  });
   const verifyAdminPasswordMutation =
     trpc.band.verifyAdminPassword.useMutation();
   const verifyMemberPasswordMutation =

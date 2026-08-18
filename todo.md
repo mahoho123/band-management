@@ -884,3 +884,8 @@
 - [x] 修復 Web Push ArrayBuffer 型別相容性
 - [x] 修復 AIChatBox、Streamdown、NotificationBar 既有 TypeScript 診斷
 - [x] 重新執行 TypeScript check 及 latency regression tests
+
+## 延伸優化 (126) - 假期提交即時回饋
+- [x] 新增假期時立即更新 holiday React Query cache
+- [x] 重複日期或 API 失敗時只移除本次 optimistic 項目
+- [x] 通過 TypeScript check 及 latency regression tests
