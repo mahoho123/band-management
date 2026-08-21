@@ -2348,27 +2348,24 @@ export default function Home() {
             <div className="flex mb-2 sm:mb-3 md:mb-5 border-b border-gray-200">
               <button
                 onClick={() => setLoginTab("member")}
-                className={`flex-1 pb-1.5 sm:pb-2 md:pb-3 text-sm sm:text-base md:text-lg font-medium transition-all ${loginTab === "member" ? "border-b-2 border-amber-500 text-amber-700" : "text-gray-500 hover:text-gray-700"}`}
+                className={`flex-1 pb-1.5 sm:pb-2 md:pb-3 text-xs sm:text-sm md:text-base font-medium transition-all ${loginTab === "member" ? "border-b-2 border-amber-500 text-amber-700" : "text-gray-500 hover:text-gray-700"}`}
               >
                 <i className="fas fa-user mr-0.5 sm:mr-1 md:mr-2" />
-                <span className="hidden sm:inline">成員登入</span>
-                <span className="sm:hidden">成</span>
+                <span>成員登入</span>
               </button>
               <button
                 onClick={() => setLoginTab("vice-admin")}
-                className={`flex-1 pb-1.5 sm:pb-2 md:pb-3 text-sm sm:text-base md:text-lg font-medium transition-all ${loginTab === "vice-admin" ? "border-b-2 border-amber-500 text-amber-700" : "text-gray-500 hover:text-gray-700"}`}
+                className={`flex-1 pb-1.5 sm:pb-2 md:pb-3 text-xs sm:text-sm md:text-base font-medium transition-all ${loginTab === "vice-admin" ? "border-b-2 border-amber-500 text-amber-700" : "text-gray-500 hover:text-gray-700"}`}
               >
                 <i className="fas fa-star mr-0.5 sm:mr-1 md:mr-2" />
-                <span className="hidden sm:inline">副主席</span>
-                <span className="sm:hidden">副</span>
+                <span>副主席</span>
               </button>
               <button
                 onClick={() => setLoginTab("admin")}
-                className={`flex-1 pb-1.5 sm:pb-2 md:pb-3 text-sm sm:text-base md:text-lg font-medium transition-all ${loginTab === "admin" ? "border-b-2 border-amber-500 text-amber-700" : "text-gray-500 hover:text-gray-700"}`}
+                className={`flex-1 pb-1.5 sm:pb-2 md:pb-3 text-xs sm:text-sm md:text-base font-medium transition-all ${loginTab === "admin" ? "border-b-2 border-amber-500 text-amber-700" : "text-gray-500 hover:text-gray-700"}`}
               >
                 <i className="fas fa-crown mr-0.5 sm:mr-1 md:mr-2" />
-                <span className="hidden sm:inline">主管登入</span>
-                <span className="sm:hidden">主</span>
+                <span>主管登入</span>
               </button>
             </div>
 
@@ -4042,8 +4039,7 @@ export default function Home() {
                 title="WhatsApp 功能使用指南"
               >
                 <i className="fas fa-question-circle" />
-                <span className="hidden sm:inline">幫助</span>
-                <span className="sm:hidden">?</span>
+                <span>幫助</span>
               </button>
             )}
           </div>
@@ -4100,15 +4096,14 @@ export default function Home() {
                     className="text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100 text-xs px-2 py-2 rounded-lg transition-all font-medium flex items-center gap-1 whitespace-nowrap border border-green-200"
                   >
                     <i className="fab fa-whatsapp text-sm" />
-                    <span className="hidden sm:inline">本月通知</span>
+                    <span>本月通知</span>
                   </button>
                   <button
                     onClick={() => openAddEventModal()}
                     className="band-gradient text-white text-xs sm:text-sm px-2 sm:px-4 py-2 rounded-lg sm:rounded-xl hover:shadow-md transition-all font-medium flex items-center gap-1 sm:gap-2 whitespace-nowrap flex-1 sm:flex-none justify-center sm:justify-start"
                   >
                     <i className="fas fa-plus" />
-                    <span className="hidden sm:inline">新增活動</span>
-                    <span className="sm:hidden">新</span>
+                    <span>新增活動</span>
                   </button>
                 </div>
               )}
@@ -4154,8 +4149,7 @@ export default function Home() {
                   className="band-gradient text-white text-xs sm:text-sm px-2 sm:px-4 py-2 rounded-lg sm:rounded-xl hover:shadow-md transition-all font-medium flex items-center gap-1 sm:gap-2 whitespace-nowrap w-full sm:w-auto justify-center sm:justify-start"
                 >
                   <i className="fas fa-plus" />
-                  <span className="hidden sm:inline">新增活動</span>
-                  <span className="sm:hidden">新</span>
+                  <span>新增活動</span>
                 </button>
               )}
             </div>
