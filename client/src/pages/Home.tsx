@@ -3992,8 +3992,7 @@ export default function Home() {
               className={`nav-tab text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 ${currentView === "calendar" ? "active" : ""}`}
             >
               <i className="fas fa-calendar-alt" />
-              <span className="hidden sm:inline">月曆</span>
-              <span className="sm:hidden">曆</span>
+              <span>月曆</span>
             </button>
             <button
               onClick={() => setCurrentView("list")}
@@ -4002,8 +4001,7 @@ export default function Home() {
               className={`nav-tab text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 ${currentView === "list" ? "active" : ""}`}
             >
               <i className="fas fa-list" />
-              <span className="hidden sm:inline">活動清單</span>
-              <span className="sm:hidden">清</span>
+              <span>活動清單</span>
             </button>
             {currentUser?.role === "admin" && (
               <button
@@ -4013,8 +4011,7 @@ export default function Home() {
                 className={`nav-tab text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 ${currentView === "members" ? "active" : ""}`}
               >
                 <i className="fas fa-users" />
-                <span className="hidden sm:inline">成員管理</span>
-                <span className="sm:hidden">成</span>
+                <span>成員管理</span>
               </button>
             )}
             <a
@@ -4026,8 +4023,7 @@ export default function Home() {
               aria-label="器材借用（新分頁開啟）"
             >
               <i className="fas fa-toolbox" />
-              <span className="hidden sm:inline">器材借用</span>
-              <span className="sm:hidden">器</span>
+              <span>器材借用</span>
             </a>
             {currentUser?.role === "admin" && (
               <button
@@ -4036,8 +4032,7 @@ export default function Home() {
                 title="推播通知設定"
               >
                 <i className="fas fa-bell" />
-                <span className="hidden sm:inline">通知設定</span>
-                <span className="sm:hidden">鈴</span>
+                <span>通知設定</span>
               </button>
             )}
             {currentUser?.role === "admin" && (
@@ -4203,9 +4198,8 @@ export default function Home() {
                 className={`list-tab-btn flex-1 flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-3`}
                 style={currentListTab === "incomplete" ? {} : {}}
               >
-                <i className="fas fa-clock hidden sm:inline" />
-                <span className="hidden sm:inline">未完成</span>
-                <span className="sm:hidden">未</span>
+                <i className="fas fa-clock" />
+                <span>未完成</span>
                 <span
                   className={`px-1.5 sm:px-2 py-0.5 rounded-full text-xs font-bold ${currentListTab === "incomplete" ? "bg-white/20" : "bg-gray-200 text-gray-600"}`}
                 >
@@ -4216,9 +4210,8 @@ export default function Home() {
                 onClick={() => setCurrentListTab("completed")}
                 className={`list-tab-btn flex-1 flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-3`}
               >
-                <i className="fas fa-check-circle hidden sm:inline" />
-                <span className="hidden sm:inline">已完成</span>
-                <span className="sm:hidden">成</span>
+                <i className="fas fa-check-circle" />
+                <span>已完成</span>
                 <span
                   className={`px-1.5 sm:px-2 py-0.5 rounded-full text-xs font-bold ${currentListTab === "completed" ? "bg-white/20" : "bg-gray-200 text-gray-600"}`}
                 >
