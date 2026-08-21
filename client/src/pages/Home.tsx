@@ -12,10 +12,7 @@ import { DatePicker } from "@/components/DatePicker";
 import { EQUIPMENT_LOAN_EMBED_URL } from "@shared/equipmentLoan";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 import { AdminPushSubscription } from "@/components/AdminPushSubscription";
-import {
-  TimeSelector,
-  type TimeSelectorState,
-} from "@/components/TimeSelector";
+
 
 import { trpc } from "@/lib/trpc";
 import {
@@ -392,12 +389,7 @@ function formatTimeObjectTo12(timeObj: any): string {
   return `${chinesePeriod} ${timeObj.hour}:${String(timeObj.minute).padStart(2, "0")}`;
 }
 
-function timePeriodToSelectorSlot(period: string): TimeSelectorState["timeSlot"] {
-  if (period === "上午" || period === "AM" || period === "morning") return "morning";
-  if (period === "下午" || period === "PM" || period === "afternoon") return "afternoon";
-  if (period === "晚上" || period === "evening") return "evening";
-  return "pending";
-}
+
 
 function legacyTimeToSelectorValue(hour: string, minute: string, period: string): string | null {
   if (!hour || hour === "--" || !minute || minute === "--") return null;
@@ -858,10 +850,6 @@ export default function Home() {
     }
   });
 
-  const [devicePushSubscribed, setDevicePushSubscribed] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    return localStorage.getItem("bandDevicePushSubscribed") === "true";
-  });
   const [currentDate, setCurrentDate] = useState(new Date());
   const [currentView, setCurrentView] = useState<
     "calendar" | "list" | "members"
@@ -941,40 +929,7 @@ export default function Home() {
   const [eventModalMode, setEventModalMode] = useState<"add" | "edit" | "view">(
     "view"
   );
-  const [eventTimeSlot, setEventTimeSlot] = useState<
-    "pending" | "morning" | "afternoon" | "evening" | null
-  >(null);
-  const timeSelectorValue = useMemo<TimeSelectorState>(
-    () => ({
-      startTime: legacyTimeToSelectorValue(startHour, startMinute, startAmpm),
-      endTime: legacyTimeToSelectorValue(endHour, endMinute, endAmpm),
-      timeSlot: timePeriodToSelectorSlot(startAmpm),
-    }),
-    [endAmpm, endHour, endMinute, startAmpm, startHour, startMinute]
-  );
-  const handleTimeSelectorChange = useCallback((next: TimeSelectorState) => {
-    const slotLabels: Record<NonNullable<TimeSelectorState["timeSlot"]>, string> = {
-      pending: "pending",
-      morning: "上午",
-      afternoon: "下午",
-      evening: "晚上",
-    };
-    const selectedSlot = next.timeSlot ? slotLabels[next.timeSlot] : undefined;
 
-    if (next.startTime !== undefined) {
-      const start = selectorTimeToLegacy(next.startTime);
-      setStartHour(start.hour);
-      setStartMinute(start.minute);
-      setStartAmpm(next.startTime ? start.period : selectedSlot || "pending");
-    }
-    if (next.endTime !== undefined) {
-      const end = selectorTimeToLegacy(next.endTime);
-      setEndHour(end.hour);
-      setEndMinute(end.minute);
-      setEndAmpm(next.endTime ? end.period : selectedSlot || "pending");
-    }
-    if (next.timeSlot !== undefined) setEventTimeSlot(next.timeSlot);
-  }, []);
   // Repeat event states - custom date selection
   const [extraRepeatDates, setExtraRepeatDates] = useState<string[]>([]); // additional dates beyond the main date
   const [repeatEnabled, setRepeatEnabled] = useState(false);
@@ -1363,7 +1318,6 @@ export default function Home() {
       setDateHolidayWarning("");
       setSelectedEventId(null);
       setEventModalMode("add");
-      setEventTimeSlot(null);
       setRepeatEnabled(false);
       setExtraRepeatDates([]);
       setShowDatePicker(false);
@@ -1392,7 +1346,6 @@ export default function Home() {
     if (!event) return;
     setSelectedEventId(eventId);
     setEventModalMode("edit");
-    setEventTimeSlot(event.timeSlot ?? null);
     setEventTitle(event.title);
     setEventDate(event.date);
     setEventType(event.type);
@@ -1580,7 +1533,7 @@ export default function Home() {
             date,
             startTime,
             endTime,
-            timeSlot: eventTimeSlot || undefined,
+            timeSlot: undefined,
             location: eventLocation,
             type: eventType,
             notes: eventNotes,
@@ -2322,43 +2275,6 @@ export default function Home() {
         background: "linear-gradient(135deg, #FFF8E1 0%, #FFF3CD 100%)",
       }}
     >
-      {/* Mandatory Device-Level Notification Gate for Logged-In Users */}
-      {currentUser && !devicePushSubscribed && (
-        <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-[100] p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border-2 border-amber-400 space-y-4 text-center my-auto">
-            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto text-amber-600 text-2xl font-bold animate-bounce">
-              🔔
-            </div>
-            <h2 className="text-xl font-bold text-gray-900">
-              必須開啟本裝置推播通知
-            </h2>
-            <p className="text-sm text-gray-600 leading-relaxed text-left">
-              根據 Band 隊管理規定，由即日起，所有登入使用者（包含一般成員、副主席與主管）在目前裝置上**必須先完成並啟用推播通知**，才能解鎖系統功能與進行任何操作。副主席或主管若在多台裝置登入，每台裝置皆須各自啟用一次通知。
-            </p>
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-left">
-              <AdminPushSubscription
-                onSubscribedChange={(subscribed) => {
-                  if (subscribed) {
-                    setDevicePushSubscribed(true);
-                    localStorage.setItem("bandDevicePushSubscribed", "true");
-                    showToast("本裝置通知已啟用，系統功能已解鎖", "success");
-                  }
-                }}
-              />
-            </div>
-            <div className="pt-2 flex justify-between items-center text-xs text-gray-500 border-t border-gray-100 mt-2">
-              <span>目前登入身分：{currentUser.name} ({currentUser.role === 'admin' ? '主管' : currentUser.role === 'vice-admin' ? '副主席' : '成員'})</span>
-              <button
-                onClick={handleLogout}
-                className="text-red-600 hover:underline font-semibold"
-              >
-                登出帳號
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Notification Bar */}
 
       {/* Setup Modal */}
@@ -2886,11 +2802,7 @@ export default function Home() {
                     </select>
                   </div>
                 </div>
-                <TimeSelector
-                  value={timeSelectorValue}
-                  onChange={handleTimeSelectorChange}
-                />
-                <div className="hidden grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <label className="block text-sm sm:text-base md:text-lg font-medium text-gray-700 mb-2 sm:mb-3">
                       開始時間 <span className="text-red-500">*</span>
