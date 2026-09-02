@@ -2,6 +2,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { bandRouter } from "./routers/band";
+import { workspaceRouter } from "./routers/workspaces";
 import { publicProcedure, router } from "./_core/trpc";
 
 export const appRouter = router({
@@ -19,6 +20,7 @@ export const appRouter = router({
   }),
 
   band: bandRouter,
+  workspaces: workspaceRouter,
 });
 
 export type AppRouter = typeof appRouter;

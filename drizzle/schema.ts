@@ -25,6 +25,39 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
+// Multi-band workspace foundation. Existing single-band tables remain unchanged until
+// the migration is explicitly approved and applied to the remote database.
+export const bands = mysqlTable("bands", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  slug: varchar("slug", { length: 120 }).notNull().unique(),
+  logoUrl: text("logoUrl"),
+  primaryColor: varchar("primaryColor", { length: 32 }).default("#D4A017").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  slugIdx: index("bands_slug_idx").on(table.slug),
+}));
+
+export type Band = typeof bands.$inferSelect;
+export type InsertBand = typeof bands.$inferInsert;
+
+export const bandMemberships = mysqlTable("band_memberships", {
+  id: int("id").autoincrement().primaryKey(),
+  bandId: int("bandId").notNull(),
+  userId: int("userId").notNull(),
+  role: mysqlEnum("role", ["owner", "admin", "member"]).default("member").notNull(),
+  status: mysqlEnum("status", ["active", "invited", "suspended"]).default("active").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  bandUserIdx: uniqueIndex("band_memberships_band_user_idx").on(table.bandId, table.userId),
+  userIdx: index("band_memberships_user_idx").on(table.userId),
+}));
+
+export type BandMembership = typeof bandMemberships.$inferSelect;
+export type InsertBandMembership = typeof bandMemberships.$inferInsert;
+
 // Band Management System Tables
 export const bandMembers = mysqlTable("band_members", {
   id: int("id").autoincrement().primaryKey(),
