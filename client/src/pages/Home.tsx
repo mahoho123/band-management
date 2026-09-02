@@ -1,5 +1,5 @@
 /*
- * 慢半拍 - 主頁面
+ * Band 隊管理系統 - 主頁面
  * Design: 清新樂譜 (Sheet Music Minimalism)
  * - White background, purple-blue gradient brand color
  * - Noto Sans HK typography, different weights for hierarchy
@@ -2284,8 +2284,8 @@ export default function Home() {
             <div className="text-center mb-3 sm:mb-4 md:mb-6">
               <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 mx-auto mb-2 sm:mb-3 md:mb-4">
                 <img
-                  src="https://private-us-east-1.manuscdn.com/user_upload_by_module/session_file/310519663399040844/QmYyBhyPJzCGHoAu.png?Expires=1804689314&Signature=ftBwhRzQe-cE2UCnQ~BLlYAekuEr4cPp0p2Ny4JJEEu2exJk4IhaE6mk~Cf~Tl47NM0LqJyErZG5LYyG0zke1c887aQ3ndJc-bZA7-R1QtIOH5UMWJjB1Tqb~ko~cnUmadYmqEgID9l82Yxh-2QunFZ95knlqQ4dHzEPg~UsuE~41CwHWwrxMfmYNXi4swaKHFCanD0LtV3hbyKEJC8OQJMsGTY8qJ9Pyxk7jMdhtnV70t3pxFUJRdu46aGzDmvk7dtt~Niqu3vT9wlbKgd4ExkFxe8wRHwGp5RM4ia1CQtqwWqMIzn5LvSXHkr54Fr~z1y9SLrVejx3DugBolBYrQ__&Key-Pair-Id=K2HSFNDJXOU9YS"
-                  alt="慢半拍"
+                  src="/manus-storage/band-management-logo_6e85896f.png"
+                  alt="Band 隊管理系統 Logo"
                   className="w-full h-full object-contain"
                 />
               </div>
@@ -3890,14 +3890,14 @@ export default function Home() {
             <div className="flex items-center gap-2 sm:gap-3 min-w-0 w-full sm:w-auto">
               <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 flex-shrink-0">
                 <img
-                  src="https://private-us-east-1.manuscdn.com/user_upload_by_module/session_file/310519663399040844/QmYyBhyPJzCGHoAu.png?Expires=1804689314&Signature=ftBwhRzQe-cE2UCnQ~BLlYAekuEr4cPp0p2Ny4JJEEu2exJk4IhaE6mk~Cf~Tl47NM0LqJyErZG5LYyG0zke1c887aQ3ndJc-bZA7-R1QtIOH5UMWJjB1Tqb~ko~cnUmadYmqEgID9l82Yxh-2QunFZ95knlqQ4dHzEPg~UsuE~41CwHWwrxMfmYNXi4swaKHFCanD0LtV3hbyKEJC8OQJMsGTY8qJ9Pyxk7jMdhtnV70t3pxFUJRdu46aGzDmvk7dtt~Niqu3vT9wlbKgd4ExkFxe8wRHwGp5RM4ia1CQtqwWqMIzn5LvSXHkr54Fr~z1y9SLrVejx3DugBolBYrQ__&Key-Pair-Id=K2HSFNDJXOU9YS"
-                  alt="慢半拍"
+                  src="/manus-storage/band-management-logo_6e85896f.png"
+                  alt="Band 隊管理系統 Logo"
                   className="w-full h-full object-contain"
                 />
               </div>
               <div className="min-w-0 flex-1 sm:flex-none">
                 <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 truncate">
-                  慢半拍
+                  Band 隊管理系統
                 </h1>
                 <p className="text-xs text-gray-500">
                   {currentUser?.role === "admin" ? "主管" : "成員"}

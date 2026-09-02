@@ -1,5 +1,5 @@
 // ============================================================
-// 慢半拍 Service Worker - 改善版
+// Band 隊管理系統 Service Worker - 改善版
 // 功能：Web Push 通知 + 離線緩存 + 自動更新
 // ============================================================
 
@@ -101,12 +101,12 @@ self.addEventListener('push', (event) => {
     data = event.data.json();
   } catch (e) {
     console.error('[SW] Failed to parse push data:', e);
-    data = { title: '慢半拍', body: event.data.text() || '您有新的通知' };
+    data = { title: 'Band 隊管理系統', body: event.data.text() || '您有新的通知' };
   }
 
   console.log('[SW] Push data:', data);
 
-  const title = data.title || '慢半拍';
+  const title = data.title || 'Band 隊管理系統';
   const eventTag = data.eventTag || `notification-${Date.now()}`;
 
   const options = {

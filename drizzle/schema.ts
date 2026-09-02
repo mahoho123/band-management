@@ -121,12 +121,11 @@ export const bandHolidays = mysqlTable("band_holidays", {
   date: varchar("date", { length: 10 }).notNull().unique(),
   name: varchar("name", { length: 255 }).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
-
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+}));
 export type BandHoliday = typeof bandHolidays.$inferSelect;
 export type InsertBandHoliday = typeof bandHolidays.$inferInsert;
-
 export const bandSystemData = mysqlTable("band_system_data", {
   id: int("id").autoincrement().primaryKey(),
   adminPassword: varchar("adminPassword", { length: 255 }).notNull(),

@@ -1010,12 +1010,12 @@
 
 ## 新需求 (149) - 器材平台品牌與多樂隊分區規劃
 - [x] 確認修改目標是器材借用平台還是 Band 管理主系統，並確認可修改的專案
-- [ ] 為 Band 管理主系統左上角建立只顯示「Band 隊管理系統」的品牌文字與新 Logo 方案
+- [x] 為 Band 管理主系統左上角建立只顯示「Band 隊管理系統」的品牌文字與新 Logo 方案
 - [x] 規劃不同 Band 的 workspace／資料隔離、角色權限及多裝置通知邊界
 
 ## 新需求 (150) - 多 Band 工作區（本機製作，不發布）
 - [x] 建立 Band workspace 與成員 membership 資料模型，兼容現有單一 Band 資料
-- [ ] 將活動、假期、出席、通知及相關 API 加入 Band 範圍隔離（待資料庫 migration 啟用）
+- [ ] 將活動、假期、出席、通知及相關 API 加入 Band 範圍隔離（待資料庫 migration 啟用；本機已完成 foundation，尚未接通現有表格）
 - [x] 加入 Band 切換／管理介面並保持手機響應式，不保存 checkpoint 或發布（已建立可供啟用的 switcher 元件）
 - [x] 新增資料隔離及權限測試，完成本機 TypeScript、Vitest 及 production build 驗證
 
@@ -1024,3 +1024,8 @@
 
 ## 範圍更新
 - [x] 使用者確認繼續保存 checkpoint，以便在 Manus Preview 內測試目前版本；專案自動發布設定將同步生效
+
+## 續作項目
+- [x] 接入新生成 Logo 到 Band 隊管理系統左上角，並顯示完整品牌文字
+- [ ] 在主系統接上多 Band workspace switcher 的預覽入口（待資料庫 migration 啟用）
+- [x] 完成本地驗證；如需 Manus Preview，另行保存 checkpoint（會同步發布）
