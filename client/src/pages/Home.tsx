@@ -653,6 +653,7 @@ export default function Home() {
       const previousEvents = utils.band.getEvents.getData();
       const optimisticEvent = {
         id: optimisticEventIdRef.current--,
+        bandId: 1,
         title: input.title,
         date: input.date,
         startTime: input.startTime ?? null,
@@ -800,6 +801,7 @@ export default function Home() {
       await utils.band.getHolidays.cancel();
       const optimisticHoliday = {
         id: optimisticHolidayIdRef.current--,
+        bandId: 1,
         date: input.date,
         name: input.name,
         createdAt: new Date(),

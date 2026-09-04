@@ -94,46 +94,47 @@ export async function getUserByOpenId(openId: string) {
 // TODO: add feature queries here as your schema grows.
 
 // Band Management System queries
-export async function getBandMembers() {
+export async function getBandMembers(bandId = 1) {
   const db = await getDb();
   if (!db) return [];
-  return await db.select().from(bandMembers);
+  return await db.select().from(bandMembers).where(eq(bandMembers.bandId, bandId));
 }
 
-export async function addBandMember(member: InsertBandMember) {
+export async function addBandMember(member: InsertBandMember, bandId = 1) {
   const db = await getDb();
   if (!db) return null;
   const values: InsertBandMember = {
     ...member,
+    bandId,
     password: !member.password || isHashedPassword(member.password) ? member.password : hashPassword(member.password),
   };
   const result = await db.insert(bandMembers).values(values);
   return result;
 }
 
-export async function deleteBandMember(id: number) {
+export async function deleteBandMember(id: number, bandId = 1) {
   const db = await getDb();
   if (!db) return null;
-  return await db.delete(bandMembers).where(eq(bandMembers.id, id));
+  return await db.delete(bandMembers).where(and(eq(bandMembers.id, id), eq(bandMembers.bandId, bandId)));
 }
 
-export async function updateBandMember(id: number, data: Partial<BandMember>) {
+export async function updateBandMember(id: number, data: Partial<BandMember>, bandId = 1) {
   const db = await getDb();
   if (!db) return null;
   const values = data.password === undefined || !data.password || isHashedPassword(data.password)
     ? data
     : { ...data, password: hashPassword(data.password) };
-  return await db.update(bandMembers).set(values).where(eq(bandMembers.id, id));
+  return await db.update(bandMembers).set(values).where(and(eq(bandMembers.id, id), eq(bandMembers.bandId, bandId)));
 }
 
-export async function getBandEvents() {
+export async function getBandEvents(bandId = 1) {
   const db = await getDb();
   if (!db) return [];
   
   // 使用單一查詢取得所有活動及出席記錄，消除 N+1 查詢問題
   const [events, allAttendance] = await Promise.all([
-    db.select().from(bandEvents),
-    db.select().from(bandAttendance),
+    db.select().from(bandEvents).where(eq(bandEvents.bandId, bandId)),
+    db.select().from(bandAttendance).where(eq(bandAttendance.bandId, bandId)),
   ]);
   
   // 將出席記錄按 eventId 分組（使用字串 key 確保 JSON 序列化後一致）
@@ -152,57 +153,57 @@ export async function getBandEvents() {
   }));
 }
 
-export async function addBandEvent(event: InsertBandEvent) {
+export async function addBandEvent(event: InsertBandEvent, bandId = 1) {
   const db = await getDb();
   if (!db) return null;
-  const result = await db.insert(bandEvents).values(event);
+  const result = await db.insert(bandEvents).values({ ...event, bandId });
   return result;
 }
 
-export async function updateBandEvent(id: number, data: Partial<BandEvent>) {
+export async function updateBandEvent(id: number, data: Partial<BandEvent>, bandId = 1) {
   const db = await getDb();
   if (!db) return null;
-  return await db.update(bandEvents).set(data).where(eq(bandEvents.id, id));
+  return await db.update(bandEvents).set(data).where(and(eq(bandEvents.id, id), eq(bandEvents.bandId, bandId)));
 }
 
-export async function deleteBandEvent(id: number) {
+export async function deleteBandEvent(id: number, bandId = 1) {
   const db = await getDb();
   if (!db) return null;
-  return await db.delete(bandEvents).where(eq(bandEvents.id, id));
+  return await db.delete(bandEvents).where(and(eq(bandEvents.id, id), eq(bandEvents.bandId, bandId)));
 }
 
-export async function getBandAttendance(eventId: number) {
+export async function getBandAttendance(eventId: number, bandId = 1) {
   const db = await getDb();
   if (!db) return [];
-  return await db.select().from(bandAttendance).where(eq(bandAttendance.eventId, eventId));
+  return await db.select().from(bandAttendance).where(and(eq(bandAttendance.eventId, eventId), eq(bandAttendance.bandId, bandId)));
 }
 
-export async function setAttendance(eventId: number, memberId: number, status: string) {
+export async function setAttendance(eventId: number, memberId: number, status: string, bandId = 1) {
   const db = await getDb();
   if (!db) return { success: false };
   // Use INSERT ... ON DUPLICATE KEY UPDATE for atomic upsert (requires unique index on eventId+memberId)
   await db.insert(bandAttendance)
-    .values({ eventId, memberId, status: status as any })
+    .values({ bandId, eventId, memberId, status: status as any })
     .onDuplicateKeyUpdate({ set: { status: status as any, updatedAt: new Date() } });
   return { success: true, eventId, memberId, status };
 }
 
-export async function getBandHolidays() {
+export async function getBandHolidays(bandId = 1) {
   const db = await getDb();
   if (!db) return [];
-  return await db.select().from(bandHolidays);
+  return await db.select().from(bandHolidays).where(eq(bandHolidays.bandId, bandId));
 }
 
-export async function addBandHoliday(holiday: InsertBandHoliday) {
+export async function addBandHoliday(holiday: InsertBandHoliday, bandId = 1) {
   const db = await getDb();
   if (!db) return null;
-  return await db.insert(bandHolidays).values(holiday).onDuplicateKeyUpdate({ set: { name: holiday.name } });
+  return await db.insert(bandHolidays).values({ ...holiday, bandId }).onDuplicateKeyUpdate({ set: { name: holiday.name } });
 }
 
-export async function getBandSystemData() {
+export async function getBandSystemData(bandId = 1) {
   const db = await getDb();
   if (!db) return null;
-  const result = await db.select().from(bandSystemData).limit(1);
+  const result = await db.select().from(bandSystemData).where(eq(bandSystemData.bandId, bandId)).limit(1);
   return result.length > 0 ? result[0] : null;
 }
 
@@ -236,33 +237,33 @@ export async function migratePlaintextPasswords(): Promise<void> {
   );
 }
 
-export async function initBandSystemData(adminPassword: string) {
+export async function initBandSystemData(adminPassword: string, bandId = 1) {
   const db = await getDb();
   if (!db) return null;
   const storedPassword = isHashedPassword(adminPassword) ? adminPassword : hashPassword(adminPassword);
-  const existing = await db.select().from(bandSystemData).limit(1);
+  const existing = await db.select().from(bandSystemData).where(eq(bandSystemData.bandId, bandId)).limit(1);
   if (existing.length > 0) {
     return await db.update(bandSystemData).set({ adminPassword: storedPassword, isSetup: 1 }).where(eq(bandSystemData.id, existing[0].id));
   } else {
-    return await db.insert(bandSystemData).values({ adminPassword: storedPassword, isSetup: 1 });
+    return await db.insert(bandSystemData).values({ bandId, adminPassword: storedPassword, isSetup: 1 });
   }
 }
 
-export async function updateViceAdminPassword(viceAdminPassword: string) {
+export async function updateViceAdminPassword(viceAdminPassword: string, bandId = 1) {
   const db = await getDb();
   if (!db) return null;
   const storedPassword = isHashedPassword(viceAdminPassword) ? viceAdminPassword : hashPassword(viceAdminPassword);
-  const existing = await db.select().from(bandSystemData).limit(1);
+  const existing = await db.select().from(bandSystemData).where(eq(bandSystemData.bandId, bandId)).limit(1);
   if (existing.length > 0) {
     return await db.update(bandSystemData).set({ viceAdminPassword: storedPassword, updatedAt: new Date() }).where(eq(bandSystemData.id, existing[0].id));
   }
   return null;
 }
 
-export async function verifyViceAdminPassword(password: string) {
+export async function verifyViceAdminPassword(password: string, bandId = 1) {
   const db = await getDb();
   if (!db) return { success: false, message: "系統未初始化" };
-  const result = await db.select().from(bandSystemData).limit(1);
+  const result = await db.select().from(bandSystemData).where(eq(bandSystemData.bandId, bandId)).limit(1);
   if (!result.length || !result[0].viceAdminPassword) {
     return { success: false, message: "副主席尚未設定密碼，請聯絡主管" };
   }
@@ -277,7 +278,7 @@ export async function verifyViceAdminPassword(password: string) {
   return { success: false, message: "副主席密碼錯誤" };
 }
 
-export async function updateBandSystemData(adminPassword: string) {
+export async function updateBandSystemData(adminPassword: string, bandId = 1) {
   const storedPassword = isHashedPassword(adminPassword) ? adminPassword : hashPassword(adminPassword);
   const db = await getDb();
   if (!db) {
@@ -286,7 +287,7 @@ export async function updateBandSystemData(adminPassword: string) {
   }
   
   try {
-    const existing = await db.select().from(bandSystemData).limit(1);
+    const existing = await db.select().from(bandSystemData).where(eq(bandSystemData.bandId, bandId)).limit(1);
     console.log("[updateBandSystemData] Existing records:", existing);
     
     if (existing.length > 0) {
@@ -330,10 +331,10 @@ export async function getNotifications() {
   return await db.select().from(bandNotifications).orderBy(desc(bandNotifications.createdAt));
 }
 
-export async function getUnreadNotifications() {
+export async function getUnreadNotifications(bandId = 1) {
   const db = await getDb();
   if (!db) return [];
-  return await db.select().from(bandNotifications).where(eq(bandNotifications.isRead, 0)).orderBy(desc(bandNotifications.createdAt));
+  return await db.select().from(bandNotifications).where(and(eq(bandNotifications.isRead, 0), eq(bandNotifications.bandId, bandId))).orderBy(desc(bandNotifications.createdAt));
 }
 
 export async function markNotificationAsRead(id: number) {
@@ -362,7 +363,7 @@ export async function markAllNotificationsAsRead() {
 }
 
 // Push Subscription queries
-export async function savePushSubscription(userId: number, subscription: any) {
+export async function savePushSubscription(userId: number, subscription: any, bandId = 1) {
   const db = await getDb();
   if (!db) return null;
   
@@ -381,6 +382,7 @@ export async function savePushSubscription(userId: number, subscription: any) {
         .set({
           auth: subscription.keys.auth,
           p256dh: subscription.keys.p256dh,
+          bandId,
           updatedAt: new Date(),
         })
         .where(eq(pushSubscriptions.id, existing[0].id));
@@ -388,6 +390,7 @@ export async function savePushSubscription(userId: number, subscription: any) {
       // Insert new subscription
       return await db.insert(pushSubscriptions).values({
         userId,
+        bandId,
         endpoint: subscription.endpoint,
         auth: subscription.keys.auth,
         p256dh: subscription.keys.p256dh,
@@ -441,12 +444,12 @@ export async function deletePushSubscription(endpoint: string) {
 }
 
 // Admin Push Subscription queries
-export async function updateAdminPushSubscription(subscription: string | null) {
+export async function updateAdminPushSubscription(subscription: string | null, bandId = 1) {
   const db = await getDb();
   if (!db) return null;
   
   try {
-    const existing = await db.select().from(bandSystemData).limit(1);
+    const existing = await db.select().from(bandSystemData).where(eq(bandSystemData.bandId, bandId)).limit(1);
     if (existing.length > 0) {
       return await db
         .update(bandSystemData)

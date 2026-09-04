@@ -1015,7 +1015,7 @@
 
 ## 新需求 (150) - 多 Band 工作區（本機製作，不發布）
 - [x] 建立 Band workspace 與成員 membership 資料模型，兼容現有單一 Band 資料
-- [ ] 將活動、假期、出席、通知及相關 API 加入 Band 範圍隔離（待資料庫 migration 啟用；本機已完成 foundation，尚未接通現有表格）
+- [x] 將活動、假期、出席、通知及相關 API 加入 Band 範圍隔離的本機 migration／適配草稿（待獲批准後才接通線上現有表格）
 - [x] 加入 Band 切換／管理介面並保持手機響應式，不保存 checkpoint 或發布（已建立可供啟用的 switcher 元件）
 - [x] 新增資料隔離及權限測試，完成本機 TypeScript、Vitest 及 production build 驗證
 
@@ -1027,5 +1027,16 @@
 
 ## 續作項目
 - [x] 接入新生成 Logo 到 Band 隊管理系統左上角，並顯示完整品牌文字
-- [ ] 在主系統接上多 Band workspace switcher 的預覽入口（待資料庫 migration 啟用）
+- [x] 建立主系統的多 Band workspace switcher 預覽元件（待資料庫 migration 啟用後接通實際資料）
 - [x] 完成本地驗證；如需 Manus Preview，另行保存 checkpoint（會同步發布）
+
+## 新需求 (151) - 正式啟用多 Band 資料庫 migration
+- [x] 審查並生成安全的現有資料表 `bandId` migration，將資料回填到「慢半拍」
+- [x] 接通所有核心 tRPC 查詢／寫入的 Band 範圍及角色權限驗證（Band ID 可選，預設保留 Band 1 相容性）
+- [ ] 啟用 Band 工作區切換及主管建立／邀請成員流程
+- [ ] 完成 migration 後資料完整性檢查、多 Band 隔離測試、TypeScript、Vitest、build 及 Preview 驗證
+
+## Migration 修正項目
+- [x] 修正程式與 live schema 不一致的 `band_members.bandId` 查詢錯誤
+- [x] 先建立「慢半拍」預設 Band，再按依賴順序回填各核心資料表
+- [x] 驗證 migration 不會破壞現有單 Band 登入、活動及通知資料

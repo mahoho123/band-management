@@ -113,6 +113,13 @@
       "when": 1788317300476,
       "tag": "0015_chemical_talisman",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "5",
+      "when": 1788495603403,
+      "tag": "0016_medical_kang",
+      "breakpoints": true
     }
   ]
 }

@@ -61,19 +61,23 @@ export type InsertBandMembership = typeof bandMemberships.$inferInsert;
 // Band Management System Tables
 export const bandMembers = mysqlTable("band_members", {
   id: int("id").autoincrement().primaryKey(),
+  bandId: int("bandId").notNull().default(1),
   name: varchar("name", { length: 255 }).notNull(),
   instrument: varchar("instrument", { length: 255 }),
   color: varchar("color", { length: 50 }).default("blue").notNull(),
   password: varchar("password", { length: 255 }).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  bandIdx: index("band_members_band_idx").on(table.bandId),
+}));
 
 export type BandMember = typeof bandMembers.$inferSelect;
 export type InsertBandMember = typeof bandMembers.$inferInsert;
 
 export const bandEvents = mysqlTable("band_events", {
   id: int("id").autoincrement().primaryKey(),
+  bandId: int("bandId").notNull().default(1),
   title: varchar("title", { length: 255 }).notNull(),
   date: varchar("date", { length: 10 }).notNull(),
   startTime: json("startTime").$type<{ hour: string; minute: string; period: string } | null>(),
@@ -87,7 +91,7 @@ export const bandEvents = mysqlTable("band_events", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (table) => ({
   // Index for date-based queries (calendar view)
-  dateIdx: index("events_date_idx").on(table.date),
+  dateIdx: index("events_date_idx").on(table.bandId, table.date),
 }));
 
 export type BandEvent = Omit<typeof bandEvents.$inferSelect, 'startTime' | 'endTime'> & {
@@ -101,6 +105,7 @@ export type InsertBandEvent = typeof bandEvents.$inferInsert;
 
 export const bandAttendance = mysqlTable("band_attendance", {
   id: int("id").autoincrement().primaryKey(),
+  bandId: int("bandId").notNull().default(1),
   eventId: int("eventId").notNull(),
   memberId: int("memberId").notNull(),
   status: mysqlEnum("status", ["going", "not-going", "unknown"]).default("unknown").notNull(),
@@ -108,7 +113,7 @@ export const bandAttendance = mysqlTable("band_attendance", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (table) => ({
   // Composite unique index for fast lookup and upsert
-  eventMemberIdx: uniqueIndex("event_member_idx").on(table.eventId, table.memberId),
+  eventMemberIdx: uniqueIndex("event_member_idx").on(table.bandId, table.eventId, table.memberId),
   // Index for querying all attendance by event
   eventIdIdx: index("attendance_event_id_idx").on(table.eventId),
 }));
@@ -118,16 +123,19 @@ export type InsertBandAttendance = typeof bandAttendance.$inferInsert;
 
 export const bandHolidays = mysqlTable("band_holidays", {
   id: int("id").autoincrement().primaryKey(),
-  date: varchar("date", { length: 10 }).notNull().unique(),
+  bandId: int("bandId").notNull().default(1),
+  date: varchar("date", { length: 10 }).notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (table) => ({
+  bandDateIdx: uniqueIndex("band_holidays_band_date_idx").on(table.bandId, table.date),
 }));
 export type BandHoliday = typeof bandHolidays.$inferSelect;
 export type InsertBandHoliday = typeof bandHolidays.$inferInsert;
 export const bandSystemData = mysqlTable("band_system_data", {
   id: int("id").autoincrement().primaryKey(),
+  bandId: int("bandId").notNull().default(1),
   adminPassword: varchar("adminPassword", { length: 255 }).notNull(),
   viceAdminPassword: varchar("viceAdminPassword", { length: 255 }),
   isSetup: int("isSetup").default(0).notNull(),
@@ -142,6 +150,7 @@ export type InsertBandSystemData = typeof bandSystemData.$inferInsert;
 // Notifications table
 export const bandNotifications = mysqlTable("band_notifications", {
   id: int("id").autoincrement().primaryKey(),
+  bandId: int("bandId").notNull().default(1),
   eventId: int("eventId"),
   memberId: int("memberId"),
   type: mysqlEnum("type", ["attendance-changed", "event-added", "event-updated", "event-deleted", "member-added", "member-deleted", "system"]).notNull(),
@@ -165,6 +174,7 @@ export type InsertBandNotification = typeof bandNotifications.$inferInsert;
 // Web Push Subscriptions table
 export const pushSubscriptions = mysqlTable("push_subscriptions", {
   id: int("id").autoincrement().primaryKey(),
+  bandId: int("bandId").notNull().default(1),
   userId: int("userId").notNull(),
   endpoint: text("endpoint").notNull(),
   auth: varchar("auth", { length: 255 }).notNull(),
@@ -174,6 +184,7 @@ export const pushSubscriptions = mysqlTable("push_subscriptions", {
 }, (table) => ({
   // Index for userId lookup (get all subscriptions for a user)
   userIdIdx: index("push_subscriptions_user_id_idx").on(table.userId),
+  bandUserIdx: index("push_subscriptions_band_user_idx").on(table.bandId, table.userId),
 }));
 
 export type PushSubscription = typeof pushSubscriptions.$inferSelect;
