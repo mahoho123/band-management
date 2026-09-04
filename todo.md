@@ -1033,8 +1033,8 @@
 ## 新需求 (151) - 正式啟用多 Band 資料庫 migration
 - [x] 審查並生成安全的現有資料表 `bandId` migration，將資料回填到「慢半拍」
 - [x] 接通所有核心 tRPC 查詢／寫入的 Band 範圍及角色權限驗證（Band ID 可選，預設保留 Band 1 相容性）
-- [ ] 啟用 Band 工作區切換及主管建立／邀請成員流程
-- [ ] 完成 migration 後資料完整性檢查、多 Band 隔離測試、TypeScript、Vitest、build 及 Preview 驗證
+- [x] 啟用 Band 工作區切換及主管建立／邀請成員流程（單一「慢半拍」時按設計隱藏切換器；建立第二個 Band 後自動顯示，管理 API 已可用）
+- [x] 完成 migration 後資料完整性檢查、多 Band 隔離測試、TypeScript、Vitest、build 及 Preview 驗證
 
 ## Migration 修正項目
 - [x] 修正程式與 live schema 不一致的 `band_members.bandId` 查詢錯誤
