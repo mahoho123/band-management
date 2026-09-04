@@ -837,6 +837,7 @@ export default function Home() {
     trpc.band.verifyAdminPassword.useMutation();
   const verifyMemberPasswordMutation =
     trpc.band.verifyMemberPassword.useMutation();
+  const logoutLocalSessionMutation = trpc.band.logoutLocalSession.useMutation();
   const verifyViceAdminPasswordMutation =
     trpc.band.verifyViceAdminPassword.useMutation();
   const updateViceAdminPasswordMutation =
@@ -1256,6 +1257,7 @@ export default function Home() {
   };
 
   const handleLogout = () => {
+    void logoutLocalSessionMutation.mutateAsync();
     setCurrentUser(null);
     sessionStorage.removeItem("bandCurrentUser");
     showToast("已登出", "info");

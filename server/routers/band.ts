@@ -1,10 +1,13 @@
 import { z } from "zod";
 import { publicProcedure, router } from "../_core/trpc";
+import { TRPCError } from "@trpc/server";
 import { getIO } from "../_core/socket";
 import { enqueueBackgroundTask } from "../_core/background";
 import { assertPasswordRateLimit, getRequestIdentifier } from "../_core/rateLimit";
 import { isHashedPassword, verifyPassword } from "../_core/passwords";
 import { getDb } from "../db";
+import { issueLocalMemberSession, issueLocalAdminSession, clearLocalMemberSession } from "../_core/localMemberSession";
+import { ENV } from "../_core/env";
 import { sendPushNotificationToAdmins } from "../_core/webpush";
 import { queueAttendanceNotification, AttendanceChange } from "../attendanceSideEffects";
 import { and, eq } from "drizzle-orm";
@@ -36,11 +39,36 @@ import {
   deletePushSubscription,
   updateAdminPushSubscription,
   getAdminPushSubscription,
+  getUserByOpenId,
 } from "../db";
+import { getBandMembership } from "../workspaceDb";
 
 // ============================================
 // HELPER FUNCTIONS
 // ============================================
+
+export async function resolveBandId(ctx: { user: any; localMember: { bandId: number } | null; localAdmin: { bandId: number; userId?: number } | null }, requestedBandId?: number) {
+  if (ctx.localMember) {
+    if (requestedBandId !== undefined && requestedBandId !== ctx.localMember.bandId) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "成員只可以查看所屬 Band" });
+    }
+    return ctx.localMember.bandId;
+  }
+  if (ctx.localAdmin || ctx.user) {
+    const bandId = requestedBandId ?? 1;
+    const membershipUserId = ctx.localAdmin?.userId ?? ctx.user?.id;
+    if (!membershipUserId) {
+      if (bandId !== 1) throw new TRPCError({ code: "FORBIDDEN", message: "主管尚未連結 Band membership" });
+      return bandId;
+    }
+    const membership = await getBandMembership(membershipUserId, bandId);
+    if (!membership) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "你沒有權限查看此 Band" });
+    }
+    return bandId;
+  }
+  return requestedBandId ?? 1;
+}
 
 /**
  * Format time object to 12-hour format string
@@ -78,6 +106,11 @@ function formatTimeObjectTo12(
 
 export const bandRouter = router({
   // System Data
+  logoutLocalSession: publicProcedure.mutation(({ ctx }) => {
+    clearLocalMemberSession(ctx.res, ctx.req);
+    return { success: true };
+  }),
+
   getSystemData: publicProcedure
     .input(z.object({ bandId: z.number().int().positive() }).optional())
     .query(async ({ input }) => {
@@ -120,6 +153,9 @@ export const bandRouter = router({
         return { success: false, message: "系統未初始化" };
       }
       if (verifyPassword(input.password, systemData.adminPassword)) {
+        const owner = ENV.ownerOpenId ? await getUserByOpenId(ENV.ownerOpenId) : null;
+        await issueLocalAdminSession(ctx.res, ctx.req, "主管", ctx.user?.id ?? owner?.id);
+
         return { success: true, message: "主管密碼驗證成功" };
       }
       return { success: false, message: "主管密碼錯誤" };
@@ -147,7 +183,8 @@ export const bandRouter = router({
     .input(z.object({ memberId: z.number(), password: z.string(), bandId: z.number().int().positive().optional() }))
     .mutation(async ({ input, ctx }) => {
       assertPasswordRateLimit(`member:${input.memberId}:${getRequestIdentifier(ctx.req)}`);
-      const members = await getBandMembers(input?.bandId ?? 1);
+      const bandId = input.bandId ?? 1;
+      const members = await getBandMembers(bandId);
       const member = members?.find((m) => m.id === input.memberId);
       if (!member) {
         return { success: false, message: "成員不存在" };
@@ -159,6 +196,12 @@ export const bandRouter = router({
         if (!isHashedPassword(member.password)) {
           await updateBandMember(input.memberId, { password: input.password }, input.bandId ?? 1);
         }
+        await issueLocalMemberSession(ctx.res, ctx.req, {
+          memberId: member.id,
+          bandId: member.bandId,
+          role: "member",
+          name: member.name,
+        });
         // Notify admin after the successful response path, without blocking login.
         enqueueBackgroundTask("member-login notification", async () => {
           const now = new Date();
@@ -188,14 +231,15 @@ export const bandRouter = router({
   // Members - 使用緩存，Data Shaping：移除密碼明文，改用 hasPassword 標誌
   getMembers: publicProcedure
     .input(z.object({ bandId: z.number().int().positive() }).optional())
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+    const bandId = await resolveBandId(ctx, input?.bandId);
     type MemberPublic = { id: number; name: string; instrument: string | null; color: string; hasPassword: boolean };
-    const useSharedCache = (input?.bandId ?? 1) === 1;
+    const useSharedCache = bandId === 1;
     const cached = useSharedCache ? getFromCache<MemberPublic[]>(CACHE_KEYS.MEMBERS) : undefined;
     if (cached) {
       return cached;
     }
-    const members = await getBandMembers(input?.bandId ?? 1);
+    const members = await getBandMembers(bandId);
     // Strip sensitive/redundant fields: replace password with hasPassword flag, remove createdAt/updatedAt
     const shaped = members.map(({ id, name, instrument, color, password }) => ({
       id,
@@ -220,9 +264,10 @@ export const bandRouter = router({
         bandId: z.number().int().positive().optional(),
       })
     )
-    .mutation(async ({ input }) => {
-      const { bandId, ...member } = input;
-      const result = await addBandMember(member, bandId ?? 1);
+    .mutation(async ({ input, ctx }) => {
+      const bandId = await resolveBandId(ctx, input.bandId);
+      const { bandId: _inputBandId, ...member } = input;
+      const result = await addBandMember(member, bandId);
       deleteFromCache(CACHE_KEYS.MEMBERS);
       const io = getIO();
       if (io) {
@@ -242,9 +287,10 @@ export const bandRouter = router({
         bandId: z.number().int().positive().optional(),
       })
     )
-    .mutation(async ({ input }) => {
-      const { id, bandId, ...data } = input;
-      const result = await updateBandMember(id, data, bandId ?? 1);
+    .mutation(async ({ input, ctx }) => {
+      const bandId = await resolveBandId(ctx, input.bandId);
+      const { id, bandId: _inputBandId, ...data } = input;
+      const result = await updateBandMember(id, data, bandId);
       deleteFromCache(CACHE_KEYS.MEMBERS);
       const io = getIO();
       if (io) {
@@ -255,8 +301,9 @@ export const bandRouter = router({
 
   deleteMember: publicProcedure
     .input(z.object({ id: z.number(), bandId: z.number().int().positive().optional() }))
-    .mutation(async ({ input }) => {
-      const result = await deleteBandMember(input.id, input.bandId ?? 1);
+    .mutation(async ({ input, ctx }) => {
+      const bandId = await resolveBandId(ctx, input.bandId);
+      const result = await deleteBandMember(input.id, bandId);
       deleteFromCache(CACHE_KEYS.MEMBERS);
       clearCacheByPrefix("attendance:");
       const io = getIO();
@@ -269,14 +316,15 @@ export const bandRouter = router({
   // Events - 使用緩存
   getEvents: publicProcedure
     .input(z.object({ bandId: z.number().int().positive() }).optional())
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+    const bandId = await resolveBandId(ctx, input?.bandId);
     type EventWithAttendance = BandEvent & { attendance: Record<string, string> };
-    const useSharedCache = (input?.bandId ?? 1) === 1;
+    const useSharedCache = bandId === 1;
     const cached = useSharedCache ? getFromCache<EventWithAttendance[]>(CACHE_KEYS.EVENTS) : undefined;
     if (cached) {
       return cached;
     }
-    const events = await getBandEvents(input?.bandId ?? 1);
+    const events = await getBandEvents(bandId);
     if (events && useSharedCache) {
       setInCache(CACHE_KEYS.EVENTS, events);
     }
@@ -306,9 +354,10 @@ export const bandRouter = router({
         bandId: z.number().int().positive().optional(),
       })
     )
-    .mutation(async ({ input }) => {
-      const { bandId, ...event } = input;
-      const result = await addBandEvent(event, bandId ?? 1);
+    .mutation(async ({ input, ctx }) => {
+      const bandId = await resolveBandId(ctx, input.bandId);
+      const { bandId: _inputBandId, ...event } = input;
+      const result = await addBandEvent(event, bandId);
       deleteFromCache(CACHE_KEYS.EVENTS);
       deleteFromCache(CACHE_KEYS.EVENTS_BY_DATE(input.date));
       const io = getIO();
@@ -358,9 +407,10 @@ export const bandRouter = router({
         bandId: z.number().int().positive().optional(),
       })
     )
-    .mutation(async ({ input }) => {
-      const { id, bandId, ...data } = input;
-      const result = await updateBandEvent(id, data, bandId ?? 1);
+    .mutation(async ({ input, ctx }) => {
+      const bandId = await resolveBandId(ctx, input.bandId);
+      const { id, bandId: _inputBandId, ...data } = input;
+      const result = await updateBandEvent(id, data, bandId);
       deleteFromCache(CACHE_KEYS.EVENTS);
       if (input.date) {
         deleteFromCache(CACHE_KEYS.EVENTS_BY_DATE(input.date));
@@ -387,8 +437,9 @@ export const bandRouter = router({
 
   deleteEvent: publicProcedure
     .input(z.object({ id: z.number(), bandId: z.number().int().positive().optional() }))
-    .mutation(async ({ input }) => {
-      const result = await deleteBandEvent(input.id, input.bandId ?? 1);
+    .mutation(async ({ input, ctx }) => {
+      const bandId = await resolveBandId(ctx, input.bandId);
+      const result = await deleteBandEvent(input.id, bandId);
       // 清除 EVENTS cache 和相關的 attendance cache
       deleteFromCache(CACHE_KEYS.EVENTS);
       clearCacheByPrefix("attendance:");
@@ -410,12 +461,13 @@ export const bandRouter = router({
   // Attendance - 使用緩存
   getAttendance: publicProcedure
     .input(z.object({ eventId: z.number(), bandId: z.number().int().positive().optional() }))
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      const bandId = await resolveBandId(ctx, input.bandId);
       const cached = getFromCache(CACHE_KEYS.ATTENDANCE(input.eventId));
       if (cached) {
         return cached;
       }
-      const attendance = await getBandAttendance(input.eventId, input.bandId ?? 1);
+      const attendance = await getBandAttendance(input.eventId, bandId);
       if (attendance) {
         setInCache(CACHE_KEYS.ATTENDANCE(input.eventId), attendance);
       }
@@ -431,8 +483,9 @@ export const bandRouter = router({
         bandId: z.number().int().positive().optional(),
       })
     )
-    .mutation(async ({ input }) => {
-      const result = await setAttendance(input.eventId, input.memberId, input.status, input.bandId ?? 1);
+    .mutation(async ({ input, ctx }) => {
+      const bandId = await resolveBandId(ctx, input.bandId);
+      const result = await setAttendance(input.eventId, input.memberId, input.status, bandId);
       // Clear both attendance cache AND events cache so the next getEvents refetch
       // returns the updated attendance data instead of stale cached data.
       deleteFromCache(CACHE_KEYS.ATTENDANCE(input.eventId));
@@ -457,8 +510,9 @@ export const bandRouter = router({
       memberId: z.number(),
       status: z.enum(["going", "not-going", "unknown"]),
     })).min(1).max(100), bandId: z.number().int().positive().optional() }))
-    .mutation(async ({ input }) => {
-      await Promise.all(input.changes.map(change => setAttendance(change.eventId, change.memberId, change.status, input.bandId ?? 1)));
+    .mutation(async ({ input, ctx }) => {
+      const bandId = await resolveBandId(ctx, input.bandId);
+      await Promise.all(input.changes.map(change => setAttendance(change.eventId, change.memberId, change.status, bandId)));
       const eventIds = [...new Set(input.changes.map(change => change.eventId))];
       const io = getIO();
       for (const eventId of eventIds) {
@@ -479,8 +533,9 @@ export const bandRouter = router({
   // Notifications
   getUnreadNotifications: publicProcedure
     .input(z.object({ bandId: z.number().int().positive() }).optional())
-    .query(async ({ input }) => {
-    return await getUnreadNotifications(input?.bandId ?? 1);
+    .query(async ({ input, ctx }) => {
+    const bandId = await resolveBandId(ctx, input?.bandId);
+    return await getUnreadNotifications(bandId);
   }),
 
   acknowledgeNotification: publicProcedure
@@ -505,8 +560,9 @@ export const bandRouter = router({
   // Holidays - 使用緩存
   getHolidays: publicProcedure
     .input(z.object({ bandId: z.number().int().positive() }).optional())
-    .query(async ({ input }) => {
-    const useSharedCache = (input?.bandId ?? 1) === 1;
+    .query(async ({ input, ctx }) => {
+    const bandId = await resolveBandId(ctx, input?.bandId);
+    const useSharedCache = bandId === 1;
     const cached = useSharedCache ? getFromCache<BandHoliday[]>(CACHE_KEYS.HOLIDAYS) : undefined;
     if (cached) {
       return cached;

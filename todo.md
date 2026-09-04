@@ -1040,3 +1040,9 @@
 - [x] 修正程式與 live schema 不一致的 `band_members.bandId` 查詢錯誤
 - [x] 先建立「慢半拍」預設 Band，再按依賴順序回填各核心資料表
 - [x] 驗證 migration 不會破壞現有單 Band 登入、活動及通知資料
+
+## 新需求 (152) - 嚴格 Band 成員可見範圍及主管多 Band 權限
+- [x] 將普通成員限制為只查看自己所屬 Band 的成員、活動、出席及通知
+- [x] 讓主管／副主席只可查看其有 membership 的多個 Band，並可逐隊切換
+- [x] 將成員登入身份與 Band membership 正確連結，禁止只靠前端 bandId 越權
+- [x] 新增跨 Band 越權回歸測試，並在 Preview 驗證成員及主管視圖
