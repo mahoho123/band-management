@@ -1603,10 +1603,6 @@ export default function Home() {
     status: "going" | "not-going" | "unknown"
   ) => {
     if (currentUser?.role !== "member") return;
-    const event = eventsQuery.data?.find(e => e.id === eventId);
-    if (!event) return;
-    if (isEventEnded(event))
-      return showToast("此活動已結束，不能修改出席狀態", "error");
     submitAttendanceChange(eventId, currentUser.id as number, status);
   };
 
@@ -1619,19 +1615,11 @@ export default function Home() {
     if (currentUser?.role === "vice-admin") {
       return showToast("副主席不能修改出席狀態", "error");
     }
-    const event = eventsQuery.data?.find(e => e.id === eventId);
-    if (!event) return;
-    if (isEventEnded(event))
-      return showToast("此活動已結束，不能修改出席狀態", "error");
     submitAttendanceChange(eventId, memberId, status);
   };
 
   const handleSetAttendance = (status: "going" | "not-going" | "unknown") => {
     if (!selectedEventId || currentUser?.role !== "member") return;
-    const event = eventsQuery.data?.find(e => e.id === selectedEventId);
-    if (!event) return;
-    if (isEventEnded(event))
-      return showToast("此活動已結束，不能修改出席狀態", "error");
     submitAttendanceChange(selectedEventId, currentUser.id as number, status);
   };
 
