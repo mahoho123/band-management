@@ -2276,7 +2276,7 @@ export default function Home() {
             <div className="text-center mb-3 sm:mb-4 md:mb-6">
               <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 mx-auto mb-2 sm:mb-3 md:mb-4">
                 <img
-                  src="/manus-storage/band-management-logo_6e85896f.png"
+                  src="/band-logo.svg"
                   alt="Band 隊管理系統 Logo"
                   className="w-full h-full object-contain"
                 />
@@ -3882,7 +3882,7 @@ export default function Home() {
             <div className="flex items-center gap-2 sm:gap-3 min-w-0 w-full sm:w-auto">
               <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 flex-shrink-0">
                 <img
-                  src="/manus-storage/band-management-logo_6e85896f.png"
+                  src="/band-logo.svg"
                   alt="Band 隊管理系統 Logo"
                   className="w-full h-full object-contain"
                 />
