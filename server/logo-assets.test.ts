@@ -25,6 +25,7 @@ const logoSvg = readFileSync(resolve(root, "client/public/band-logo.svg"), "utf8
     expect(statSync(pngPath).size).toBeGreaterThan(2_000);
     expect(serviceWorkerSource).toContain("/logo.png");
     expect(logoSvg).toContain("<svg");
-    expect(logoSvg).toContain("Band 隊管理系統 Logo");
+    expect(logoSvg).toContain("Band 隊管理系統三角形 Logo");
+    expect(logoSvg).toContain("F4D03F");
   });
 });

@@ -1,15 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
-  <title id="title">Band 隊管理系統 Logo</title>
-  <desc id="desc">金黃色圓角方形內的深藍色音符與樂譜線條</desc>
-  <defs>
-    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#F8D84A"/>
-      <stop offset="1" stop-color="#D59A16"/>
-    </linearGradient>
-  </defs>
-  <rect x="8" y="8" width="240" height="240" rx="58" fill="url(#gold)"/>
-  <path d="M68 82h112M68 116h112M68 150h112" fill="none" stroke="#172033" stroke-width="12" stroke-linecap="round" opacity=".9"/>
-  <path d="M154 58v106.5c-8.5-5.8-19.4-9.2-31-9.2-22.4 0-40.5 12.5-40.5 27.9s18.1 27.9 40.5 27.9 40.5-12.5 40.5-27.9V101h37V58z" fill="#172033"/>
-  <circle cx="123" cy="183" r="15" fill="#F8D84A" opacity=".95"/>
-  <circle cx="182" cy="183" r="15" fill="#F8D84A" opacity=".95"/>
+  <title id="title">Band 隊管理系統三角形 Logo</title>
+  <desc id="desc">黃色三角形警告牌，中央有深色感嘆號</desc>
+  <path d="M128 18 238 222c7 13-2 28-17 28H35c-15 0-24-15-17-28L110 18c8-14 28-14 36 0Z" fill="#F4D03F" stroke="#5B4300" stroke-width="12" stroke-linejoin="round"/>
+  <path d="M128 73v82" fill="none" stroke="#3D3000" stroke-width="20" stroke-linecap="round"/>
+  <circle cx="128" cy="193" r="13" fill="#3D3000"/>
+  <path d="M128 30 230 220c3 6-1 12-9 12H35c-8 0-12-6-9-12L128 30Z" fill="none" stroke="#FFF1A8" stroke-width="4" opacity=".9"/>
 </svg>
