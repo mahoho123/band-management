@@ -9,23 +9,23 @@ const serviceWorkerSource = readFileSync(
   resolve(root, "client/public/service-worker.js"),
   "utf8",
 );
-const logoSvg = readFileSync(resolve(root, "client/public/band-logo.svg"), "utf8");
+const logoPath = resolve(root, "client/public/logo.png");
 
- describe("brand logo assets", () => {
+describe("brand logo assets", () => {
   it("uses local logo assets in the app and metadata", () => {
-    expect(homeSource).toContain('src="/band-logo.svg"');
+    expect(homeSource).toContain('src="/logo.png"');
+    expect(homeSource).toContain('alt="慢半拍 Logo"');
     expect(homeSource).not.toContain("manus-storage/band-management-logo");
-    expect(indexSource).toContain('href="/band-logo.svg"');
     expect(indexSource).toContain('href="/logo.png"');
   });
 
   it("keeps a valid local logo for notifications and service worker fallbacks", () => {
-    const pngPath = resolve(root, "client/public/logo.png");
-    expect(existsSync(pngPath)).toBe(true);
-    expect(statSync(pngPath).size).toBeGreaterThan(2_000);
+    expect(existsSync(logoPath)).toBe(true);
+    expect(statSync(logoPath).size).toBeGreaterThan(50_000);
     expect(serviceWorkerSource).toContain("/logo.png");
-    expect(logoSvg).toContain("<svg");
-    expect(logoSvg).toContain("Band 隊管理系統三角形 Logo");
-    expect(logoSvg).toContain("F4D03F");
+    const logoBytes = readFileSync(logoPath);
+    expect(logoBytes.subarray(0, 8).toString("hex")).toBe("89504e470d0a1a0a");
+    expect(logoBytes.readUInt32BE(16)).toBe(512);
+    expect(logoBytes.readUInt32BE(20)).toBe(512);
   });
 });

@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
-  <title id="title">Band 隊管理系統三角形 Logo</title>
-  <desc id="desc">黃色三角形警告牌，中央有深色感嘆號</desc>
-  <path d="M128 18 238 222c7 13-2 28-17 28H35c-15 0-24-15-17-28L110 18c8-14 28-14 36 0Z" fill="#F4D03F" stroke="#5B4300" stroke-width="12" stroke-linejoin="round"/>
-  <path d="M128 73v82" fill="none" stroke="#3D3000" stroke-width="20" stroke-linecap="round"/>
-  <circle cx="128" cy="193" r="13" fill="#3D3000"/>
-  <path d="M128 30 230 220c3 6-1 12-9 12H35c-8 0-12-6-9-12L128 30Z" fill="none" stroke="#FFF1A8" stroke-width="4" opacity=".9"/>
-</svg>
